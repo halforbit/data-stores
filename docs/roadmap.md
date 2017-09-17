@@ -15,3 +15,7 @@ Here are some things Data Stores might do in the future:
     - MongoDB
   - Delimited Data Files (CSV, TSV, etc.)
   - Relational Data (e.g. SQL Server)
+  - Compression
+    - 7-Zip
+    - ZIP File
+  - Data Payload Encryption
