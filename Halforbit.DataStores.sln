@@ -56,7 +56,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8E1EAFB1-0B21-46D1-B941-19A4B04707CE}"
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
-		roadmap.md = roadmap.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D769C34E-BD98-4FE5-8EBA-309AABF6413D}"
+	ProjectSection(SolutionItems) = preProject
+		docs\roadmap.md = docs\roadmap.md
 	EndProjectSection
 EndProject
 Global
@@ -147,6 +151,7 @@ Global
 		{792BA785-7D34-4459-A88D-5ED93C7AB64F} = {B71B7EEE-6F99-492F-9E41-A8908F51A52D}
 		{5A34A2B2-ED88-49BC-B14A-4FAC2A71D7B7} = {0714500D-AEBD-408A-A9AC-C2F4B8D6B223}
 		{61702BEF-500C-4842-8DE6-E26D2342575F} = {0714500D-AEBD-408A-A9AC-C2F4B8D6B223}
+		{D769C34E-BD98-4FE5-8EBA-309AABF6413D} = {8E1EAFB1-0B21-46D1-B941-19A4B04707CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5BC1191-5358-4BC2-8427-D1482D49ED83}
