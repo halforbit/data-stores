@@ -11,11 +11,14 @@ Here are some things Data Stores might do in the future:
     - FTP
     - Microsoft OneDrive
   - Document Stores
-    - Postgres+JSON
+    - Postgres+JSON via Marten
     - MongoDB
-  - Delimited Data Files (CSV, TSV, etc.)
-  - Relational Data (e.g. SQL Server)
-  - Compression
-    - 7-Zip
-    - ZIP File
-  - Data Payload Encryption
+- Compression
+  - 7-Zip
+  - ZIP File
+- Delimited Data Files (CSV, TSV, etc.)
+- Relational Data (e.g. SQL Server)
+- 'Automagic' APIs with ODATA 
+- Unified Explorer app for all data stores
+- Cross-Service Data Transition Tools (e.g. for copying from one data source to another)
+- Data Payload Encryption
