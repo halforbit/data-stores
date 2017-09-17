@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.4</TargetFramework>
+    <Authors>Halforbit</Authors>
+    <Company>Halforbit</Company>
+    <Product>Halforbit.DataStores.FileStores.Serialization.Bond</Product>
+    <Description>A DataStore Serialization implementation over Bond.</Description>
+    <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
+    <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bond.CSharp" Version="6.0.0" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.0" />
+    <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
+  </ItemGroup>
+
+</Project>

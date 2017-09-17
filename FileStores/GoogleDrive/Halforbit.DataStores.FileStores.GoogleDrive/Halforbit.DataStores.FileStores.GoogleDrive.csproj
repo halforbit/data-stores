@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Halforbit</Authors>
+    <Company>Halforbit</Company>
+    <Description>A DataStore FileStore implementation over Google Drive.</Description>
+    <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
+    <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Facets\ServiceAccountEmailAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="3.3.11" />
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.29.1.981" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
+  </ItemGroup>
+
+</Project>

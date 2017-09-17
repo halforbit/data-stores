@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <Authors>Halforbit</Authors>
+    <Company>Halforbit</Company>
+    <Description>A data access pattern that transcends the implementation details of any given data store.</Description>
+    <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
+    <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="FileStores\LocalStorage\Attributes\" />
+    <Folder Include="FileStores\LocalStorage\Implementation\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Halforbit.Facets" Version="1.0.0" />
+    <PackageReference Include="Halforbit.ObjectTools" Version="1.0.0" />
+  </ItemGroup>
+
+</Project>

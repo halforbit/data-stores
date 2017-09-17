@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CompareNETObjects" Version="3.9.0" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170425-07" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <UserSecretsId>Halforbit.DataStores</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileStores\Serialization\Bond\Halforbit.DataStores.FileStores.Serialization.Bond\Halforbit.DataStores.FileStores.Serialization.Bond.csproj" />
+    <ProjectReference Include="..\FileStores\Serialization\Json\Halforbit.DataStores.FileStores.Serialization.Json\Halforbit.DataStores.FileStores.Serialization.Json.csproj" />
+    <ProjectReference Include="..\FileStores\Serialization\Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf.csproj" />
+    <ProjectReference Include="..\FileStores\Serialization\Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml.csproj" />
+    <ProjectReference Include="..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
+  </ItemGroup>
+
+</Project>
