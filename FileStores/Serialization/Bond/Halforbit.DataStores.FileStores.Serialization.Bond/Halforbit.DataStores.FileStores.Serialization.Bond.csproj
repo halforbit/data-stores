@@ -9,16 +9,14 @@
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Bond.CSharp" Version="6.0.0" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.0" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.0" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
   </ItemGroup>
 
 </Project>

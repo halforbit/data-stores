@@ -21,6 +21,7 @@ Here are some things Data Stores might do in the future:
   - ZIP File
 - Delimited Data Files (CSV, TSV, etc.)
 - Relational Data (e.g. SQL Server)
+- Trigger-style code hooks on data store mutate operations
 - 'Automagic' APIs with ODATA 
 - Unified Explorer app for all data stores
 - Cross-Service Data Transition Tools (e.g. for copying from one data store to another)

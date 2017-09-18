@@ -8,15 +8,13 @@
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.0" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.0" />
     <PackageReference Include="protobuf-net" Version="2.3.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
   </ItemGroup>
 
 </Project>
