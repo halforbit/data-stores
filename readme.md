@@ -4,7 +4,7 @@
 
 **Dive right in with the [Quick Start](docs/quick-start.md)**
 
-Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** protocols. More is planned in the [Roadmap](docs/roadmap.md).
+Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** protocols. More is planned in the [Roadmap](docs/roadmap.md).
 
 In the simplest form, Data Stores lets you use a file folder like a **NoSQL** data store. This folder can be stored on local disk, or one of many cloud file storage services. In this case, it could even be called a **NoDB** data store, since it doesn't require the installation or configuration of a database engine at all.
 
@@ -14,7 +14,7 @@ You can easily describe and create a **context** that accesses data on many stor
 
 ## What Data Stores Can I Use?
 
-Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Blob Storage**, and **Google Drive**.
+Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **Amazon S3**, and **Google Drive**.
 
 Serialization integrations are provided for **JSON**, **YAML**, **XML**, as well as super-efficient **Bond** and **Protobuf** protocols. Note that some serializers have special requirements for data classes to be serialized.
 
