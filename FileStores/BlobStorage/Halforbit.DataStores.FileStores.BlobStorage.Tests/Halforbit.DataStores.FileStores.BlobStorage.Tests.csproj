@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.0" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
@@ -21,7 +22,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\..\Halforbit.DataStores.Tests\Halforbit.DataStores.Tests.csproj" />
-    <ProjectReference Include="..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
     <ProjectReference Include="..\Halforbit.DataStores.FileStores.BlobStorage\Halforbit.DataStores.FileStores.BlobStorage.csproj" />
   </ItemGroup>
 
