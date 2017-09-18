@@ -11,7 +11,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 {
     public class LocalFileStoreProtobufTests : UniversalIntegrationTest
     {
-        [Fact, Trait("Type", "Integration")]
+        [Fact, Trait("Type", "Integration"), Trait("Type", "RunOnBuild")]
         public void TestLocalFileStore_Protobuf()
         {
             InitializeLocalStorage();

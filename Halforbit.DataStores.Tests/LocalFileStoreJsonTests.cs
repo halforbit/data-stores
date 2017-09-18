@@ -12,7 +12,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 {
     public class LocalFileStoreJsonTests : UniversalIntegrationTest
     {
-        [Fact, Trait("Type", "Integration")]
+        [Fact, Trait("Type", "Integration"), Trait("Type", "RunOnBuild")]
         public void TestLocalFileStore_Json()
         {
             InitializeLocalStorage();
@@ -46,7 +46,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
                 testValueB);
         }
 
-        [Fact, Trait("Type", "Integration")]
+        [Fact, Trait("Type", "Integration"), Trait("Type", "RunOnBuild")]
         public void TestLocalFileStore_GZip_Json()
         {
             var rootPath = Path.Combine(

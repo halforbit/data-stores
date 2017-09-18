@@ -10,7 +10,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 {
     public class LocalFileStoreYamlTests : UniversalIntegrationTest
     {
-        [Fact, Trait("Type", "Integration")]
+        [Fact, Trait("Type", "Integration"), Trait("Type", "RunOnBuild")]
         public void TestLocalFileStore_Yaml()
         {
             InitializeLocalStorage();

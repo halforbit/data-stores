@@ -11,7 +11,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 {
     public class LocalFileStoreBondTests : UniversalIntegrationTest
     {
-        [Fact, Trait("Type", "Integration")]
+        [Fact, Trait("Type", "Integration"), Trait("Type", "RunOnBuild")]
         public void TestLocalFileStore_BondSimpleBinary()
         {
             InitializeLocalStorage();
@@ -51,7 +51,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
                 testValueB);
         }
 
-        [Fact, Trait("Type", "Integration")]
+        [Fact, Trait("Type", "Integration"), Trait("Type", "RunOnBuild")]
         public void TestLocalFileStore_BondSimpleXml()
         {
             InitializeLocalStorage();
