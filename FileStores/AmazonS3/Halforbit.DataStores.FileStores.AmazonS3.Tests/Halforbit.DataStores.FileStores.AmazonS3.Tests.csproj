@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Halforbit.DataStores.Tests\Halforbit.DataStores.Tests.csproj" />
     <ProjectReference Include="..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
-    <ProjectReference Include="..\..\Serialization\Json\Halforbit.DataStores.FileStores.Serialization.Json\Halforbit.DataStores.FileStores.Serialization.Json.csproj" />
     <ProjectReference Include="..\Halforbit.DataStores.FileStores.AmazonS3\Halforbit.DataStores.FileStores.AmazonS3.csproj" />
   </ItemGroup>
 

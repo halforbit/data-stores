@@ -3,7 +3,6 @@ using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
-using Microsoft.Extensions.Configuration;
 using System;
 using Xunit;
 
