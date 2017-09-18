@@ -1,6 +1,6 @@
 # Quick Start
 
-Let's store and retrieve some data using local storage. 
+Let's store and retrieve some data using local storage and JSON. 
 
 Everything you see here can be done by referencing the `Halforbit.DataStores` nuget package.
 
@@ -54,7 +54,7 @@ The attributes that decorate the data store property are **facets** that describ
 - The `RootPath` facet means we want the data store to write to a local folder called `data`.
 - The `JsonSerialization` facet indicates that we want the data to be serialized using JSON.
 - The `FileExtensions` facet indicates that we want our data files to end with `.json`.
-- The `KeyMap` facet will give us one file per `Person`, named with their `PersonId` guid, and in a subfolder called `persons`, e.g.: 
+- The `KeyMap` facet will give us one file per `Person`, in a subfolder called `persons`, named with their `PersonId` guid, and e.g.: 
     ```
     data/persons/0e464495e20544e38653327eb749eec8.json
     ```

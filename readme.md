@@ -6,7 +6,7 @@
 
 Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** protocols. More is planned in the [Roadmap](docs/roadmap.md).
 
-In the simplest form, Data Stores lets you use a file folder like a **NoSQL** data store. In this case, it could even be called a **NoDB** data store, since it doesn't require the installation or configuration of a database engine at all. This folder can be stored on local disk, or one of many cloud file storage services.
+In the simplest form, Data Stores lets you use a file folder like a **NoSQL** data store. This folder can be stored on local disk, or one of many cloud file storage services. In this case, it could even be called a **NoDB** data store, since it doesn't require the installation or configuration of a database engine at all.
 
 In the most robust form, Data Stores lets you integrate to many different kinds of data storage services, such as document databases. You can use the advanced indexing and querying abilities of these stores, while making code that is indifferent to their implementation details. 
 
