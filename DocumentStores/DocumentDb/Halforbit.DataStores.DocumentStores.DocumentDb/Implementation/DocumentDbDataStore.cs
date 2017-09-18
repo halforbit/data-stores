@@ -1,11 +1,11 @@
-﻿using Halforbit.DataStores.Interface;
+﻿using Halforbit.DataStores.DocumentStores.Interface;
+using Halforbit.DataStores.Interface;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +17,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 {
     public class DocumentDbDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
+        where TValue : IDocument
     {
         readonly DocumentClient _documentClient;
 
@@ -25,8 +26,6 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         readonly string _collection;
 
         readonly StringMap<TKey> _keyMap;
-
-        readonly string _invariantIdPrefix;
 
         public DocumentDbDataStore(
             string endpoint,
@@ -54,13 +53,11 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             TKey key, 
             TValue value)
         {
+            value.Id = GetDocumentId(key);
+
             try
             {
-                dynamic jObject = JObject.FromObject(value);
-
-                jObject.id = GetDocumentId(key);
-
-                await _documentClient.CreateDocumentAsync(GetCollectionUri(), jObject);
+                await _documentClient.CreateDocumentAsync(GetCollectionUri(), value);
 
                 return true;
             }
@@ -145,33 +142,32 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
                     allowPartialMap: true)
                 .Replace('/', '|');
 
-            var results = new List<JObject>();
-
-            IQueryable<JObject> queryable = _documentClient
-                .CreateDocumentQuery<JObject>(
+            IQueryable<TValue> queryable = _documentClient
+                .CreateDocumentQuery<TValue>(
                     GetCollectionUri(),
-                    $"SELECT * FROM c WHERE STARTSWITH(c.id, \"{keyPrefix}\")",
                     new FeedOptions
                     {
                         MaxItemCount = -1,
 
                         EnableCrossPartitionQuery = true
-                    });
+                    })
+                .Where(v => v.Id.StartsWith(keyPrefix));
 
             var documentQuery = queryable.AsDocumentQuery();
 
+            var results = new List<TValue>();
+
             while (documentQuery.HasMoreResults)
             {
-                foreach (var result in documentQuery.ExecuteNextAsync<JObject>().Result)
+                foreach (var result in documentQuery.ExecuteNextAsync<TValue>().Result)
                 {
                     results.Add(result);
                 }
             }
 
-            var keyValues = results
-                .Select(o => new KeyValuePair<TKey, TValue>(
-                    _keyMap.Map(((string)o["id"]).Replace("|", "/")),
-                    o.ToObject<TValue>()));
+            var keyValues = results.Select(o => new KeyValuePair<TKey, TValue>(
+                _keyMap.Map((o.Id).Replace("|", "/")),
+                o));
 
             var filter = predicate.Compile();
 
@@ -194,13 +190,11 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             try
             {
-                dynamic jObject = JObject.FromObject(value);
-
-                jObject.id = GetDocumentId(key);
+                value.Id = GetDocumentId(key);
 
                 await _documentClient.ReplaceDocumentAsync(
                     GetDocumentUri(documentId), 
-                    jObject);
+                    value);
 
                 return true;
             }
@@ -219,13 +213,9 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             TKey key, 
             TValue value)
         {
-            var documentId = GetDocumentId(key);
+            value.Id = GetDocumentId(key);
 
-            dynamic jObject = JObject.FromObject(value);
-
-            jObject.id = GetDocumentId(key);
-
-            await _documentClient.UpsertDocumentAsync(GetCollectionUri(), jObject);
+            await _documentClient.UpsertDocumentAsync(GetCollectionUri(), value);
 
             return true;
         }
@@ -233,6 +223,26 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         public Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator)
         {
             throw new NotImplementedException();
+        }
+
+        public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+        {
+            var keyPrefix = _keyMap
+                .Map(
+                    partialKey,
+                    allowPartialMap: true)
+                .Replace('/', '|');
+
+            return _documentClient
+                .CreateDocumentQuery<TValue>(
+                    GetCollectionUri(),
+                    new FeedOptions
+                    {
+                        MaxItemCount = -1,
+
+                        EnableCrossPartitionQuery = true
+                    })
+                .Where(e => e.Id.StartsWith(keyPrefix));
         }
 
         async Task CreateDatabaseIfNotExistsAsync()

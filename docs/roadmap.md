@@ -5,11 +5,14 @@ If any of these are urgent to you, or if you have a feature you'd like that isn'
 Here are some things Data Stores might do in the future:
 
 - Data Stores
-  - Azure Table Storage
-  - Azure CosmosDB Tables
+  - Table Stores 
+    - Azure Table Storage
+    - Azure CosmosDB Tables
   - File Stores
     - FTP
     - Microsoft OneDrive
+    - iCloud
+    - Dropbox
   - Document Stores
     - Postgres+JSON via Marten
     - MongoDB
@@ -20,5 +23,6 @@ Here are some things Data Stores might do in the future:
 - Relational Data (e.g. SQL Server)
 - 'Automagic' APIs with ODATA 
 - Unified Explorer app for all data stores
-- Cross-Service Data Transition Tools (e.g. for copying from one data source to another)
+- Cross-Service Data Transition Tools (e.g. for copying from one data store to another)
 - Data Payload Encryption
+- Linqpad Integration

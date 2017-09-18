@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -20,11 +21,13 @@ namespace Halforbit.DataStores.Interface
         Task<IEnumerable<TValue>> ListValues(Expression<Func<TKey, bool>> predicate = null);
 
         Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(Expression<Func<TKey, bool>> predicate = null);
-
+        
         Task<bool> Update(TKey key, TValue value);
 
         Task<bool> Upsert(TKey key, TValue value);
 
         Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator);
+
+        IQueryable<TValue> Query(TKey partialKey = default(TKey));
     }
 }

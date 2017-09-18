@@ -1,8 +1,10 @@
 using Halforbit.DataStores.DocumentStores.DocumentDb.Implementation;
+using Halforbit.DataStores.DocumentStores.Model;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
@@ -33,6 +35,27 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
                     collection: GetConfig("Collection"),
                     keyMap: "test-values/{AccountId}");
 
+                var values = new[]
+                {
+                    new TestValue(Guid.NewGuid(), "abc"),
+
+                    new TestValue(Guid.NewGuid(), "bcd"),
+
+                    new TestValue(Guid.NewGuid(), "cde")
+                };
+
+                foreach(var value in values)
+                {
+                    dataStore.Create(new TestValue.Key(value.AccountId), value).Wait();
+                }
+
+                var result = dataStore
+                    .Query();
+
+                var result2 = result
+                    .Where(v => v.Message.Contains("b"))
+                    .ToList();
+
                 TestDataStore(
                     dataStore,
                     testKey,
@@ -51,7 +74,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
         }
     }
 
-    public class TestValue
+    public class TestValue : Document
     {
         public TestValue(
             Guid accountId = default(Guid),

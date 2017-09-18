@@ -2,6 +2,7 @@
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -29,7 +30,12 @@ namespace Halforbit.DataStores.Tests
             TValue testValueB)
             where TKey : ITestKey
         {
-            var compareLogic = new CompareLogic();
+            var compareConfig = new ComparisonConfig
+            {
+                MembersToIgnore = new List<string> { "Id" }
+            };
+
+            var compareLogic = new CompareLogic(compareConfig);
 
             Action<object, object> assertAreEqual = (a, b) => Assert.True(compareLogic.Compare(a, b).AreEqual);
 

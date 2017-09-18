@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.4</TargetFramework>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <Authors>Halforbit</Authors>
     <Company>Halforbit</Company>
     <Description>A DataStore FileStore implementation over Amazon S3.</Description>

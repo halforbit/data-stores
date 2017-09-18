@@ -203,6 +203,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
             throw new Exception("Failed after all attempts to conditionally upsert.");
         }
 
+        public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+        {
+            throw new NotImplementedException();
+        }
+
         async Task<byte[]> GetContents(TValue value)
         {
             var contents = await _serializer.Serialize(value);
