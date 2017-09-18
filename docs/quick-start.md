@@ -1,6 +1,8 @@
 # Quick Start
 
-Let's store and retrieve some data using local storage.
+Let's store and retrieve some data using local storage. 
+
+Everything you see here can be done by referencing the `Halforbit.DataStores` nuget package.
 
 First, we will define the data we want to store as a simple **data class**:
 
@@ -22,7 +24,7 @@ public class Person
 }
 ```
 
-Next we declare a **data context** interface with a **data store** property, and **facet** attributes describing what we want:
+Next we declare a **data context** interface with a **data store** property, and **facet** attributes describing what we want from our data store:
 
 ```cs
 public interface ITestDataContext : IContext
@@ -45,7 +47,7 @@ dataContext.Persons.Create(person.PersonId, person).Wait();
 var retrievedPerson = dataContext.Persons.Get(person.PersonId).Result;
 ```
 
-Note that most `IDataStore<,>` methods are Task-oriented, to allow async behavior, so don't forget to use `await`, `.Result`, `.Wait()`, etc. as appropriate.
+Note that most `IDataStore<,>` methods are Task-oriented to allow async behavior, so don't forget to use `await`, `.Result`, `.Wait()`, etc. as appropriate.
 
 The attributes that decorate the data store property are **facets** that describe aspects of our data store:
 
