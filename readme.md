@@ -8,7 +8,7 @@ Pluggable integrations are provided to many popular storage systems and techniqu
 
 Data Stores lets you easily define a **data context** that describes any number of **data stores**. These data stores can exist on simple file storage, or on any other supported data store, such as a document database.
 
-In the simplest form, Data Stores lets you use a file folder like a **NoSQL** (in fact **NoDB**) data store. This folder can be stored on local disk, or one of many cloud file storage services. These file-based data store implementations are called **file stores**.
+In the simplest form, Data Stores lets you use a file folder like a **NoSQL** (in fact **NoDB**) data store. This folder can be stored on local disk, or one of many cloud file storage services. These file-based data store implementations are called **[file stores](docs/file-stores.md)**.
 
 In the most robust form, Data Stores lets you integrate to many different kinds of data storage services, such as document databases. You can use the advanced indexing and querying abilities of these stores, while making code that is indifferent to their implementation details. 
 
@@ -63,7 +63,7 @@ public interface ITestDataContext : IContext
 }
 ```
 
-This is an interface, with a `IDataStore<,>` property for each data store, decorated with **facet** attributes. These facets describe aspects of our data store. In this example:
+This is an interface, with an `IDataStore<,>` property for each data store, decorated with **facet** attributes. These facets describe aspects of our data store. In this example:
 
 - `RootPath` declares that we want the data store to write to a local folder called `data`.
 - `JsonSerialization` declares that we want the data to be serialized using JSON.
@@ -116,7 +116,7 @@ Optional compression via **GZIP** is provided as well. This can make a 10:1 diff
 
 Data Stores is available as a constellation of Nuget packages, broken up primarily by third party dependency requirements.
 
-The `Halforbit.DataStores` package is always required, and includes Local Storage, JSON, and GZIP capabilities. 
+The `Halforbit.DataStores` package is required, and includes Local Storage, JSON, and GZIP capabilities. 
 
 Include any other packages with the functionality you desire:
 
