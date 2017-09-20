@@ -15,7 +15,7 @@ Pros:
   - Database-like functionality, with no database server required.
   - The underlying file storage service deals with write concurrency, atomicity, and deciding e.g. that the last one in wins. Optimistic concurrency is provided where supported.
   - Operates against very cheap persistence such as local storage, Azure Blob Storage, Amazon S3, etc.
-  - Probably the simplest, cheapest option for storing entities with a count of < 1000.
+  - Probably the simplest, cheapest option for storing entities where deep querying is not required.
 
 Cons: 
 

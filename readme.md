@@ -12,7 +12,7 @@ In the simplest form, Data Stores lets you use a file folder like a **NoSQL** (i
 
 In the most robust form, Data Stores lets you integrate to many different kinds of data storage services, such as document databases. You can use the advanced indexing and querying abilities of these stores, while making code that is indifferent to their implementation details. 
 
-## How Does It Work?
+## A Simple Example
 
 ### Step 0: Define Data Classes and Key Types
 
@@ -95,7 +95,7 @@ Most `IDataStore<,>` methods are Task-oriented to allow async behavior, so use `
 
 Note that the consuming code here doesn't know or care too much about which data store technology is used. This code could operate against anything from a local folder to a database server. The `IDataStore<,>` interface abstracts these details away. 
 
-### Learn More about:
+## Learn More
 
 - **[Keying in Data Stores](docs/keying.md)**
 
