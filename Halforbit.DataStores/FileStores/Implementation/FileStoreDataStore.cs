@@ -192,7 +192,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 if(attemptsLeft < 100)
                 {
-                    Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
+                    //Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
                 }
                 
                 Task.Delay(100).Wait();

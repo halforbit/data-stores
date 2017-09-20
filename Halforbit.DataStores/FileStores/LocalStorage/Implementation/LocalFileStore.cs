@@ -160,9 +160,9 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Implementation
                         {
                             if (interim <= 2048)
                             {
-                                Console.WriteLine("Failed to lock " + localPath);
+                                //Console.WriteLine("Failed to lock " + localPath);
 
-                                Console.WriteLine("Waiting " + interim);
+                                //Console.WriteLine("Waiting " + interim);
 
                                 Task.Delay(interim).Wait();
 
