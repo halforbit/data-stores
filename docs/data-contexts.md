@@ -164,4 +164,6 @@ You can then provide your `IConfigurationProvider` implementation when construct
     var dataContext = contextFactory.Create<ITestDataContext>();
 ```
 
-## Mocking
+## Mocking and Tests
+
+Because your data context is just an interface of interface properties, it is very straightforward to mock for a unit test with a framework such as Moq.

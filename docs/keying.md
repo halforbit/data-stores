@@ -6,7 +6,7 @@ These strings form [natural keys](https://en.wikipedia.org/wiki/Natural_key) tha
 
 A key map is a string with a number of **path segments** separated by `/`, with a path segment consisting of either literal text or the name of a property to inject wrapped in `{` `}`. 
 
-For [file store]() data stores, path segments will be represented as sub-folders.
+For [file store](file-stores.md) data stores, path segments will be represented as sub-folders.
 
 
 ### A Simple Example
@@ -47,7 +47,7 @@ Note the literal prefix `vehicles/` in the key map. This uniquely distinguishes 
 
 ### The Order of Key Map Properties
 
-Note here that the `Make` property comes before the `Vin` property in the key map. This allows us to form a partial **key prefix** that has `Make` populated but omits the more specific `Vin`, with values like `vehicles/Ford/`. This prefix allows us to efficiently filter results from the data store. This is especially effective when operating against [file stores](file-stores.md). 
+Note here that the `Make` property comes before the `Vin` property in the key map. This allows us to form a partial **key prefix** that has `Make` populated but omits the more specific `Vin`, with values like `vehicles/Ford/`. Defining the key map in this way allows us to efficiently filter results from the data store. This is especially effective when operating against [file stores](file-stores.md). 
 
 ### Formatting Properties
 
