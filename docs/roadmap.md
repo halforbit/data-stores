@@ -28,3 +28,5 @@ Here are some things Data Stores might do in the future:
 - Cross-Service Data Transition Tools (e.g. for copying from one data store to another)
 - Data Payload Encryption
 - Linqpad Integration
+- Simple access control (read, write, list, delete, etc.)
+- Singleton pattern for data stores having one entity
