@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implementation
 {
-    class ByteSerializer : ISerializer
+    public class ByteSerializer : ISerializer
     {
         public Task<byte[]> Serialize<TValue>(TValue value)
         {

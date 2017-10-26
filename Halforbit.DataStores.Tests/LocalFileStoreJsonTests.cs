@@ -12,6 +12,11 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 {
     public class LocalFileStoreJsonTests : UniversalIntegrationTest
     {
+        public void TestDataActionModifier()
+        {
+
+        }
+
         [Fact, Trait("Type", "Integration"), Trait("Type", "RunOnBuild")]
         public void TestLocalFileStore_Json()
         {

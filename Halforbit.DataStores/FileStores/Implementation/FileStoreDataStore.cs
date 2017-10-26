@@ -24,6 +24,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         readonly ICompressor _compressor;
 
+        readonly IDataActionModifier _dataActionModifier;
+
         readonly StringMap<TKey> _keyMap;
 
         readonly string _fileExtension;
@@ -32,6 +34,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             IFileStore fileStore,
             ISerializer serializer,
             [Optional]ICompressor compressor = null,
+            [Optional]IDataActionModifier dataActionModifier = null,
             string keyMap = null,
             [Optional]string fileExtension = null)
         {
@@ -40,6 +43,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
             _compressor = compressor;
+
+            _dataActionModifier = dataActionModifier;
 
             _keyMap = keyMap ?? throw new ArgumentNullException(nameof(keyMap));
 
@@ -205,7 +210,20 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public IQueryable<TValue> Query(TKey partialKey = default(TKey))
         {
-            throw new NotImplementedException();
+            var prefix = EvaluatePath(partialKey, allowPartialMap: true);
+
+            var keys = ResolveKeyPaths(prefix).Result;
+
+            var tasks = keys
+                .Select(async keyPath => await GetValue($"{keyPath.Value}{_fileExtension}"))
+                .ToArray();
+
+            Task.WaitAll(tasks);
+
+            return tasks
+                .Select(t => t.Result)
+                .Where(e => !e.IsDefaultValue())
+                .AsQueryable();
         }
 
         async Task<byte[]> GetContents(TValue value)
@@ -277,10 +295,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
         }
 
         async Task<IEnumerable<KeyValuePair<TKey, string>>> ResolveKeyPaths(
-            Expression<Func<TKey, bool>> selector)
+            string keyStringPrefix)
         {
-            var keyStringPrefix = ResolveKeyStringPrefix(selector);
-
             var files = await _fileStore.GetFiles(
                 keyStringPrefix,// InvariantPathPrefix,
                 _fileExtension);
@@ -291,6 +307,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 .Select(path => new KeyValuePair<TKey, string>(_keyMap.Map(path), path))
                 .Where(kv => !kv.Key.IsDefaultValue());
 
+            return keyPaths.OrderBy(pk => pk.Value);
+        }
+
+        async Task<IEnumerable<KeyValuePair<TKey, string>>> ResolveKeyPaths(
+            Expression<Func<TKey, bool>> selector)
+        {
+            var keyStringPrefix = ResolveKeyStringPrefix(selector);
+
+            var keyPaths = await ResolveKeyPaths(keyStringPrefix);
+
             if (selector != null)
             {
                 Func<TKey, bool> selectorFunc = selector.Compile();
@@ -298,7 +324,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 keyPaths = keyPaths.Where(kv => selectorFunc(kv.Key));
             }
 
-            return keyPaths.OrderBy(pk => pk.Value);
+            return keyPaths;
         }
 
         string ResolveKeyStringPrefix(Expression<Func<TKey, bool>> selector)
