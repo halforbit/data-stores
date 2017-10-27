@@ -25,11 +25,11 @@ namespace Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implem
 
         public Task<TValue> Deserialize<TValue>(byte[] data)
         {
-            if (default(TValue) is byte[])
+            if (typeof(TValue) == typeof(byte[]))
             {
                 return Task.FromResult((TValue)(object)data);
             }
-            else if (default(TValue) is string)
+            else if (typeof(TValue) == typeof(string))
             {
                 return Task.FromResult((TValue)(object)Encoding.UTF8.GetString(data));
             }

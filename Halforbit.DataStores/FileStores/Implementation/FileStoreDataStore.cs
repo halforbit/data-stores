@@ -333,11 +333,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             if (selector != null)
             {
-                Expression<Func<TKey, bool>> invariantExpression;
-
                 key = _invariantExtractor.ExtractInvariants(
                     selector,
-                    out invariantExpression);
+                    out Expression<Func<TKey, bool>> invariantExpression);
             }
 
             return EvaluatePath(key, true);
