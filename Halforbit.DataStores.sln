@@ -62,7 +62,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D769C34E-B
 		docs\roadmap.md = docs\roadmap.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.TestUtils", "..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj", "{3F906413-E260-4457-848C-D8BF75E0B5D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.TestUtils", "Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj", "{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -122,10 +122,10 @@ Global
 		{61702BEF-500C-4842-8DE6-E26D2342575F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61702BEF-500C-4842-8DE6-E26D2342575F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61702BEF-500C-4842-8DE6-E26D2342575F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F906413-E260-4457-848C-D8BF75E0B5D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F906413-E260-4457-848C-D8BF75E0B5D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F906413-E260-4457-848C-D8BF75E0B5D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F906413-E260-4457-848C-D8BF75E0B5D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -19,7 +19,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj" />
     <ProjectReference Include="..\Halforbit.DataStores.FileStores.GoogleDrive\Halforbit.DataStores.FileStores.GoogleDrive.csproj" />
   </ItemGroup>
 

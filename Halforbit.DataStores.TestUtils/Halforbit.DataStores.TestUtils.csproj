@@ -1,17 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-
-    <IsPackable>false</IsPackable>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CompareNETObjects" Version="3.9.0" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.17" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
     <PackageReference Include="xunit" Version="2.3.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -19,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Halforbit.DataStores.FileStores.AmazonS3\Halforbit.DataStores.FileStores.AmazonS3.csproj" />
+    <ProjectReference Include="..\Halforbit.DataStores\Halforbit.DataStores\Halforbit.DataStores.csproj" />
   </ItemGroup>
 
 </Project>
