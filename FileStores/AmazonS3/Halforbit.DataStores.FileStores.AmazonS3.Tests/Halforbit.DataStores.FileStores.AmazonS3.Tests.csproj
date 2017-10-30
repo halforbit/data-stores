@@ -19,6 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj" />
     <ProjectReference Include="..\Halforbit.DataStores.FileStores.AmazonS3\Halforbit.DataStores.FileStores.AmazonS3.csproj" />
   </ItemGroup>
 

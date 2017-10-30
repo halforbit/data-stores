@@ -20,6 +20,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj" />
     <ProjectReference Include="..\Halforbit.DataStores.FileStores.BlobStorage\Halforbit.DataStores.FileStores.BlobStorage.csproj" />
   </ItemGroup>
 

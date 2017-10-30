@@ -23,6 +23,7 @@
     <ProjectReference Include="..\FileStores\Serialization\Bond\Halforbit.DataStores.FileStores.Serialization.Bond\Halforbit.DataStores.FileStores.Serialization.Bond.csproj" />
     <ProjectReference Include="..\FileStores\Serialization\Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf.csproj" />
     <ProjectReference Include="..\FileStores\Serialization\Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml.csproj" />
+    <ProjectReference Include="..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj" />
     <ProjectReference Include="..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
   </ItemGroup>
 
