@@ -28,6 +28,6 @@ namespace Halforbit.DataStores.Interface
 
         Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator);
 
-        IQueryable<TValue> Query(TKey partialKey = default(TKey));
+        IQuerySession<TKey, TValue> StartQuery();
     }
 }

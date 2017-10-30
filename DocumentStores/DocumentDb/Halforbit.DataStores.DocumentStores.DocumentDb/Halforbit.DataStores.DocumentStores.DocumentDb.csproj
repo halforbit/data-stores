@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Folder Include="Facets\" />
-    <Folder Include="Implementation\" />
   </ItemGroup>
 
   <ItemGroup>

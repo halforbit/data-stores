@@ -208,22 +208,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
             throw new Exception("Failed after all attempts to conditionally upsert.");
         }
 
-        public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+        public IQuerySession<TKey, TValue> StartQuery()
         {
-            var prefix = EvaluatePath(partialKey, allowPartialMap: true);
-
-            var keys = ResolveKeyPaths(prefix).Result;
-
-            var tasks = keys
-                .Select(async keyPath => await GetValue($"{keyPath.Value}{_fileExtension}"))
-                .ToArray();
-
-            Task.WaitAll(tasks);
-
-            return tasks
-                .Select(t => t.Result)
-                .Where(e => !e.IsDefaultValue())
-                .AsQueryable();
+            return new QuerySession(this);
         }
 
         async Task<byte[]> GetContents(TValue value)
@@ -358,5 +345,36 @@ namespace Halforbit.DataStores.FileStores.Implementation
         }
 
         string GetPath(TKey key) => $"{_keyMap.Map(key)}{_fileExtension}";
+
+        class QuerySession : IQuerySession<TKey, TValue>
+        {
+            readonly FileStoreDataStore<TKey, TValue> _dataStore;
+
+            public QuerySession(FileStoreDataStore<TKey, TValue> dataStore)
+            {
+                _dataStore = dataStore;
+            }
+
+            public void Dispose() { }
+
+            public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+            {
+                var prefix = _dataStore.EvaluatePath(partialKey, allowPartialMap: true);
+
+                var keys = _dataStore.ResolveKeyPaths(prefix).Result;
+
+                var tasks = keys
+                    .Select(async keyPath => await _dataStore.GetValue(
+                        $"{keyPath.Value}{_dataStore._fileExtension}"))
+                    .ToArray();
+
+                Task.WaitAll(tasks);
+
+                return tasks
+                    .Select(t => t.Result)
+                    .Where(e => !e.IsDefaultValue())
+                    .AsQueryable();
+            }
+        }
     }
 }
