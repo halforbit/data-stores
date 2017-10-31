@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bond.CSharp" Version="6.0.0" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.0.0" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.1" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.17" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
   </ItemGroup>

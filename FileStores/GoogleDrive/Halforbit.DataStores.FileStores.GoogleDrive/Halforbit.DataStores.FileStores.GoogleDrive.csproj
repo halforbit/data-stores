@@ -18,7 +18,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.3.11" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.29.1.981" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.0.0" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.1" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.17" />
   </ItemGroup>
 
