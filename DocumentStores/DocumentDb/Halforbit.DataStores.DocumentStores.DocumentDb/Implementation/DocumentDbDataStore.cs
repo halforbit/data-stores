@@ -130,11 +130,9 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         public Task<IEnumerable<TValue>> ListValues(
             Expression<Func<TKey, bool>> predicate)
         {
-            Expression<Func<TKey, bool>> invariant;
-
             var extracted = new InvariantExtractor().ExtractInvariants(
-                predicate, 
-                out invariant);
+                predicate,
+                out Expression<Func<TKey, bool>> invariant);
 
             var keyPrefix = _keyMap
                 .Map(
