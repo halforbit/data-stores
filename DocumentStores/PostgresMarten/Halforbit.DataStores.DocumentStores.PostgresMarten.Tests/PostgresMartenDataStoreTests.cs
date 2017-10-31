@@ -1,4 +1,3 @@
-using Halforbit.DataStores.DocumentStores.DocumentDb.Implementation;
 using Halforbit.DataStores.DocumentStores.Model;
 using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Tests;
@@ -7,14 +6,14 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
+namespace Halforbit.DataStores.DocumentStores.PostgresMarten.Tests
 {
-    public class DocumentDbDataStoreTests : UniversalIntegrationTest
+    public class PostgresMartenDataStoreTests : UniversalIntegrationTest
     {
-        protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.DocumentDb.Tests.";
+        protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.PostgresMarten.Tests.";
 
         [Fact, Trait("Type", "Integration")]
-        public void TestDocumentDb()
+        public void TestPostgresMarten()
         {
             var testKey = new TestValue.Key(accountId: Guid.NewGuid());
 
@@ -28,15 +27,12 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
 
             try
             {
-                var dataStore = new DocumentDbDataStore<TestValue.Key, TestValue>(
-                    endpoint: GetConfig("Endpoint"),
-                    authKey: GetConfig("AuthKey"),
-                    database: GetConfig("Database"),
-                    collection: GetConfig("Collection"),
+                var dataStore = new PostgresMartenDataStore<TestValue.Key, TestValue>(
+                    connectionString: "User ID=postgres;Password=apples;Host=localhost;Port=5432;Database=postgres",
                     keyMap: "test-values/{AccountId}");
 
                 ClearDataStore(dataStore);
-                
+
                 TestDataStore(
                     dataStore,
                     testKey,
@@ -47,11 +43,6 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
             }
             catch (Exception ex)
             {
-                if (ex.ToString().Contains("Unable to connect"))
-                {
-                    //Assert.Inconclusive("Cannot connect to the DocumentDB emulator");
-                }
-
                 throw;
             }
         }

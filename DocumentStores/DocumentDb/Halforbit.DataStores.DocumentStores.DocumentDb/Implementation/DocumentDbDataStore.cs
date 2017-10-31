@@ -57,7 +57,9 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             try
             {
-                await _documentClient.CreateDocumentAsync(GetCollectionUri(), value);
+                await Execute(() => _documentClient.CreateDocumentAsync(
+                    GetCollectionUri(), 
+                    value));
 
                 return true;
             }
@@ -78,7 +80,8 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             try
             {
-                await _documentClient.DeleteDocumentAsync(GetDocumentUri(documentId));
+                await Execute(() => _documentClient.DeleteDocumentAsync(
+                    GetDocumentUri(documentId)));
 
                 return true;
             }
@@ -104,8 +107,9 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             try
             {
-                Document document = await _documentClient.ReadDocumentAsync(
-                    GetDocumentUri(documentId));
+                Document document = await Execute(
+                    () => _documentClient.ReadDocumentAsync(
+                        GetDocumentUri(documentId)));
 
                 return (TValue)(dynamic)document;
             }
@@ -122,17 +126,20 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             }
         }
 
-        public Task<IEnumerable<TKey>> ListKeys(Expression<Func<TKey, bool>> predicate)
+        public async Task<IEnumerable<TKey>> ListKeys(
+            Expression<Func<TKey, bool>> predicate = null)
         {
-            throw new NotImplementedException();
+            return (await ListValues(predicate)).Select(v => ParseDocumentId(v.Id));
         }
 
-        public Task<IEnumerable<TValue>> ListValues(
-            Expression<Func<TKey, bool>> predicate)
+        public async Task<IEnumerable<TValue>> ListValues(
+            Expression<Func<TKey, bool>> predicate = null)
         {
-            var extracted = new InvariantExtractor().ExtractInvariants(
-                predicate,
-                out Expression<Func<TKey, bool>> invariant);
+            var extracted = predicate != null ? 
+                new InvariantExtractor().ExtractInvariants(
+                    predicate,
+                    out Expression<Func<TKey, bool>> invariant) : 
+                default(TKey);
 
             var keyPrefix = _keyMap
                 .Map(
@@ -140,16 +147,17 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
                     allowPartialMap: true)
                 .Replace('/', '|');
 
-            IQueryable<TValue> queryable = _documentClient
-                .CreateDocumentQuery<TValue>(
-                    GetCollectionUri(),
-                    new FeedOptions
-                    {
-                        MaxItemCount = -1,
+            IQueryable<TValue> queryable = await Execute(
+                () => Task.FromResult(_documentClient
+                    .CreateDocumentQuery<TValue>(
+                        GetCollectionUri(),
+                        new FeedOptions
+                        {
+                            MaxItemCount = -1,
 
-                        EnableCrossPartitionQuery = true
-                    })
-                .Where(v => v.Id.StartsWith(keyPrefix));
+                            EnableCrossPartitionQuery = true
+                        })
+                    .Where(v => v.Id.StartsWith(keyPrefix))));
 
             var documentQuery = queryable.AsDocumentQuery();
 
@@ -164,20 +172,24 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             }
 
             var keyValues = results.Select(o => new KeyValuePair<TKey, TValue>(
-                _keyMap.Map((o.Id).Replace("|", "/")),
+                ParseDocumentId(o.Id),
                 o));
 
-            var filter = predicate.Compile();
+            var filter = predicate?.Compile();
 
-            return Task.FromResult(keyValues
-                .Where(kv => filter(kv.Key))
-                .Select(kv => kv.Value));
+            if(filter != null)
+            {
+                keyValues = keyValues.Where(kv => filter(kv.Key));
+            }
+
+            return keyValues.Select(kv => kv.Value);
         }
 
-        public Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
-            Expression<Func<TKey, bool>> predicate)
+        public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
+            Expression<Func<TKey, bool>> predicate = null)
         {
-            throw new NotImplementedException();
+            return (await ListValues(predicate))
+                .Select(v => new KeyValuePair<TKey, TValue>(ParseDocumentId(v.Id), v));
         }
 
         public async Task<bool> Update(
@@ -190,9 +202,9 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             {
                 value.Id = GetDocumentId(key);
 
-                await _documentClient.ReplaceDocumentAsync(
+                await Execute(() => _documentClient.ReplaceDocumentAsync(
                     GetDocumentUri(documentId), 
-                    value);
+                    value));
 
                 return true;
             }
@@ -213,12 +225,14 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         {
             value.Id = GetDocumentId(key);
 
-            await _documentClient.UpsertDocumentAsync(GetCollectionUri(), value);
+            await Execute(() => _documentClient.UpsertDocumentAsync(
+                GetCollectionUri(), 
+                value));
 
             return true;
         }
 
-        public Task<bool> Upsert(
+        public async Task<bool> Upsert(
             TKey key, 
             Func<TValue, TValue> mutator)
         {
@@ -243,22 +257,23 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             public IQueryable<TValue> Query(TKey partialKey = default(TKey))
             {
-                var keyPrefix = _dataStore._keyMap
-                    .Map(
+                var keyPrefix = _dataStore.
+                    _keyMap.Map(
                         partialKey,
                         allowPartialMap: true)
                     .Replace('/', '|');
 
-                return _dataStore._documentClient
-                    .CreateDocumentQuery<TValue>(
-                        _dataStore.GetCollectionUri(),
-                        new FeedOptions
-                        {
-                            MaxItemCount = -1,
+                return Execute(
+                    () => Task.FromResult(_dataStore._documentClient
+                        .CreateDocumentQuery<TValue>(
+                            _dataStore.GetCollectionUri(),
+                            new FeedOptions
+                            {
+                                MaxItemCount = -1,
 
-                            EnableCrossPartitionQuery = true
-                        })
-                    .Where(e => e.Id.StartsWith(keyPrefix));
+                                EnableCrossPartitionQuery = true
+                            })
+                        .Where(e => e.Id.StartsWith(keyPrefix)))).Result;
             }
         }
 
@@ -312,6 +327,47 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             }
         }
 
+        static async Task<V> Execute<V>(
+            Func<Task<V>> func)
+        {
+            TimeSpan sleepTime = TimeSpan.Zero;
+
+            while (true)
+            {
+                try
+                {
+                    return await func();
+                }
+                catch (DocumentClientException de)
+                {
+                    if ((int)de.StatusCode != 429)
+                    {
+                        throw;
+                    }
+
+                    sleepTime = de.RetryAfter;
+                }
+                catch (AggregateException ae)
+                {
+                    if (!(ae.InnerException is DocumentClientException))
+                    {
+                        throw;
+                    }
+
+                    var de = (DocumentClientException)ae.InnerException;
+
+                    if ((int)de.StatusCode != 429)
+                    {
+                        throw;
+                    }
+
+                    sleepTime = de.RetryAfter;
+                }
+
+                await Task.Delay(sleepTime);
+            }
+        }
+
         Uri GetDatabaseUri() => UriFactory.CreateDatabaseUri(_database);
 
         Uri GetCollectionUri() => UriFactory.CreateDocumentCollectionUri(
@@ -324,5 +380,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             documentId);
 
         string GetDocumentId(TKey key) => _keyMap.Map(key).Replace('/', '|');
+
+        TKey ParseDocumentId(string id) => _keyMap.Map(id.Replace('|', '/'));
     }
 }

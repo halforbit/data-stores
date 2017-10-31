@@ -1,4 +1,6 @@
-﻿using Halforbit.DataStores.Interface;
+﻿using Halforbit.DataStores.DocumentStores.Model;
+using Halforbit.DataStores.Interface;
+using Halforbit.ObjectTools.Extensions;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -122,9 +124,45 @@ namespace Halforbit.DataStores.Tests
             Assert.False(secondDeleteResult);
         }
 
+        protected static void ClearDataStore<TKey, TValue>(IDataStore<TKey, TValue> dataStore)
+        {
+            var xx = dataStore.ListValues().Result;
+
+            foreach (var k in dataStore.ListKeys().Result)
+            {
+                dataStore.Delete(k).Wait();
+            }
+        }
+
         public interface ITestKey
         {
             Guid? AccountId { get; }
+        }
+
+        public class TestValue : Document
+        {
+            public TestValue(
+                Guid accountId = default(Guid),
+                string message = default(string))
+            {
+                AccountId = accountId.OrNewIfEmpty();
+
+                Message = message;
+            }
+
+            public Guid AccountId { get; }
+
+            public string Message { get; }
+
+            public class Key : UniversalIntegrationTest.ITestKey
+            {
+                public Key(Guid? accountId)
+                {
+                    AccountId = accountId;
+                }
+
+                public Guid? AccountId { get; }
+            }
         }
     }
 }

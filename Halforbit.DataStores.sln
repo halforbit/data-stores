@@ -64,6 +64,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D769C34E-B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.TestUtils", "Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj", "{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PostgresMarten", "PostgresMarten", "{F06FFA34-624D-44C3-B2A2-DE6E36B14234}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.DocumentStores.PostgresMarten", "DocumentStores\PostgresMarten\Halforbit.DataStores.DocumentStores.PostgresMarten\Halforbit.DataStores.DocumentStores.PostgresMarten.csproj", "{B9791E35-00B8-463A-8655-D1B91A7F9635}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.DocumentStores.PostgresMarten.Tests", "DocumentStores\PostgresMarten\Halforbit.DataStores.DocumentStores.PostgresMarten.Tests\Halforbit.DataStores.DocumentStores.PostgresMarten.Tests.csproj", "{DF6906BD-42FB-45C6-94BD-A587EF3A6DDB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,6 +132,14 @@ Global
 		{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7274DE0C-A8DA-4757-BC56-BA2CA5A0C439}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9791E35-00B8-463A-8655-D1B91A7F9635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9791E35-00B8-463A-8655-D1B91A7F9635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9791E35-00B8-463A-8655-D1B91A7F9635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9791E35-00B8-463A-8655-D1B91A7F9635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF6906BD-42FB-45C6-94BD-A587EF3A6DDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF6906BD-42FB-45C6-94BD-A587EF3A6DDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF6906BD-42FB-45C6-94BD-A587EF3A6DDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF6906BD-42FB-45C6-94BD-A587EF3A6DDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,6 +165,9 @@ Global
 		{5A34A2B2-ED88-49BC-B14A-4FAC2A71D7B7} = {0714500D-AEBD-408A-A9AC-C2F4B8D6B223}
 		{61702BEF-500C-4842-8DE6-E26D2342575F} = {0714500D-AEBD-408A-A9AC-C2F4B8D6B223}
 		{D769C34E-BD98-4FE5-8EBA-309AABF6413D} = {8E1EAFB1-0B21-46D1-B941-19A4B04707CE}
+		{F06FFA34-624D-44C3-B2A2-DE6E36B14234} = {B4129E3B-0288-47D0-8EDA-65774D23BA81}
+		{B9791E35-00B8-463A-8655-D1B91A7F9635} = {F06FFA34-624D-44C3-B2A2-DE6E36B14234}
+		{DF6906BD-42FB-45C6-94BD-A587EF3A6DDB} = {F06FFA34-624D-44C3-B2A2-DE6E36B14234}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5BC1191-5358-4BC2-8427-D1482D49ED83}

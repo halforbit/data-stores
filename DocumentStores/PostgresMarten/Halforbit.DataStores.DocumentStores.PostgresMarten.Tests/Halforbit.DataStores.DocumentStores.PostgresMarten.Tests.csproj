@@ -7,22 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.Facets" Version="1.0.17" />
+    <PackageReference Include="CompareNETObjects" Version="3.9.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
-    <PackageReference Include="WindowsAzure.Storage" Version="8.5.0" />
     <PackageReference Include="xunit" Version="2.3.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <UserSecretsId>Halforbit.DataStores</UserSecretsId>    
-  </PropertyGroup>
-  
   <ItemGroup>
     <ProjectReference Include="..\..\..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj" />
-    <ProjectReference Include="..\Halforbit.DataStores.FileStores.BlobStorage\Halforbit.DataStores.FileStores.BlobStorage.csproj" />
+    <ProjectReference Include="..\Halforbit.DataStores.DocumentStores.PostgresMarten\Halforbit.DataStores.DocumentStores.PostgresMarten.csproj" />
   </ItemGroup>
 
 </Project>
