@@ -1,6 +1,6 @@
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implementation;
 using Halforbit.DataStores.Tests;
 using System;
 using System.IO;
@@ -19,25 +19,23 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
                 Directory.GetCurrentDirectory(),
                 "test-file-store");
 
-            //if (Directory.Exists(rootPath)) Directory.Delete(rootPath, true);
-
             var testKey = new TestKey(accountId: Guid.NewGuid());
 
             var testValueA = "Hello, world!";
 
             var testValueB = "Kthx, world!";
 
-            //var dataStore = new FileStoreDataStore<TestKey, string>(
-            //    fileStore: new LocalFileStore(rootPath: rootPath),
-            //    serializer: new ByteSerializer(),
-            //    keyMap: "test-values/{AccountId}",
-            //    fileExtension: ".txt");
+            var dataStore = new FileStoreDataStore<TestKey, string>(
+                fileStore: new LocalFileStore(rootPath: rootPath),
+                serializer: new ByteSerializer(),
+                keyMap: "test-values/{AccountId}",
+                fileExtension: ".txt");
 
-            //TestDataStore(
-            //    dataStore,
-            //    testKey,
-            //    testValueA,
-            //    testValueB);
+            TestDataStore(
+                dataStore,
+                testKey,
+                testValueA,
+                testValueB);
         }
 
         static void InitializeLocalStorage()
