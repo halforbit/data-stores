@@ -220,14 +220,16 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             return true;
         }
 
-        public Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator)
+        public Task<bool> Upsert(
+            TKey key, 
+            Func<TValue, TValue> mutator)
         {
             throw new NotImplementedException();
         }
 
         public IQuerySession<TKey, TValue> StartQuery()
         {
-            throw new NotImplementedException();
+            return new QuerySession(this);
         }
 
         class QuerySession : IQuerySession<TKey, TValue>

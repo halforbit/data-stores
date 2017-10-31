@@ -9,7 +9,7 @@
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
