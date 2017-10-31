@@ -2,9 +2,7 @@ using Halforbit.DataStores.DocumentStores.DocumentDb.Implementation;
 using Halforbit.DataStores.DocumentStores.Model;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
-using Microsoft.Extensions.Configuration;
 using System;
-using System.Linq;
 using Xunit;
 
 namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
@@ -49,12 +47,12 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
                     dataStore.Create(new TestValue.Key(value.AccountId), value).Wait();
                 }
 
-                var result = dataStore
-                    .Query();
+                //var result = dataStore
+                //    .Query();
 
-                var result2 = result
-                    .Where(v => v.Message.Contains("b"))
-                    .ToList();
+                //var result2 = result
+                //    .Where(v => v.Message.Contains("b"))
+                //    .ToList();
 
                 TestDataStore(
                     dataStore,

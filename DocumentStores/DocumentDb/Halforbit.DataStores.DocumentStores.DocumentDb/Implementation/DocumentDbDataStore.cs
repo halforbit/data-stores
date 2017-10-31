@@ -9,7 +9,7 @@ using Microsoft.Azure.Documents.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Linq.Expressions;           
 using System.Net;
 using System.Threading.Tasks;
 
@@ -225,24 +225,41 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             throw new NotImplementedException();
         }
 
-        public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+        public IQuerySession<TKey, TValue> StartQuery()
         {
-            var keyPrefix = _keyMap
-                .Map(
-                    partialKey,
-                    allowPartialMap: true)
-                .Replace('/', '|');
+            throw new NotImplementedException();
+        }
 
-            return _documentClient
-                .CreateDocumentQuery<TValue>(
-                    GetCollectionUri(),
-                    new FeedOptions
-                    {
-                        MaxItemCount = -1,
+        class QuerySession : IQuerySession<TKey, TValue>
+        {
+            readonly DocumentDbDataStore<TKey, TValue> _dataStore;
 
-                        EnableCrossPartitionQuery = true
-                    })
-                .Where(e => e.Id.StartsWith(keyPrefix));
+            public QuerySession(DocumentDbDataStore<TKey, TValue> dataStore)
+            {
+                _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
+            }
+
+            public void Dispose() { }
+
+            public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+            {
+                var keyPrefix = _dataStore._keyMap
+                    .Map(
+                        partialKey,
+                        allowPartialMap: true)
+                    .Replace('/', '|');
+
+                return _dataStore._documentClient
+                    .CreateDocumentQuery<TValue>(
+                        _dataStore.GetCollectionUri(),
+                        new FeedOptions
+                        {
+                            MaxItemCount = -1,
+
+                            EnableCrossPartitionQuery = true
+                        })
+                    .Where(e => e.Id.StartsWith(keyPrefix));
+            }
         }
 
         async Task CreateDatabaseIfNotExistsAsync()
