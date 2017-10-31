@@ -27,6 +27,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             _documentStore = DocumentStore.For(c =>
             {
                 c.Connection(connectionString);
+
+                c.Schema.Include<MartenRegistry>();
             });
 
             _keyMap = keyMap;
@@ -200,6 +202,14 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             public IQueryable<TValue> Query(TKey partialKey = default(TKey))
             {
                 return _querySession.Query<TValue>();
+            }
+        }
+
+        class MartenRegistry : Marten.MartenRegistry
+        {
+            public MartenRegistry()
+            {
+                For<TValue>().GinIndexJsonData();
             }
         }
     }
