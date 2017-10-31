@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CompareNETObjects" Version="3.9.0" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.2" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.17" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170425-07" />
@@ -24,7 +25,10 @@
     <ProjectReference Include="..\FileStores\Serialization\Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf.csproj" />
     <ProjectReference Include="..\FileStores\Serialization\Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml.csproj" />
     <ProjectReference Include="..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj" />
-    <ProjectReference Include="..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <UserSecretsId>Halforbit.DataStores</UserSecretsId>
+  </PropertyGroup>
+  
 </Project>
