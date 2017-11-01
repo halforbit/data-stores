@@ -124,6 +124,8 @@ Include any other packages with the functionality you desire:
 
 [Halforbit.DataStores.DocumentStores.DocumentDb](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.DocumentDb/)
 
+[Halforbit.DataStores.DocumentStores.PostgresMarten](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.PostgresMarten/)
+
 [Halforbit.DataStores.FileStores.AmazonS3](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.AmazonS3/)
 
 [Halforbit.DataStores.FileStores.BlobStorage](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.BlobStorage/)

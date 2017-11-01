@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Halforbit</Authors>
     <Company>Halforbit</Company>
     <Description>A DataStore implementation over PostgreSQL and Marten</Description>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>

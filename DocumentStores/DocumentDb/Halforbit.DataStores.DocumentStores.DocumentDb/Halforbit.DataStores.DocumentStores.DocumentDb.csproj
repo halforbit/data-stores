@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.5</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Halforbit</Authors>
     <Company>Halforbit</Company>
     <Description>A DataStore implementation over DocumentDb.</Description>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Halforbit.DataStores" Version="1.0.2" />
-    <PackageReference Include="Halforbit.Facets" Version="1.0.17" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.18" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="1.6.0" />
   </ItemGroup>
 
