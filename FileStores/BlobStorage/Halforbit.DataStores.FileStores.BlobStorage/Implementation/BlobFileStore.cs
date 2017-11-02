@@ -249,6 +249,8 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 blob.Properties.ContentType = entityInfo.ContentType;
 
+                blob.Properties.ContentEncoding = entityInfo.ContentEncoding;
+
                 await blob.SetPropertiesAsync();
             }
 
@@ -286,7 +288,8 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                     (DateTime?)null,
                 cloudBlockBlob.Properties.Length,
                 cloudBlockBlob.Uri.AbsoluteUri,
-                cloudBlockBlob.Properties.ContentType);
+                cloudBlockBlob.Properties.ContentType,
+                cloudBlockBlob.Properties.ContentEncoding);
 
             static SharedAccessBlobPermissions AccessToSharedAccessPermissions(Access access) =>
                 (access.HasFlag(Access.Delete) ? SharedAccessBlobPermissions.Delete : 0) |
