@@ -1,6 +1,7 @@
 ﻿using Halforbit.DataStores.FileStores.Interface;
 using Halforbit.DataStores.FileStores.Model;
 using Halforbit.DataStores.Model;
+using Halforbit.Facets.Attributes;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
@@ -25,8 +26,8 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
         public BlobFileStore(
             string connectionString, 
             string containerName,
-            string contentType,
-            string contentEncoding = null)
+            [Optional]string contentType = null,
+            [Optional]string contentEncoding = null)
         {
             var cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
 
