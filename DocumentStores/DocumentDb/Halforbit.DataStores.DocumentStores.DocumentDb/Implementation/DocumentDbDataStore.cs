@@ -27,6 +27,8 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
         readonly StringMap<TKey> _keyMap;
 
+        public IDataStoreContext<TKey> Context => throw new NotImplementedException();
+
         public DocumentDbDataStore(
             string endpoint,
             string authKey,

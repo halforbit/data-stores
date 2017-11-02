@@ -34,6 +34,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             _keyMap = keyMap;
         }
 
+        public IDataStoreContext<TKey> Context => throw new NotImplementedException();
+
         public async Task<bool> Create(TKey key, TValue value)
         {
             var id = value.Id = GetDocumentId(key);

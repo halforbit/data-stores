@@ -16,7 +16,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
     public class GoogleDriveFileStore : IFileStore
     {
         readonly DriveService _driveService;
-
+        
         public GoogleDriveFileStore(
             string applicationName,
             string serviceAccountEmail,
@@ -38,6 +38,8 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
                 HttpClientInitializer = serviceAccountCredential
             });
         }
+
+        public IFileStoreContext FileStoreContext => throw new NotImplementedException();
 
         public async Task<bool> Delete(string path)
         {

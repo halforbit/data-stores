@@ -1,9 +1,12 @@
 ﻿using Halforbit.DataStores.FileStores.Interface;
 using Halforbit.DataStores.FileStores.Model;
+using Halforbit.DataStores.Model;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -16,6 +19,8 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
         readonly string _contentType;
 
         readonly string _contentEncoding;
+
+        readonly Lazy<IFileStoreContext> _fileStoreContext;
 
         public BlobFileStore(
             string connectionString, 
@@ -34,7 +39,13 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             _contentType = contentType;
 
             _contentEncoding = contentEncoding;
+
+            _fileStoreContext = new Lazy<IFileStoreContext>(() => new BlobFileStoreContext(
+                this, 
+                Access.Full));
         }
+
+        public IFileStoreContext FileStoreContext => _fileStoreContext.Value;
 
         public async Task<bool> Delete(string path)
         {
@@ -61,16 +72,12 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 foreach(var item in resultSegment.Results)
                 {
-                    var cloudBlockDirectory = item as CloudBlobDirectory;
-
-                    if(cloudBlockDirectory != null)
+                    if (item is CloudBlobDirectory cloudBlockDirectory)
                     {
                         results.AddRange(await GetFiles(cloudBlockDirectory.Prefix, extension));
                     }
 
-                    var cloudBlockBlob = item as CloudBlockBlob;
-
-                    if(cloudBlockBlob != null)
+                    if (item is CloudBlockBlob cloudBlockBlob)
                     {
                         results.Add(cloudBlockBlob.Name);
                     }
@@ -162,5 +169,129 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
         }
 
         CloudBlockBlob GetBlob(string path) => _cloudBlobContainer.GetBlockBlobReference(path);
+
+        class BlobFileStoreContext : IFileStoreContext
+        {
+            readonly BlobFileStore _blobFileStore;
+
+            readonly Access _access;
+
+            public BlobFileStoreContext(
+                BlobFileStore blobFileStore,
+                Access access)
+            {
+                _blobFileStore = blobFileStore;
+
+                _access = access;
+            }
+
+            public async Task<EntityInfo> GetEntityInfo(string key)
+            {
+                AssertAccess(Access.Get);
+
+                var blob = _blobFileStore.GetBlob(key);
+
+                if (blob == null)
+                {
+                    return null;
+                }
+
+                return CloudBlockBlobToEntityInfo(blob);
+            }
+
+            public async Task<IReadOnlyDictionary<string, string>> GetMetadata(string key)
+            {
+                AssertAccess(Access.Get);
+
+                var blob = _blobFileStore.GetBlob(key);
+
+                return blob.Metadata as IReadOnlyDictionary<string, string>;
+            }
+
+            public async Task<Uri> GetSharedAccessUrl(
+                string key, 
+                DateTime expiration, 
+                Access access)
+            {
+                AssertAccess(access);
+
+                var blob = _blobFileStore.GetBlob(key);
+
+                return new Uri(
+                    blob.Uri.AbsoluteUri + 
+                    blob.GetSharedAccessSignature(
+                        new SharedAccessBlobPolicy
+                        {
+                            SharedAccessExpiryTime = expiration,
+
+                            Permissions = AccessToSharedAccessPermissions(access)
+                        }));
+            }
+
+            public Task<IReadOnlyDictionary<string, EntityInfo>> ListEntityInfos(
+                Expression<Func<string, bool>> selector = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>> ListMetadatas(
+                Expression<Func<string, bool>> selector = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public async Task SetEntityInfo(
+                string key, 
+                EntityInfo entityInfo)
+            {
+                var blob = _blobFileStore.GetBlob(key);
+
+                blob.Properties.ContentType = entityInfo.ContentType;
+
+                await blob.SetPropertiesAsync();
+            }
+
+            public async Task SetMetadata(
+                string key, 
+                IReadOnlyDictionary<string, string> keyValues)
+            {
+                AssertAccess(Access.Put);
+
+                var blob = _blobFileStore.GetBlob(key);
+
+                blob.Metadata.Clear();
+
+                foreach(var kv in keyValues)
+                {
+                    blob.Metadata[kv.Key] = kv.Value;
+                }
+
+                await blob.SetMetadataAsync();
+            }
+
+            void AssertAccess(Access access)
+            {
+                if ((_access & access) == Access.None)
+                {
+                    throw new AccessViolationException(
+                        $"Repository does not have {access} access.");
+                }
+            }
+
+            static EntityInfo CloudBlockBlobToEntityInfo(CloudBlockBlob cloudBlockBlob) => new EntityInfo(
+                cloudBlockBlob.Name,
+                cloudBlockBlob.Properties.LastModified.HasValue ?
+                    cloudBlockBlob.Properties.LastModified.Value.UtcDateTime :
+                    (DateTime?)null,
+                cloudBlockBlob.Properties.Length,
+                cloudBlockBlob.Uri.AbsoluteUri,
+                cloudBlockBlob.Properties.ContentType);
+
+            static SharedAccessBlobPermissions AccessToSharedAccessPermissions(Access access) =>
+                (access.HasFlag(Access.Delete) ? SharedAccessBlobPermissions.Delete : 0) |
+                (access.HasFlag(Access.Get) ? SharedAccessBlobPermissions.Read : 0) |
+                (access.HasFlag(Access.List) ? SharedAccessBlobPermissions.List : 0) |
+                (access.HasFlag(Access.Put) ? SharedAccessBlobPermissions.Write : 0);
+        }
     }
 }

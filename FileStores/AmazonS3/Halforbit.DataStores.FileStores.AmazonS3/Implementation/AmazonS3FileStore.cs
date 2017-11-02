@@ -36,6 +36,8 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
             _bucketName = bucketName;
         }
 
+        public IFileStoreContext FileStoreContext => throw new NotImplementedException();
+
         public async Task<bool> Delete(string path)
         {
             using (var client = GetClient())
