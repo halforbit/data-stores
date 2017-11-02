@@ -9,7 +9,8 @@ namespace Halforbit.DataStores.Model
             DateTime? lastModified,
             long size,
             string absoluteUri,
-            string contentType)
+            string contentType,
+            string contentEncoding)
         {
             Name = name;
 
@@ -20,6 +21,8 @@ namespace Halforbit.DataStores.Model
             AbsoluteUri = absoluteUri;
 
             ContentType = contentType;
+
+            ContentEncoding = contentEncoding;
         }
 
         public string Name { get; }
@@ -31,5 +34,7 @@ namespace Halforbit.DataStores.Model
         public string AbsoluteUri { get; }
 
         public string ContentType { get; }
+
+        public string ContentEncoding { get; }
     }
 }
