@@ -13,6 +13,8 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Implementation
     {
         readonly string _rootPath;
 
+        public IFileStoreContext FileStoreContext => throw new NotImplementedException();
+
         public LocalFileStore(string rootPath)
         {
             _rootPath = rootPath;

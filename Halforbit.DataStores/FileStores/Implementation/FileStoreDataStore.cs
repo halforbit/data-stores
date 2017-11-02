@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Halforbit.DataStores.Model;
 
 namespace Halforbit.DataStores.FileStores.Implementation
 {
@@ -30,13 +31,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         readonly string _fileExtension;
 
+        readonly Lazy<IDataStoreContext<TKey>> _context;
+
         public FileStoreDataStore(
             IFileStore fileStore,
             ISerializer serializer,
             [Optional]ICompressor compressor = null,
             [Optional]IDataActionModifier dataActionModifier = null,
             string keyMap = null,
-            [Optional]string fileExtension = null)
+            [Optional]string fileExtension = null,
+            [Optional]IDataStoreContext<TKey> dataStoreContext = null)
         {
             _fileStore = fileStore ?? throw new ArgumentNullException(nameof(fileStore));
 
@@ -49,10 +53,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
             _keyMap = keyMap ?? throw new ArgumentNullException(nameof(keyMap));
 
             _fileExtension = fileExtension ?? string.Empty;
+
+            _context = new Lazy<IDataStoreContext<TKey>>(() => new DataStoreContext(
+                _fileStore.FileStoreContext, 
+                _keyMap));
         }
 
         string InvariantPathPrefix => _keyMap
             .Map(default(TKey), allowPartialMap: true);
+
+        public IDataStoreContext<TKey> Context => _context.Value;
 
         public async Task<bool> Create(
             TKey key, 
@@ -374,6 +384,73 @@ namespace Halforbit.DataStores.FileStores.Implementation
                     .Select(t => t.Result)
                     .Where(e => !e.IsDefaultValue())
                     .AsQueryable();
+            }
+        }
+
+        class DataStoreContext : IDataStoreContext<TKey>
+        {
+            readonly IFileStoreContext _fileStoreContext;
+
+            readonly StringMap<TKey> _keyMap;
+
+            public DataStoreContext(
+                IFileStoreContext fileStoreContext,
+                StringMap<TKey> keyMap)
+            {
+                _fileStoreContext = fileStoreContext;
+
+                _keyMap = keyMap;
+            }
+
+            public async Task<EntityInfo> GetEntityInfo(TKey key)
+            {
+                return await _fileStoreContext.GetEntityInfo(_keyMap.Map(key));
+            }
+
+            public async Task<IReadOnlyDictionary<string, string>> GetMetadata(TKey key)
+            {
+                return await _fileStoreContext.GetMetadata(_keyMap.Map(key));
+            }
+
+            public async Task<Uri> GetSharedAccessUrl(
+                TKey key, 
+                DateTime expiration, 
+                Access access)
+            {
+                return await _fileStoreContext.GetSharedAccessUrl(
+                    _keyMap.Map(key),
+                    expiration,
+                    access);
+            }
+
+            public Task<IReadOnlyDictionary<TKey, EntityInfo>> ListEntityInfos(
+                Expression<Func<TKey, bool>> selector = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<IReadOnlyDictionary<TKey, IReadOnlyDictionary<string, string>>> ListMetadatas(
+                Expression<Func<TKey, bool>> selector = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public async Task SetEntityInfo(
+                TKey key, 
+                EntityInfo entityInfo)
+            {
+                await _fileStoreContext.SetEntityInfo(
+                    _keyMap.Map(key),
+                    entityInfo);
+            }
+
+            public async Task SetMetadata(
+                TKey key, 
+                IReadOnlyDictionary<string, string> keyValues)
+            {
+                await _fileStoreContext.SetMetadata(
+                    _keyMap.Map(key),
+                    keyValues);
             }
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -8,6 +7,8 @@ namespace Halforbit.DataStores.Interface
 {
     public interface IDataStore<TKey, TValue>
     {
+        IDataStoreContext<TKey> Context { get; }
+
         Task<bool> Exists(TKey key);
 
         Task<bool> Create(TKey key, TValue value);

@@ -6,6 +6,8 @@ namespace Halforbit.DataStores.FileStores.Interface
 {
     public interface IFileStore
     {
+        IFileStoreContext FileStoreContext { get; }
+
         Task<bool> Delete(string path);
 
         Task<bool> Exists(string path);
