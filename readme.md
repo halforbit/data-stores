@@ -2,7 +2,7 @@
 
 **Data Stores** lets you store, retrieve, and query your data with a universal, low-ceremony pattern that abstracts away the implementation details of any given data store.
 
-Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **DocumentDb**, **PostgreSQL+Marten**, **Azure Blob Storage**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** protocols. More is planned in the [Roadmap](docs/roadmap.md).
+Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **DocumentDb**, **PostgreSQL+Marten**, **Azure Blob Storage**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
 
 ## What Is It?
 

@@ -14,7 +14,7 @@ Here are some things Data Stores might do in the future:
     - iCloud
     - Dropbox
   - Document Stores
-    - Postgres+JSON via Marten
+    - ~~Postgres+JSON via Marten~~
     - MongoDB
 - Compression
   - 7-Zip
