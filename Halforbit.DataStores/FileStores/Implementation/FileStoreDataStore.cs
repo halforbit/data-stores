@@ -39,8 +39,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             [Optional]ICompressor compressor = null,
             [Optional]IDataActionModifier dataActionModifier = null,
             string keyMap = null,
-            [Optional]string fileExtension = null,
-            [Optional]IDataStoreContext<TKey> dataStoreContext = null)
+            [Optional]string fileExtension = null)
         {
             _fileStore = fileStore ?? throw new ArgumentNullException(nameof(fileStore));
 
