@@ -90,7 +90,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
                 Guid accountId = default(Guid),
                 string message = default(string))
             {
-                AccountId = accountId.OrNewIfEmpty();
+                AccountId = accountId.OrNewGuidIfDefault();
 
                 Message = message;
             }

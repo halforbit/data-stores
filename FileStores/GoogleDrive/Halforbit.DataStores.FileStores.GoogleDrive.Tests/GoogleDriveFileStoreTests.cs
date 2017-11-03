@@ -47,7 +47,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
                 Guid accountId = default(Guid),
                 string message = default(string))
             {
-                AccountId = accountId.OrNewIfEmpty();
+                AccountId = accountId.OrNewGuidIfDefault();
 
                 Message = message;
             }
