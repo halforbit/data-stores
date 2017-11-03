@@ -6,6 +6,6 @@ namespace Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Facets
 {
     public class ByteSerializationAttribute : FacetAttribute
     {
-        public override Type TargetType => typeof(ByteSerializer);
+        public override Type TargetType => typeof(ByteSerializer); 
     }
 }

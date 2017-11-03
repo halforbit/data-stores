@@ -4,6 +4,8 @@ using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Marten;
+using Marten.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,11 +26,20 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             string connectionString,
             string keyMap)
         {
+            var serializer = new JsonNetSerializer();
+
+            serializer.Customize(c =>
+            {
+                c.TypeNameHandling = TypeNameHandling.None;
+            });
+
             _documentStore = DocumentStore.For(c =>
             {
                 c.Connection(connectionString);
 
                 c.Schema.Include<MartenRegistry>();
+
+                c.Serializer(serializer);
             });
 
             _keyMap = keyMap;
