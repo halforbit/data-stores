@@ -8,13 +8,13 @@
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.3.11" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.0.8" />
-    <PackageReference Include="Halforbit.Facets" Version="1.0.25" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.9" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.26" />
   </ItemGroup>
 
 </Project>
