@@ -9,5 +9,7 @@ namespace Halforbit.DataStores.Interface
         Message<TContent> Put(TContent content);
 
         void Delete(Message<TContent> message);
+
+        int? GetApproximateMessageCount();
     }
 }
