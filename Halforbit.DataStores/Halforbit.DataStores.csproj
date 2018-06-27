@@ -8,8 +8,8 @@
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.10</Version>
-    <AssemblyVersion>1.0.10.0</AssemblyVersion>
+    <Version>1.0.11</Version>
+    <AssemblyVersion>1.0.11.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
