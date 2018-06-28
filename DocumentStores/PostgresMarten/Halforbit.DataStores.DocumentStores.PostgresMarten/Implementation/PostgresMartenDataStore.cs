@@ -1,5 +1,7 @@
 ﻿using Halforbit.DataStores.DocumentStores.Interface;
+using Halforbit.DataStores.Exceptions;
 using Halforbit.DataStores.Interface;
+using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
@@ -22,9 +24,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         readonly StringMap<TKey> _keyMap;
 
+        readonly IDataActionValidator<TKey, TValue> _dataActionValidator;
+
         public PostgresMartenDataStore(
             string connectionString,
-            string keyMap)
+            string keyMap,
+            [Optional]IDataActionValidator<TKey, TValue> dataActionValidator)
         {
             var serializer = new JsonNetSerializer();
 
@@ -43,12 +48,16 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             });
 
             _keyMap = keyMap;
+
+            _dataActionValidator = dataActionValidator;
         }
 
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();
 
         public async Task<bool> Create(TKey key, TValue value)
         {
+            ValidatePut(key, value);
+
             var id = value.Id = GetDocumentId(key);
 
             using (var session = _documentStore.LightweightSession())
@@ -62,7 +71,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 session.Insert(value);
 
-                await session.SaveChangesAsync();
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
             return true;
@@ -70,6 +79,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Delete(TKey key)
         {
+            ValidateDelete(key);
+
             var id = GetDocumentId(key);
 
             using (var session = _documentStore.LightweightSession())
@@ -83,7 +94,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 session.Delete<TValue>(id);
 
-                await session.SaveChangesAsync();
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
             return true;
@@ -114,14 +125,14 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public async Task<IEnumerable<TKey>> ListKeys(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListValues(predicate))
+            return (await ListValues(predicate).ConfigureAwait(false))
                 .Select(v => _keyMap.Map(v.Id));
         }
 
         public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListValues(predicate))
+            return (await ListValues(predicate).ConfigureAwait(false))
                 .Select(v => new KeyValuePair<TKey, TValue>(_keyMap.Map(v.Id), v));
         }
 
@@ -152,6 +163,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Update(TKey key, TValue value)
         {
+            ValidatePut(key, value);
+
             var id = value.Id = GetDocumentId(key);
 
             using (var session = _documentStore.LightweightSession())
@@ -165,7 +178,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 session.Update(value);
 
-                await session.SaveChangesAsync();
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
             return true;
@@ -173,6 +186,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Upsert(TKey key, TValue value)
         {
+            ValidatePut(key, value);
+
             var id = value.Id = GetDocumentId(key);
 
             using (var session = _documentStore.LightweightSession())
@@ -181,7 +196,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 session.Store(value);
 
-                await session.SaveChangesAsync();
+                await session.SaveChangesAsync().ConfigureAwait(false);
 
                 return !existing.IsDefaultValue();
             }
@@ -193,6 +208,26 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         }
 
         string GetDocumentId(TKey key) => _keyMap.Map(key);
+
+        void ValidatePut(TKey key, TValue value)
+        {
+            var validationErrors = _dataActionValidator?.ValidatePut(key, value).ToList();
+
+            if (validationErrors?.Any() ?? false)
+            {
+                throw new ValidationException(validationErrors);
+            }
+        }
+
+        void ValidateDelete(TKey key)
+        {
+            var validationErrors = _dataActionValidator?.ValidateDelete(key).ToList();
+
+            if (validationErrors?.Any() ?? false)
+            {
+                throw new ValidationException(validationErrors);
+            }
+        }
 
         class QuerySession : IQuerySession<TKey, TValue>
         {

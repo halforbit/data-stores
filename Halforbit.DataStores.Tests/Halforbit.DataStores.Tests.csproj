@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CompareNETObjects" Version="3.9.0" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.0.9" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.13" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.27" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170425-07" />

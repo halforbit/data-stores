@@ -8,11 +8,11 @@
     <Description>A DataStore FileStore implementation over Azure Blob Storage.</Description>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
-    <Version>1.0.12</Version>
+    <Version>1.0.13</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.0.9" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.13" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.27" />
     <PackageReference Include="WindowsAzure.Storage" Version="8.5.0" />
   </ItemGroup>

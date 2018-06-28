@@ -55,7 +55,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             return true;
         }
 
-        public async Task<bool> Exists(string path) => await GetBlob(path).ExistsAsync();
+        public async Task<bool> Exists(string path) => await GetBlob(path).ExistsAsync().ConfigureAwait(false);
 
         public async Task<IEnumerable<string>> GetFiles(
             string pathPrefix, 

@@ -8,11 +8,11 @@
     <Description>A DataStore Serialization implementation over YAML.</Description>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
-    <Version>1.0.9</Version>
+    <Version>1.0.10</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.0.9" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.0.13" />
     <PackageReference Include="Halforbit.Facets" Version="1.0.27" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
   </ItemGroup>

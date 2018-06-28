@@ -25,7 +25,10 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             documentClient = new DocumentClient(
                 endpoint, 
                 authKey, 
-                new ConnectionPolicy { EnableEndpointDiscovery = false },
+                new ConnectionPolicy
+                {
+                    //EnableEndpointDiscovery = false
+                },
                 ConsistencyLevel.Session);
 
             _documentClients.Add(endpoint, documentClient);

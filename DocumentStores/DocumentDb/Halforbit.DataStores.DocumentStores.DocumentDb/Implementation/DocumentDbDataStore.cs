@@ -1,5 +1,7 @@
 ﻿using Halforbit.DataStores.DocumentStores.Interface;
+using Halforbit.DataStores.Exceptions;
 using Halforbit.DataStores.Interface;
+using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
@@ -9,7 +11,7 @@ using Microsoft.Azure.Documents.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;           
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -27,6 +29,8 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
         readonly StringMap<TKey> _keyMap;
 
+        readonly IDataActionValidator<TKey, TValue> _dataActionValidator;
+
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();
 
         public DocumentDbDataStore(
@@ -34,7 +38,8 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             string authKey,
             string database,
             string collection,
-            string keyMap)
+            string keyMap,
+            [Optional]IDataActionValidator<TKey, TValue> dataActionValidator = null)
         {
             _documentClient = DocumentClientFactory.GetDocumentClient(
                 new Uri(endpoint), 
@@ -46,28 +51,37 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             _keyMap = keyMap;
 
-            CreateDatabaseIfNotExistsAsync().Wait();
+            _dataActionValidator = dataActionValidator;
 
-            CreateCollectionIfNotExistsAsync().Wait();
+            // Disabled these because they cause a deadlock in ASP.NET.
+            
+            // Don't re-enable without testing that ASP.NET controller 
+            // use works correctly.
+
+            //CreateDatabaseIfNotExistsAsync().Wait();
+
+            //CreateCollectionIfNotExistsAsync().Wait();
         }
 
         public async Task<bool> Create(
             TKey key, 
             TValue value)
         {
+            ValidatePut(key, value);
+
             value.Id = GetDocumentId(key);
 
             try
             {
                 await Execute(() => _documentClient.CreateDocumentAsync(
-                    GetCollectionUri(), 
-                    value));
+                    GetCollectionUri(),
+                    value)).ConfigureAwait(false);
 
                 return true;
             }
-            catch(DocumentClientException dce)
+            catch (DocumentClientException dce)
             {
-                if(dce.StatusCode == HttpStatusCode.Conflict)
+                if (dce.StatusCode == HttpStatusCode.Conflict)
                 {
                     return false;
                 }
@@ -78,12 +92,14 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
         public async Task<bool> Delete(TKey key)
         {
+            ValidateDelete(key);
+
             var documentId = GetDocumentId(key);
 
             try
             {
                 await Execute(() => _documentClient.DeleteDocumentAsync(
-                    GetDocumentUri(documentId)));
+                    GetDocumentUri(documentId))).ConfigureAwait(false);
 
                 return true;
             }
@@ -100,7 +116,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
         public async Task<bool> Exists(TKey key)
         {
-            return !(await Get(key)).IsDefaultValue();
+            return !(await Get(key).ConfigureAwait(false)).IsDefaultValue();
         }
 
         public async Task<TValue> Get(TKey key)
@@ -111,7 +127,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             {
                 Document document = await Execute(
                     () => _documentClient.ReadDocumentAsync(
-                        GetDocumentUri(documentId)));
+                        GetDocumentUri(documentId))).ConfigureAwait(false);
 
                 return (TValue)(dynamic)document;
             }
@@ -131,7 +147,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         public async Task<IEnumerable<TKey>> ListKeys(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListValues(predicate)).Select(v => ParseDocumentId(v.Id));
+            return (await ListValues(predicate).ConfigureAwait(false)).Select(v => ParseDocumentId(v.Id));
         }
 
         public async Task<IEnumerable<TValue>> ListValues(
@@ -159,7 +175,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
                             EnableCrossPartitionQuery = true
                         })
-                    .Where(v => v.Id.StartsWith(keyPrefix))));
+                    .Where(v => v.Id.StartsWith(keyPrefix)))).ConfigureAwait(false);
 
             var documentQuery = queryable.AsDocumentQuery();
 
@@ -190,7 +206,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListValues(predicate))
+            return (await ListValues(predicate).ConfigureAwait(false))
                 .Select(v => new KeyValuePair<TKey, TValue>(ParseDocumentId(v.Id), v));
         }
 
@@ -198,6 +214,8 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             TKey key, 
             TValue value)
         {
+            ValidatePut(key, value);
+
             var documentId = GetDocumentId(key);
 
             try
@@ -206,7 +224,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
                 await Execute(() => _documentClient.ReplaceDocumentAsync(
                     GetDocumentUri(documentId), 
-                    value));
+                    value)).ConfigureAwait(false);
 
                 return true;
             }
@@ -225,11 +243,13 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             TKey key, 
             TValue value)
         {
+            ValidatePut(key, value);
+
             value.Id = GetDocumentId(key);
 
             await Execute(() => _documentClient.UpsertDocumentAsync(
                 GetCollectionUri(), 
-                value));
+                value)).ConfigureAwait(false);
 
             return true;
         }
@@ -283,16 +303,18 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         {
             try
             {
-                await _documentClient.ReadDatabaseAsync(GetDatabaseUri());
+                await _documentClient.ReadDatabaseAsync(GetDatabaseUri()).ConfigureAwait(false);
             }
             catch (DocumentClientException e)
             {
                 if (e.StatusCode == HttpStatusCode.NotFound)
                 {
-                    await _documentClient.CreateDatabaseAsync(new Database
-                    {
-                        Id = _database
-                    });
+                    await _documentClient
+                        .CreateDatabaseAsync(new Database
+                        {
+                            Id = _database
+                        })
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -305,22 +327,24 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         {
             try
             {
-                await _documentClient.ReadDocumentCollectionAsync(GetCollectionUri());
+                await _documentClient.ReadDocumentCollectionAsync(GetCollectionUri()).ConfigureAwait(false);
             }
             catch (DocumentClientException e)
             {
                 if (e.StatusCode == HttpStatusCode.NotFound)
                 {
-                    await _documentClient.CreateDocumentCollectionAsync(
-                        UriFactory.CreateDatabaseUri(_database),
-                        new DocumentCollection
-                        {
-                            Id = _collection
-                        },
-                        new RequestOptions
-                        {
-                            OfferThroughput = 1000
-                        });
+                    await _documentClient
+                        .CreateDocumentCollectionAsync(
+                            UriFactory.CreateDatabaseUri(_database),
+                            new DocumentCollection
+                            {
+                                Id = _collection
+                            },
+                            new RequestOptions
+                            {
+                                OfferThroughput = 1000
+                            })
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -338,7 +362,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             {
                 try
                 {
-                    return await func();
+                    return await func().ConfigureAwait(false);
                 }
                 catch (DocumentClientException de)
                 {
@@ -366,7 +390,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
                     sleepTime = de.RetryAfter;
                 }
 
-                await Task.Delay(sleepTime);
+                await Task.Delay(sleepTime).ConfigureAwait(false);
             }
         }
 
@@ -384,5 +408,25 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
         string GetDocumentId(TKey key) => _keyMap.Map(key).Replace('/', '|');
 
         TKey ParseDocumentId(string id) => _keyMap.Map(id.Replace('|', '/'));
+
+        void ValidatePut(TKey key, TValue value)
+        {
+            var validationErrors = _dataActionValidator?.ValidatePut(key, value).ToList();
+
+            if (validationErrors?.Any() ?? false)
+            {
+                throw new ValidationException(validationErrors);
+            }
+        }
+
+        void ValidateDelete(TKey key)
+        {
+            var validationErrors = _dataActionValidator?.ValidateDelete(key).ToList();
+
+            if (validationErrors?.Any() ?? false)
+            {
+                throw new ValidationException(validationErrors);
+            }
+        }
     }
 }
