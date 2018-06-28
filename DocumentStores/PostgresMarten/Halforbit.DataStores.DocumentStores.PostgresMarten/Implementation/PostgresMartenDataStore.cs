@@ -29,7 +29,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public PostgresMartenDataStore(
             string connectionString,
             string keyMap,
-            [Optional]IDataActionValidator<TKey, TValue> dataActionValidator)
+            [Optional]IDataActionValidator<TKey, TValue> dataActionValidator = null)
         {
             var serializer = new JsonNetSerializer();
 
