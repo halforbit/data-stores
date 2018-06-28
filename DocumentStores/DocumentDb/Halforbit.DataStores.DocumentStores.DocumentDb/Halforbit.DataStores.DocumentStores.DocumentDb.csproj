@@ -8,7 +8,7 @@
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.10</Version>
+    <Version>1.0.11</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Halforbit.DataStores" Version="1.0.9" />
-    <PackageReference Include="Halforbit.Facets" Version="1.0.26" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.27" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="1.6.0" />
   </ItemGroup>
 
