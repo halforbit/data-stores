@@ -56,7 +56,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             _context = new Lazy<IDataStoreContext<TKey>>(() => new DataStoreContext(
                 _fileStore.FileStoreContext, 
-                _keyMap));
+                _keyMap, 
+                _fileExtension));
         }
 
         string InvariantPathPrefix => _keyMap
@@ -423,13 +424,18 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             readonly StringMap<TKey> _keyMap;
 
+            readonly string _fileExtension;
+
             public DataStoreContext(
                 IFileStoreContext fileStoreContext,
-                StringMap<TKey> keyMap)
+                StringMap<TKey> keyMap,
+                string fileExtension)
             {
                 _fileStoreContext = fileStoreContext;
 
                 _keyMap = keyMap;
+
+                _fileExtension = fileExtension;
             }
 
             public async Task<EntityInfo> GetEntityInfo(TKey key)
@@ -448,7 +454,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 Access access)
             {
                 return await _fileStoreContext.GetSharedAccessUrl(
-                    _keyMap.Map(key),
+                    $"{_keyMap.Map(key)}{_fileExtension}",
                     expiration,
                     access).ConfigureAwait(false);
             }
