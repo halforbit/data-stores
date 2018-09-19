@@ -128,7 +128,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
             var tasks = keys
-                .Select(async keyPath => await GetValue($"{keyPath.Value}{_fileExtension}").ConfigureAwait(false))
+                .Select(async keyPath => await GetValue($"{keyPath.Value}{_fileExtension}")
+                .ConfigureAwait(false))
                 .ToArray();
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -338,7 +339,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         string ResolveKeyStringPrefix(Expression<Func<TKey, bool>> selector)
         {
-            var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as IReadOnlyDictionary<string, object>;
+            var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as 
+                IReadOnlyDictionary<string, object>;
 
             if (selector != null)
             {
@@ -401,7 +403,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public IQueryable<TValue> Query(Expression<Func<TKey, bool>> selector = null)
             {
-                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as IReadOnlyDictionary<string, object>;
+                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as 
+                    IReadOnlyDictionary<string, object>;
 
                 if (selector != null)
                 {
