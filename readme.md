@@ -48,7 +48,7 @@ public class Vehicle
 }
 ```
 
-In this example, we have defined a nested **key type** `Vehicle.Key` for uniquely identifying and storing things of this type. The key type does not need to be a nested class, and can also be a simple type, like `int?` or `Guid?`, as long as it is nullable. 
+In this example, we have defined a nested **key type** `Vehicle.Key` for uniquely identifying and storing things of this type. The key type does not need to be a nested class, and can also be a simple type, like `int` or `Guid`. 
 
 ### Step 1: Define a Data Context
 
@@ -106,7 +106,7 @@ Note that the consuming code here doesn't know or care too much about which data
 
 ## What Data Stores Can I Use?
 
-Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **Amazon S3**, and **Google Drive**.
+Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **PostgreSQL/Marten Document Database**, **Amazon S3**, and **Google Drive**.
 
 Serialization integrations are provided for **JSON**, **YAML**, **XML**, as well as super-efficient **Bond** and **Protobuf** protocols. Note that some serializers have special requirements for data classes to be serialized.
 

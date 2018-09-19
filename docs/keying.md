@@ -65,18 +65,3 @@ You can use simple types such as `Guid?` and `int?` for your key type. In this c
 [KeyMap("persons/{this}")]
 IDataStore<Guid?, Person> Persons { get; }
 ```
-
-Note that the key type must be nullable.
-
-### Partial Keys and Nullable Types
-
-The properties of a key type and the key type itself should both be nullable. This is to allow **partial key** objects to be created, for use in querying. From the vehicles example above, we can create a partial `Vehicle.Key`:
-```
-    new Vehicle.Key(make: "Ford"); // Note, no Vin provided.
-```
-
-When this partial key is combined with the key map of `vehicles/{Make}/{Vin}`, we get a partial **key prefix** of `vehicles/Ford/`. This prefix is used as a filter when the data store is queried. This is what happens behind the scenes in methods like `IDataStore<,>.ListValues()`:
-```
-    // Note the key inferred here does not have a value for Vin.
-    var results = dataContext.Vehicles.ListValues(key => key.Make == "Ford").Result;
-```
