@@ -126,8 +126,6 @@ namespace Halforbit.DataStores.Tests
 
         protected static void ClearDataStore<TKey, TValue>(IDataStore<TKey, TValue> dataStore)
         {
-            var xx = dataStore.ListValues().Result;
-
             foreach (var k in dataStore.ListKeys().Result)
             {
                 dataStore.Delete(k).Wait();

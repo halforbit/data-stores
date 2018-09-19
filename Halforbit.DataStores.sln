@@ -68,7 +68,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.Docume
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.DocumentStores.PostgresMarten.Tests", "DocumentStores\PostgresMarten\Halforbit.DataStores.DocumentStores.PostgresMarten.Tests\Halforbit.DataStores.DocumentStores.PostgresMarten.Tests.csproj", "{DF6906BD-42FB-45C6-94BD-A587EF3A6DDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.TestUtils", "Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj", "{488FAC29-FF2D-4CB1-B6F0-DAF8317727C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.TestUtils", "Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj", "{488FAC29-FF2D-4CB1-B6F0-DAF8317727C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

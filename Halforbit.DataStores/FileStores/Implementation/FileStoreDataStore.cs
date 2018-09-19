@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Halforbit.DataStores.Model;
 using Halforbit.DataStores.Exceptions;
+using Halforbit.ObjectTools.Collections;
 
 namespace Halforbit.DataStores.FileStores.Implementation
 {
@@ -337,25 +338,25 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         string ResolveKeyStringPrefix(Expression<Func<TKey, bool>> selector)
         {
-            var key = default(TKey);
+            var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as IReadOnlyDictionary<string, object>;
 
             if (selector != null)
             {
-                key = _invariantExtractor.ExtractInvariants(
+                memberValues = _invariantExtractor.ExtractInvariantDictionary(
                     selector,
                     out Expression<Func<TKey, bool>> invariantExpression);
             }
 
-            return EvaluatePath(key, true);
+            return EvaluatePath(memberValues, true);
         }
 
         string EvaluatePath(
-            TKey key, 
+            IReadOnlyDictionary<string, object> memberValues,
             bool allowPartialMap = false)
         {
             try
             {
-                return _keyMap.Map(key, allowPartialMap);
+                return _keyMap.Map(memberValues, allowPartialMap);
             }
             catch (ArgumentNullException ex)
             {
@@ -398,9 +399,18 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public void Dispose() { }
 
-            public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+            public IQueryable<TValue> Query(Expression<Func<TKey, bool>> selector = null)
             {
-                var prefix = _dataStore.EvaluatePath(partialKey, allowPartialMap: true);
+                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as IReadOnlyDictionary<string, object>;
+
+                if (selector != null)
+                {
+                    memberValues = _dataStore._invariantExtractor.ExtractInvariantDictionary(
+                        selector,
+                        out Expression<Func<TKey, bool>> invariantExpression);
+                }
+
+                var prefix = _dataStore.EvaluatePath(memberValues, allowPartialMap: true);
 
                 var keys = _dataStore.ResolveKeyPaths(prefix).Result;
 
