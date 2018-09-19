@@ -8,7 +8,7 @@
     <Description>A DataStore Serialization implementation over YAML.</Description>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
-    <Version>1.0.12</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
