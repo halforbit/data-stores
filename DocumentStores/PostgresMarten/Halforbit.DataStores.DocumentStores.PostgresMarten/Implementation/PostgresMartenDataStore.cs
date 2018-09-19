@@ -1,7 +1,9 @@
 ﻿using Halforbit.DataStores.DocumentStores.Interface;
 using Halforbit.DataStores.Exceptions;
+using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.Interface;
 using Halforbit.Facets.Attributes;
+using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
@@ -139,9 +141,11 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public async Task<IEnumerable<TValue>> ListValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            var extracted = new InvariantExtractor().ExtractInvariants(
-                predicate,
-                out Expression<Func<TKey, bool>> invariant);
+            var extracted = predicate != null ? 
+                new InvariantExtractor().ExtractInvariantDictionary(
+                    predicate,
+                    out Expression<Func<TKey, bool>> invariant) : 
+                EmptyReadOnlyDictionary<string, object>.Instance;
 
             var keyPrefix = _keyMap.Map(
                 extracted, 
@@ -149,10 +153,14 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
             using (var session = _documentStore.QuerySession())
             {
-                return session
-                    .Query<TValue>()
-                    .Where(v => v.Id.StartsWith(keyPrefix))
-                    .ToList();
+                var queryable = session.Query<TValue>() as IQueryable<TValue>;
+
+                if(!string.IsNullOrWhiteSpace(keyPrefix))
+                {
+                    queryable = queryable.Where(v => v.Id.StartsWith(keyPrefix));
+                }
+                
+                return queryable.ToList();
             }
         }
 
@@ -229,6 +237,22 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             }
         }
 
+        string EvaluatePath(
+            IReadOnlyDictionary<string, object> memberValues,
+            bool allowPartialMap = false)
+        {
+            try
+            {
+                return _keyMap.Map(memberValues, allowPartialMap);
+            }
+            catch (ArgumentNullException ex)
+            {
+                throw new IncompleteKeyException(
+                    $"Path for {typeof(TValue).Name} could not be evaluated " +
+                    $"because key {typeof(TKey).Name} was missing a value for {ex.ParamName}.");
+            }
+        }
+
         class QuerySession : IQuerySession<TKey, TValue>
         {
             readonly PostgresMartenDataStore<TKey, TValue> _dataStore;
@@ -247,9 +271,31 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                 _querySession.Dispose();
             }
 
-            public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+            public IQueryable<TValue> Query(
+                Expression<Func<TKey, bool>> predicate = null)
             {
-                return _querySession.Query<TValue>();
+                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as
+                    IReadOnlyDictionary<string, object>;
+
+                if (predicate != null)
+                {
+                    memberValues = new InvariantExtractor().ExtractInvariantDictionary(
+                        predicate,
+                        out var invariantExpression);
+                }
+
+                var queryable = _querySession.Query<TValue>() as IQueryable<TValue>;
+
+                var keyPrefix = _dataStore.EvaluatePath(
+                    memberValues, 
+                    allowPartialMap: true);
+                
+                if(!string.IsNullOrWhiteSpace(keyPrefix))
+                {
+                    queryable = queryable.Where(e => e.Id.StartsWith(keyPrefix));
+                }
+
+                return queryable;
             }
         }
 

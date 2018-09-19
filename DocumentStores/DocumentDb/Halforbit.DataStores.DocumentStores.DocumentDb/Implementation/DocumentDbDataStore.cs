@@ -1,7 +1,9 @@
 ﻿using Halforbit.DataStores.DocumentStores.Interface;
 using Halforbit.DataStores.Exceptions;
+using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.Interface;
 using Halforbit.Facets.Attributes;
+using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
@@ -154,10 +156,10 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             Expression<Func<TKey, bool>> predicate = null)
         {
             var extracted = predicate != null ? 
-                new InvariantExtractor().ExtractInvariants(
+                new InvariantExtractor().ExtractInvariantDictionary(
                     predicate,
                     out Expression<Func<TKey, bool>> invariant) : 
-                default(TKey);
+                EmptyReadOnlyDictionary<string, object>.Instance;
 
             var keyPrefix = _keyMap
                 .Map(
@@ -266,6 +268,22 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             return new QuerySession(this);
         }
 
+        string EvaluatePath(
+            IReadOnlyDictionary<string, object> memberValues,
+            bool allowPartialMap = false)
+        {
+            try
+            {
+                return _keyMap.Map(memberValues, allowPartialMap);
+            }
+            catch (ArgumentNullException ex)
+            {
+                throw new IncompleteKeyException(
+                    $"Path for {typeof(TValue).Name} could not be evaluated " +
+                    $"because key {typeof(TKey).Name} was missing a value for {ex.ParamName}.");
+            }
+        }
+
         class QuerySession : IQuerySession<TKey, TValue>
         {
             readonly DocumentDbDataStore<TKey, TValue> _dataStore;
@@ -277,12 +295,21 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             public void Dispose() { }
 
-            public IQueryable<TValue> Query(TKey partialKey = default(TKey))
+            public IQueryable<TValue> Query(
+                Expression<Func<TKey, bool>> predicate = null)
             {
-                var keyPrefix = _dataStore.
-                    _keyMap.Map(
-                        partialKey,
-                        allowPartialMap: true)
+                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as 
+                    IReadOnlyDictionary<string, object>;
+
+                if(predicate != null)
+                {
+                    memberValues = new InvariantExtractor().ExtractInvariantDictionary(
+                        predicate,
+                        out var invariantExpression);
+                }
+
+                var keyPrefix = _dataStore
+                    .EvaluatePath(memberValues, allowPartialMap: true)
                     .Replace('/', '|');
 
                 return Execute(

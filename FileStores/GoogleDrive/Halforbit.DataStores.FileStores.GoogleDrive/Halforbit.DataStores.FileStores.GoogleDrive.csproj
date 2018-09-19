@@ -8,7 +8,7 @@
     <Description>A DataStore FileStore implementation over Google Drive.</Description>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
-    <Version>1.0.11</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,8 +26,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.3.11" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.29.1.981" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.0.13" />
-    <PackageReference Include="Halforbit.Facets" Version="1.0.33" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
