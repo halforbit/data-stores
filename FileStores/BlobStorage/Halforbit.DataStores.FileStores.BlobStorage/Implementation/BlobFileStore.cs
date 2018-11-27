@@ -190,14 +190,18 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             {
                 AssertAccess(Access.Get);
 
-                var blob = _blobFileStore.GetBlob(key);
+                if (await _blobFileStore.Exists(key))
+                {
+                    var blob = _blobFileStore.GetBlob(key);
 
-                if (blob == null)
+                    await blob.FetchAttributesAsync();
+
+                    return CloudBlockBlobToEntityInfo(blob);
+                }
+                else
                 {
                     return null;
                 }
-
-                return CloudBlockBlobToEntityInfo(blob);
             }
 
             public async Task<IReadOnlyDictionary<string, string>> GetMetadata(string key)
@@ -206,7 +210,16 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 var blob = _blobFileStore.GetBlob(key);
 
-                return blob.Metadata as IReadOnlyDictionary<string, string>;
+                if(await _blobFileStore.Exists(key))
+                {
+                    await blob.FetchAttributesAsync();
+
+                    return blob.Metadata as IReadOnlyDictionary<string, string>;
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             public async Task<Uri> GetSharedAccessUrl(
