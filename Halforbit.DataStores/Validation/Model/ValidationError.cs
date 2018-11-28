@@ -1,24 +1,30 @@
 ﻿using System;
 
-namespace Halforbit.DataStores.Exceptions
+namespace Halforbit.DataStores.Validation.Model
 {
     public class ValidationError
     {
-        public ValidationError(string message)
+        public ValidationError(
+            string message, 
+            bool isFatal = false)
         {
             Message = message;
+
+            IsFatal = isFatal;
         }
 
-        public ValidationError(string messageFormat, params object[] arguments)
-        {
-            Message = string.Format(messageFormat, arguments);
-        }
+        public string Message { get; }
 
-        public string Message { get; private set; }
+        public bool IsFatal { get; }
 
         public override string ToString() => Message;
 
         public static implicit operator ValidationError(string message) => new ValidationError(message);
+
+        public static string AlreadyExists(string name)
+        {
+            return $"{name} already exists.";
+        }
 
         public static string Required(string name)
         {
