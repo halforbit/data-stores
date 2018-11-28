@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Halforbit.ObjectTools.ObjectStringMap.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -30,5 +31,7 @@ namespace Halforbit.DataStores.Interface
         Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator);
 
         IQuerySession<TKey, TValue> StartQuery();
+
+        IStringMap<TKey> KeyMap { get; }
     }
 }

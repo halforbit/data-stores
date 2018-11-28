@@ -1,22 +1,24 @@
 ﻿using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.FileStores.Interface;
 using Halforbit.DataStores.Interface;
+using Halforbit.DataStores.Model;
+using Halforbit.DataStores.Validation.Exceptions;
+using Halforbit.DataStores.Validation.Interface;
 using Halforbit.Facets.Attributes;
+using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
+using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Halforbit.DataStores.Model;
-using Halforbit.DataStores.Exceptions;
-using Halforbit.ObjectTools.Collections;
 
 namespace Halforbit.DataStores.FileStores.Implementation
 {
-    public class FileStoreDataStore<TKey, TValue> : 
+    public class FileStoreDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
     {
         readonly InvariantExtractor _invariantExtractor = new InvariantExtractor();
@@ -29,7 +31,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         readonly StringMap<TKey> _keyMap;
 
-        readonly IDataActionValidator<TKey, TValue> _dataActionValidator;
+        readonly IValidator<TKey, TValue> _validator;
 
         readonly string _fileExtension;
 
@@ -39,7 +41,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             IFileStore fileStore,
             ISerializer serializer,
             [Optional]ICompressor compressor = null,
-            [Optional]IDataActionValidator<TKey, TValue> dataActionValidator = null,
+            [Optional]IValidator<TKey, TValue> validator = null,
             string keyMap = null,
             [Optional]string fileExtension = null)
         {
@@ -49,15 +51,15 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             _compressor = compressor;
 
-            _dataActionValidator = dataActionValidator;
+            _validator = validator;
 
             _keyMap = keyMap ?? throw new ArgumentNullException(nameof(keyMap));
 
             _fileExtension = fileExtension ?? string.Empty;
 
             _context = new Lazy<IDataStoreContext<TKey>>(() => new DataStoreContext(
-                _fileStore.FileStoreContext, 
-                _keyMap, 
+                _fileStore.FileStoreContext,
+                _keyMap,
                 _fileExtension));
         }
 
@@ -66,11 +68,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public IDataStoreContext<TKey> Context => _context.Value;
 
+        public IStringMap<TKey> KeyMap => _keyMap;
+
         public async Task<bool> Create(
-            TKey key, 
+            TKey key,
             TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             var path = GetPath(key);
 
@@ -88,11 +92,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public async Task<bool> Delete(TKey key)
         {
-            ValidateDelete(key);
+            await ValidateDelete(key);
 
             var path = GetPath(key);
 
-            if(!await _fileStore.Exists(path).ConfigureAwait(false))
+            if (!await _fileStore.Exists(path).ConfigureAwait(false))
             {
                 return false;
             }
@@ -144,7 +148,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         {
             var tasks = (await ResolveKeyPaths(predicate).ConfigureAwait(false))
                 .Select(async kv => new KeyValuePair<TKey, TValue>(
-                    kv.Key, 
+                    kv.Key,
                     await GetValue($"{kv.Value}{_fileExtension}")))
                 .ToArray();
 
@@ -154,14 +158,14 @@ namespace Halforbit.DataStores.FileStores.Implementation
         }
 
         public async Task<bool> Update(
-            TKey key, 
+            TKey key,
             TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             var path = GetPath(key);
 
-            if(!await _fileStore.Exists(path).ConfigureAwait(false))
+            if (!await _fileStore.Exists(path).ConfigureAwait(false))
             {
                 return false;
             }
@@ -174,10 +178,10 @@ namespace Halforbit.DataStores.FileStores.Implementation
         }
 
         public async Task<bool> Upsert(
-            TKey key, 
+            TKey key,
             TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             var path = GetPath(key);
 
@@ -191,20 +195,20 @@ namespace Halforbit.DataStores.FileStores.Implementation
         }
 
         public async Task<bool> Upsert(
-            TKey key, 
+            TKey key,
             Func<TValue, TValue> mutator)
         {
             var path = GetPath(key);
 
             var attemptsLeft = 100;
 
-            while(attemptsLeft > 0)
+            while (attemptsLeft > 0)
             {
                 var current = await GetValueWithETag(path).ConfigureAwait(false);
 
                 var mutation = mutator(current.Item1);
 
-                ValidatePut(key, mutation);
+                await ValidatePut(key, mutation);
 
                 var contents = await GetContents(mutation).ConfigureAwait(false);
 
@@ -213,16 +217,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
                     contents: contents,
                     eTag: current.Item2).ConfigureAwait(false);
 
-                if(success)
+                if (success)
                 {
                     return true;
                 }
 
-                if(attemptsLeft < 100)
+                if (attemptsLeft < 100)
                 {
                     //Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
                 }
-                
+
                 Task.Delay(100).Wait();
 
                 attemptsLeft--;
@@ -256,8 +260,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
 
             var contents = (await _fileStore.ReadAllBytes(path).ConfigureAwait(false)).Bytes;
-            
-            if(_compressor != null)
+
+            if (_compressor != null)
             {
                 contents = await _compressor.Decompress(contents).ConfigureAwait(false);
             }
@@ -339,7 +343,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         string ResolveKeyStringPrefix(Expression<Func<TKey, bool>> selector)
         {
-            var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as 
+            var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as
                 IReadOnlyDictionary<string, object>;
 
             if (selector != null)
@@ -370,9 +374,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         string GetPath(TKey key) => $"{_keyMap.Map(key)}{_fileExtension}";
 
-        void ValidatePut(TKey key, TValue value)
+        async Task ValidatePut(TKey key, TValue value)
         {
-            var validationErrors = _dataActionValidator?.ValidatePut(key, value).ToList();
+            var validationErrors = await _validator?.ValidatePut(key, value, _keyMap);
 
             if (validationErrors?.Any() ?? false)
             {
@@ -380,9 +384,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
         }
 
-        void ValidateDelete(TKey key)
+        async Task ValidateDelete(TKey key)
         {
-            var validationErrors = _dataActionValidator?.ValidateDelete(key).ToList();
+            var validationErrors = await _validator?.ValidateDelete(key, _keyMap);
 
             if (validationErrors?.Any() ?? false)
             {
@@ -403,7 +407,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public IQueryable<TValue> Query(Expression<Func<TKey, bool>> selector = null)
             {
-                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as 
+                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as
                     IReadOnlyDictionary<string, object>;
 
                 if (selector != null)
@@ -462,8 +466,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
 
             public async Task<Uri> GetSharedAccessUrl(
-                TKey key, 
-                DateTime expiration, 
+                TKey key,
+                DateTime expiration,
                 Access access)
             {
                 return await _fileStoreContext.GetSharedAccessUrl(
@@ -485,7 +489,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
 
             public async Task SetEntityInfo(
-                TKey key, 
+                TKey key,
                 EntityInfo entityInfo)
             {
                 await _fileStoreContext.SetEntityInfo(
@@ -494,7 +498,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
 
             public async Task SetMetadata(
-                TKey key, 
+                TKey key,
                 IReadOnlyDictionary<string, string> keyValues)
             {
                 await _fileStoreContext.SetMetadata(

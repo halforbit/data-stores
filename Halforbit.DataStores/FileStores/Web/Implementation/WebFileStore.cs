@@ -25,9 +25,26 @@ namespace Halforbit.DataStores.FileStores.Web.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<bool> Exists(string path)
+        public async Task<bool> Exists(string path)
         {
-            throw new NotImplementedException();
+            var url = GetUrl(path);
+
+            var request = WebRequest.Create(url);
+
+            request.Method = "HEAD";
+
+            try
+            {
+                var response = await request.GetResponseAsync();
+
+                return true;
+            }
+            catch (WebException wex)
+            {
+                if (wex.Message.Contains("404")) return false;
+
+                throw;
+            }
         }
 
         public Task<IEnumerable<string>> GetFiles(
@@ -41,7 +58,9 @@ namespace Halforbit.DataStores.FileStores.Web.Implementation
             string path, 
             bool getETag = false)
         {
-            var request = WebRequest.Create($"{_rootUrl}/{path}");
+            var url = GetUrl(path);
+
+            var request = WebRequest.Create(url);
 
             try
             {
@@ -82,5 +101,7 @@ namespace Halforbit.DataStores.FileStores.Web.Implementation
                 return memoryStream.ToArray();
             }
         }
+
+        string GetUrl(string path) => $"{_rootUrl}/{path}";
     }
 }
