@@ -376,21 +376,27 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         async Task ValidatePut(TKey key, TValue value)
         {
-            var validationErrors = await _validator?.ValidatePut(key, value, _keyMap);
-
-            if (validationErrors?.Any() ?? false)
+            if(_validator != null)
             {
-                throw new ValidationException(validationErrors);
+                var validationErrors = await _validator.ValidatePut(key, value, _keyMap);
+
+                if (validationErrors?.Any() ?? false)
+                {
+                    throw new ValidationException(validationErrors);
+                }
             }
         }
 
         async Task ValidateDelete(TKey key)
         {
-            var validationErrors = await _validator?.ValidateDelete(key, _keyMap);
-
-            if (validationErrors?.Any() ?? false)
+            if(_validator != null)
             {
-                throw new ValidationException(validationErrors);
+                var validationErrors = await _validator.ValidateDelete(key, _keyMap);
+
+                if (validationErrors?.Any() ?? false)
+                {
+                    throw new ValidationException(validationErrors);
+                }
             }
         }
 
