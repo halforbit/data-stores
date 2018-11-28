@@ -1,12 +1,14 @@
 ﻿using Halforbit.DataStores.DocumentStores.Interface;
-using Halforbit.DataStores.Exceptions;
 using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.Interface;
+using Halforbit.DataStores.Validation.Exceptions;
+using Halforbit.DataStores.Validation.Interface;
 using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
+using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using Marten;
 using Marten.Services;
 using Newtonsoft.Json;
@@ -26,12 +28,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         readonly StringMap<TKey> _keyMap;
 
-        readonly IDataActionValidator<TKey, TValue> _dataActionValidator;
+        readonly IValidator<TKey, TValue> _validator;
 
         public PostgresMartenDataStore(
             string connectionString,
             string keyMap,
-            [Optional]IDataActionValidator<TKey, TValue> dataActionValidator = null)
+            [Optional]IValidator<TKey, TValue> _validator = null)
         {
             var serializer = new JsonNetSerializer();
 
@@ -51,14 +53,16 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
             _keyMap = keyMap;
 
-            _dataActionValidator = dataActionValidator;
+            this._validator = _validator;
         }
 
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();
 
+        public IStringMap<TKey> KeyMap => _keyMap;
+
         public async Task<bool> Create(TKey key, TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             var id = value.Id = GetDocumentId(key);
 
@@ -81,7 +85,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Delete(TKey key)
         {
-            ValidateDelete(key);
+            await ValidateDelete(key);
 
             var id = GetDocumentId(key);
 
@@ -171,7 +175,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Update(TKey key, TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             var id = value.Id = GetDocumentId(key);
 
@@ -194,7 +198,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Upsert(TKey key, TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             var id = value.Id = GetDocumentId(key);
 
@@ -217,23 +221,29 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         string GetDocumentId(TKey key) => _keyMap.Map(key);
 
-        void ValidatePut(TKey key, TValue value)
+        async Task ValidatePut(TKey key, TValue value)
         {
-            var validationErrors = _dataActionValidator?.ValidatePut(key, value).ToList();
-
-            if (validationErrors?.Any() ?? false)
+            if (_validator != null)
             {
-                throw new ValidationException(validationErrors);
+                var validationErrors = await _validator.ValidatePut(key, value, _keyMap);
+
+                if (validationErrors?.Any() ?? false)
+                {
+                    throw new ValidationException(validationErrors);
+                }
             }
         }
 
-        void ValidateDelete(TKey key)
+        async Task ValidateDelete(TKey key)
         {
-            var validationErrors = _dataActionValidator?.ValidateDelete(key).ToList();
-
-            if (validationErrors?.Any() ?? false)
+            if (_validator != null)
             {
-                throw new ValidationException(validationErrors);
+                var validationErrors = await _validator.ValidateDelete(key, _keyMap);
+
+                if (validationErrors?.Any() ?? false)
+                {
+                    throw new ValidationException(validationErrors);
+                }
             }
         }
 

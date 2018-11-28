@@ -1,12 +1,14 @@
 ﻿using Halforbit.DataStores.DocumentStores.Interface;
-using Halforbit.DataStores.Exceptions;
 using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.Interface;
+using Halforbit.DataStores.Validation.Exceptions;
+using Halforbit.DataStores.Validation.Interface;
 using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
+using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -31,9 +33,11 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
         readonly StringMap<TKey> _keyMap;
 
-        readonly IDataActionValidator<TKey, TValue> _dataActionValidator;
+        readonly IValidator<TKey, TValue> _validator;
 
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();
+
+        public IStringMap<TKey> KeyMap => _keyMap;
 
         public DocumentDbDataStore(
             string endpoint,
@@ -41,7 +45,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             string database,
             string collection,
             string keyMap,
-            [Optional]IDataActionValidator<TKey, TValue> dataActionValidator = null)
+            [Optional]IValidator<TKey, TValue> validator = null)
         {
             _documentClient = DocumentClientFactory.GetDocumentClient(
                 new Uri(endpoint), 
@@ -53,7 +57,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
             _keyMap = keyMap;
 
-            _dataActionValidator = dataActionValidator;
+            _validator = validator;
 
             // Disabled these because they cause a deadlock in ASP.NET.
             
@@ -69,7 +73,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             TKey key, 
             TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             value.Id = GetDocumentId(key);
 
@@ -94,7 +98,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
         public async Task<bool> Delete(TKey key)
         {
-            ValidateDelete(key);
+            await ValidateDelete(key);
 
             var documentId = GetDocumentId(key);
 
@@ -137,7 +141,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             {
                 if (dce.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return default(TValue);
+                    return default;
                 }
                 else
                 {
@@ -216,7 +220,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             TKey key, 
             TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             var documentId = GetDocumentId(key);
 
@@ -245,7 +249,7 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
             TKey key, 
             TValue value)
         {
-            ValidatePut(key, value);
+            await ValidatePut(key, value);
 
             value.Id = GetDocumentId(key);
 
@@ -436,23 +440,29 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
 
         TKey ParseDocumentId(string id) => _keyMap.Map(id.Replace('|', '/'));
 
-        void ValidatePut(TKey key, TValue value)
+        async Task ValidatePut(TKey key, TValue value)
         {
-            var validationErrors = _dataActionValidator?.ValidatePut(key, value).ToList();
-
-            if (validationErrors?.Any() ?? false)
+            if (_validator != null)
             {
-                throw new ValidationException(validationErrors);
+                var validationErrors = await _validator.ValidatePut(key, value, _keyMap);
+
+                if (validationErrors?.Any() ?? false)
+                {
+                    throw new ValidationException(validationErrors);
+                }
             }
         }
 
-        void ValidateDelete(TKey key)
+        async Task ValidateDelete(TKey key)
         {
-            var validationErrors = _dataActionValidator?.ValidateDelete(key).ToList();
-
-            if (validationErrors?.Any() ?? false)
+            if(_validator != null)
             {
-                throw new ValidationException(validationErrors);
+                var validationErrors = await _validator.ValidateDelete(key, _keyMap);
+
+                if (validationErrors?.Any() ?? false)
+                {
+                    throw new ValidationException(validationErrors);
+                }
             }
         }
     }
