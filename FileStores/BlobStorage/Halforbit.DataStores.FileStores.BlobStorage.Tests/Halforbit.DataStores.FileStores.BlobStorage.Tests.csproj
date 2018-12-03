@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CompareNETObjects" Version="3.9.0" />
-    <PackageReference Include="Halforbit.Facets" Version="1.0.35" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.36" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
     <PackageReference Include="WindowsAzure.Storage" Version="8.5.0" />
