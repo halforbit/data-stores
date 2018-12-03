@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.Facets" Version="1.0.35" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.36" />
     <PackageReference Include="Halforbit.ObjectTools" Version="1.0.21" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
