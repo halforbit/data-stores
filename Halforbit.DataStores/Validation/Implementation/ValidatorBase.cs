@@ -14,7 +14,7 @@ namespace Halforbit.DataStores.Validation.Implementation
         readonly IReadOnlyList<ValidatorBase<TKey, TValue>> _prerequisites;
 
         public ValidatorBase(
-            IReadOnlyList<ValidatorBase<TKey, TValue>> prerequisites = default)
+            params ValidatorBase<TKey, TValue>[] prerequisites)
         {
             _prerequisites = prerequisites;
         }
