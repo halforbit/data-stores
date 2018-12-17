@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.Validation.Interface
 {
-    public interface IValidator<TKey, TValue>
+    public interface IValidator { }
+
+    public interface IValidator<TKey, TValue> : IValidator
     {
         Task<ValidationErrors> ValidatePut(
             TKey key,
