@@ -12,8 +12,7 @@ namespace Halforbit.DataStores.Model
             string contentType,
             string contentEncoding,
             LeaseState leaseState,
-            bool leaseLocked,
-            TimeSpan leaseDuration)
+            bool leaseLocked)
         {
             Name = name;
 
@@ -30,8 +29,6 @@ namespace Halforbit.DataStores.Model
             LeaseState = leaseState;
 
             LeaseLocked = leaseLocked;
-
-            LeaseDuration = leaseDuration;
         }
 
         public string Name { get; }
@@ -49,7 +46,5 @@ namespace Halforbit.DataStores.Model
         public LeaseState LeaseState { get; }
 
         public bool LeaseLocked { get; }
-
-        public TimeSpan LeaseDuration { get; }
     }
 }
