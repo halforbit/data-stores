@@ -28,5 +28,15 @@ namespace Halforbit.DataStores.Interface
         Task SetMetadata(
             TKey key,
             IReadOnlyDictionary<string, string> keyValues);
+
+        Task<string> AcquireLease(TKey key, TimeSpan leaseTime);
+
+        Task RenewLease(TKey key, string leaseId);
+
+        Task<string> ChangeLease(TKey key, string currentLeaseId);
+
+        Task ReleaseLease(TKey key, string leaseId);
+
+        Task BreakLease(TKey key, TimeSpan breakReleaseTime);
     }
 }
