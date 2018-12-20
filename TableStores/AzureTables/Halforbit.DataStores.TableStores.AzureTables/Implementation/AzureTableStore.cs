@@ -1,21 +1,21 @@
-﻿using System;
+﻿using Halforbit.DataStores.FileStores.Exceptions;
+using Halforbit.DataStores.Interface;
+using Halforbit.DataStores.TableStores.AzureTables.Exceptions;
+using Halforbit.DataStores.Validation.Exceptions;
+using Halforbit.DataStores.Validation.Interface;
+using Halforbit.Facets.Attributes;
+using Halforbit.ObjectTools.Collections;
+using Halforbit.ObjectTools.InvariantExtraction.Implementation;
+using Halforbit.ObjectTools.ObjectStringMap.Implementation;
+using Halforbit.ObjectTools.ObjectStringMap.Interface;
+using Microsoft.Azure.Cosmos.Table;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using System.Net;
-using Halforbit.DataStores.Interface;
-using Halforbit.ObjectTools.ObjectStringMap.Implementation;
-using Halforbit.DataStores.Validation.Interface;
-using Halforbit.Facets.Attributes;
-using Halforbit.ObjectTools.ObjectStringMap.Interface;
-using Microsoft.Azure.Cosmos.Table;
-using Halforbit.ObjectTools.Collections;
-using Halforbit.ObjectTools.InvariantExtraction.Implementation;
-using Halforbit.DataStores.FileStores.Exceptions;
-using Halforbit.DataStores.Validation.Exceptions;
 using System.Text.RegularExpressions;
-using Halforbit.DataStores.TableStores.AzureTables.Exceptions;
+using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 {
