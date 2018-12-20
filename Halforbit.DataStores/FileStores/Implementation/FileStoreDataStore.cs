@@ -461,6 +461,21 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 _fileExtension = fileExtension;
             }
 
+            public async Task<string> AcquireLease(TKey key, TimeSpan leaseTime)
+            {
+                return await _fileStoreContext.AcquireLease(_keyMap.Map(key), leaseTime);
+            }
+
+            public async Task BreakLease(TKey key, TimeSpan breakReleaseTime)
+            {
+                await _fileStoreContext.BreakLease(_keyMap.Map(key), breakReleaseTime);
+            }
+
+            public async Task<string> ChangeLease(TKey key, string currentLeaseId)
+            {
+                return await _fileStoreContext.ChangeLease(_keyMap.Map(key), currentLeaseId);
+            }
+
             public async Task<EntityInfo> GetEntityInfo(TKey key)
             {
                 return await _fileStoreContext.GetEntityInfo(_keyMap.Map(key)).ConfigureAwait(false);
@@ -492,6 +507,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 Expression<Func<TKey, bool>> selector = null)
             {
                 throw new NotImplementedException();
+            }
+
+            public async Task ReleaseLease(TKey key, string leaseId)
+            {
+                await _fileStoreContext.ReleaseLease(_keyMap.Map(key), leaseId);
+            }
+
+            public async Task RenewLease(TKey key, string leaseId)
+            {
+                await _fileStoreContext.RenewLease(_keyMap.Map(key), leaseId);
             }
 
             public async Task SetEntityInfo(
