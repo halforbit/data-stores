@@ -1,5 +1,4 @@
-﻿using Halforbit.DataStores.Interface;
-using Halforbit.DataStores.TableStores.AzureTables.Implementation;
+﻿using Halforbit.DataStores.TableStores.AzureTables.Implementation;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
