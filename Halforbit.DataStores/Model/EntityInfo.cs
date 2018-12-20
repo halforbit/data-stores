@@ -10,7 +10,10 @@ namespace Halforbit.DataStores.Model
             long size,
             string absoluteUri,
             string contentType,
-            string contentEncoding)
+            string contentEncoding,
+            LeaseState leaseState,
+            bool leaseLocked,
+            TimeSpan leaseDuration)
         {
             Name = name;
 
@@ -23,6 +26,12 @@ namespace Halforbit.DataStores.Model
             ContentType = contentType;
 
             ContentEncoding = contentEncoding;
+
+            LeaseState = leaseState;
+
+            LeaseLocked = leaseLocked;
+
+            LeaseDuration = leaseDuration;
         }
 
         public string Name { get; }
@@ -36,5 +45,11 @@ namespace Halforbit.DataStores.Model
         public string ContentType { get; }
 
         public string ContentEncoding { get; }
+
+        public LeaseState LeaseState { get; }
+
+        public bool LeaseLocked { get; }
+
+        public TimeSpan LeaseDuration { get; }
     }
 }
