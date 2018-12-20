@@ -14,6 +14,8 @@ using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.Validation.Exceptions;
+using System.Text.RegularExpressions;
+using Halforbit.DataStores.TableStores.AzureTables.Exceptions;
 
 namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 {
@@ -30,6 +32,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         readonly IValidator<TKey, TValue> _validator;
 
+        const char KeyMapDelimiter = '|';
+
+        static readonly Regex InvalidCharactersRegex = 
+            new Regex(@"/\#?", RegexOptions.Compiled);
+
         public AzureTableStore(
             string connectionString,
             string tableName,
@@ -40,6 +47,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
             _tableName = tableName;
 
+            if (InvalidCharactersRegex.IsMatch(keyMap)) 
+            {
+                throw new InvalidAzureTableKeyMapException(
+                    "Key map includes characters that are invalid in the context of Azure Table Stores.");
+            }
+            
             _keyMap = keyMap;
 
             _validator = validator;
@@ -123,7 +136,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         public async Task<IEnumerable<TKey>> ListKeys(Expression<Func<TKey, bool>> predicate = null)
         {
             return (await ListTableEntities(predicate))
-                .Select(tableEntity => _keyMap.Map(tableEntity.RowKey));
+                .Select(tableEntity => GetKey(tableEntity.PartitionKey, tableEntity.RowKey));
         }
 
         public async Task<IEnumerable<TValue>> ListValues(Expression<Func<TKey, bool>> predicate = null)
@@ -137,7 +150,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         {
             return (await ListTableEntities(predicate))
                 .ToDictionary(
-                    tableEntity => _keyMap.Map(tableEntity.RowKey),
+                    tableEntity => GetKey(tableEntity.PartitionKey, tableEntity.RowKey),
                     tableEntity => tableEntity.OriginalEntity);
         }
 
@@ -201,14 +214,24 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             return tableClient.GetTableReference(_tableName);
         }
 
-        string GetPartitionKey()
+        (string PartitionKey, string RowKey) GetPartitionAndRowKey(TKey key)
         {
-            return typeof(TValue).Name;
+            var mappedInput = _keyMap.Map(key);
+
+            var splitKeys = mappedInput.Split(KeyMapDelimiter);
+            if (splitKeys.Length != 2) 
+            {
+                throw new InvalidAzureTableKeyMapException(
+                    $"Azure Table Store key map must include a partition and row key, " +
+                    $"separated by the '{KeyMapDelimiter}' character.");
+            }
+
+            return (splitKeys[0], splitKeys[1]);
         }
 
-        string GetRowKey(TKey key)
+        TKey GetKey(string partitionKey, string rowKey)
         {
-            return RemoveInvalidCharacters(_keyMap.Map(key));
+            return _keyMap.Map($"{partitionKey}{KeyMapDelimiter}{rowKey}");
         }
 
         TableEntityAdapter<TValue> ConvertToTableEntity(
@@ -216,10 +239,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             TValue value,
             string eTag = null) 
         {
+            (var partitionKey, var rowKey) = GetPartitionAndRowKey(key);
+
             return new TableEntityAdapter<TValue>(
                 value,
-                GetPartitionKey(),
-                GetRowKey(key)
+                partitionKey,
+                rowKey
             )
             {
                 ETag = eTag
@@ -228,9 +253,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         async Task<TableEntityAdapter<TValue>> GetTableEntity(TKey key)
         {
+            (var partitionKey, var rowKey) = GetPartitionAndRowKey(key);
+
             var retrieveOperation = TableOperation.Retrieve<TableEntityAdapter<TValue>>(
-                GetPartitionKey(),
-                GetRowKey(key));
+                partitionKey,
+                rowKey);
 
             var result = await GetTable().ExecuteAsync(retrieveOperation).ConfigureAwait(false);
 
@@ -240,10 +267,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         async Task<IEnumerable<TableEntityAdapter<TValue>>> ListTableEntities(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            var keyStringPrefix = ResolveKeyStringPrefix(predicate);
-
-            var query = new TableQuery<TableEntityAdapter<TValue>>()
-                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, GetPartitionKey()));
+            var query = GetTableQuery(predicate);
 
             var table = GetTable();
             var continuationToken = default(TableContinuationToken);
@@ -262,17 +286,49 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             return results;
         }
 
+        TableQuery<TableEntityAdapter<TValue>> GetTableQuery(
+            Expression<Func<TKey, bool>> predicate = null) 
+        {
+            var keyStringPrefix = ResolveKeyStringPrefix(predicate);
+
+            var splitKeyStringPrefix = keyStringPrefix.Split(KeyMapDelimiter);
+
+            var partialPartitionKey = splitKeyStringPrefix[0];
+            var partialRowKey = splitKeyStringPrefix.Length > 1 ? splitKeyStringPrefix[1] : string.Empty;
+
+            var filterCondition = string.Empty;
+            if (!string.IsNullOrWhiteSpace(partialRowKey)) 
+            {
+                filterCondition = TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partialPartitionKey),
+                    TableOperators.And,
+                    GetStartsWithFilter("RowKey", partialRowKey));
+            }
+            else if (!string.IsNullOrWhiteSpace(partialPartitionKey)) 
+            {
+                filterCondition = GetStartsWithFilter("PartitionKey", partialPartitionKey);
+            }
+
+            return new TableQuery<TableEntityAdapter<TValue>>().Where(filterCondition);
+        }
+
+        static string GetStartsWithFilter(string columnName, string prefix)
+        {
+            var prefixLength = prefix.Length;
+            var nextChar = (char)(prefix[prefixLength - 1] + 1);
+            var incrementedPrefix = prefix.Substring(0, prefixLength - 1) + nextChar;
+
+            return TableQuery.CombineFilters(
+                TableQuery.GenerateFilterCondition(columnName, QueryComparisons.GreaterThanOrEqual, prefix),
+                TableOperators.And,
+                TableQuery.GenerateFilterCondition(columnName, QueryComparisons.LessThan, incrementedPrefix));
+        }
+
         async Task<bool> ExecuteTableOperationAsync(TableOperation operation, HttpStatusCode expectedStatusCode) 
         {
             var result = await GetTable().ExecuteAsync(operation).ConfigureAwait(false);
 
             return result?.HttpStatusCode == (int)expectedStatusCode;
-        }
-
-        //TODO: Improve this with a regex that covers more invalid characters. 
-        string RemoveInvalidCharacters(string tableEntry) 
-        {
-            return tableEntry.Replace("/", "_");
         }
 
         //TODO: This method (and a couple below it) were lifted from FileStoreDataStore. Consolidate this code for reuse.
@@ -297,7 +353,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         {
             try
             {
-                return RemoveInvalidCharacters(_keyMap.Map(memberValues, allowPartialMap));
+                return _keyMap.Map(memberValues, allowPartialMap);
             }
             catch (ArgumentNullException ex)
             {
