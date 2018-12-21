@@ -302,13 +302,73 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 cloudBlockBlob.Properties.Length,
                 cloudBlockBlob.Uri.AbsoluteUri,
                 cloudBlockBlob.Properties.ContentType,
-                cloudBlockBlob.Properties.ContentEncoding);
+                cloudBlockBlob.Properties.ContentEncoding,
+                ConvertLeaseState(cloudBlockBlob.Properties.LeaseState),
+                cloudBlockBlob.Properties.LeaseStatus == LeaseStatus.Locked);
+
+            static Halforbit.DataStores.Model.LeaseState ConvertLeaseState(
+                Microsoft.WindowsAzure.Storage.Blob.LeaseState s)
+            {
+                switch(s)
+                {
+                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Available:
+                        return DataStores.Model.LeaseState.Available;
+                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Breaking:
+                        return DataStores.Model.LeaseState.Breaking;
+                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Broken:
+                        return DataStores.Model.LeaseState.Broken;
+                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Expired:
+                        return DataStores.Model.LeaseState.Expired;
+                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Leased:
+                        return DataStores.Model.LeaseState.Leased;
+                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Unspecified:
+                        return DataStores.Model.LeaseState.Unspecified;
+                    default: throw new Exception($"Unhandled LeaseState of '{s}'.");
+                }
+            }
 
             static SharedAccessBlobPermissions AccessToSharedAccessPermissions(Access access) =>
                 (access.HasFlag(Access.Delete) ? SharedAccessBlobPermissions.Delete : 0) |
                 (access.HasFlag(Access.Get) ? SharedAccessBlobPermissions.Read : 0) |
                 (access.HasFlag(Access.List) ? SharedAccessBlobPermissions.List : 0) |
                 (access.HasFlag(Access.Put) ? SharedAccessBlobPermissions.Write : 0);
+
+            public async Task<string> AcquireLease(string key, TimeSpan leaseTime)
+            {
+                var blob = _blobFileStore.GetBlob(key);
+
+                return await blob.AcquireLeaseAsync(leaseTime);
+            }
+
+            public async Task RenewLease(string key, string leaseId)
+            {
+                var blob = _blobFileStore.GetBlob(key);
+
+                await blob.RenewLeaseAsync(new AccessCondition { LeaseId = leaseId });
+            }
+
+            public async Task<string> ChangeLease(string key, string currentLeaseId)
+            {
+                var blob = _blobFileStore.GetBlob(key);
+
+                return await blob.ChangeLeaseAsync(
+                    $"{Guid.NewGuid():N}",
+                    new AccessCondition { LeaseId = currentLeaseId });
+            }
+
+            public async Task ReleaseLease(string key, string leaseId)
+            {
+                var blob = _blobFileStore.GetBlob(key);
+
+                await blob.ReleaseLeaseAsync(new AccessCondition { LeaseId = leaseId });
+            }
+
+            public async Task BreakLease(string key, TimeSpan breakReleaseTime)
+            {
+                var blob = _blobFileStore.GetBlob(key);
+
+                await blob.BreakLeaseAsync(breakReleaseTime);
+            }
         }
     }
 }
