@@ -6,10 +6,10 @@ Here are some things Data Stores might do in the future:
 
 - Data Stores
   - Table Stores 
-    - Azure Table Storage
+    - ~~Azure Table Storage~~
     - Azure CosmosDB Tables
   - File Stores
-    - FTP
+    - ~~FTP~~
     - Microsoft OneDrive
     - iCloud
     - Dropbox
