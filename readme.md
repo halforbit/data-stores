@@ -1,8 +1,10 @@
 # Data Stores
 
+A single, unified API over any file store or document database.
+
 **Data Stores** lets you store, retrieve, and query your data with a universal, low-ceremony pattern that abstracts away the implementation details of any given data store.
 
-Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **DocumentDb**, **PostgreSQL+Marten**, **Azure Blob Storage**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
+Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **Azure Blob Storage**, **Azure Table Storage**, **DocumentDb**, **PostgreSQL+Marten**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
 
 ## What Is It?
 
@@ -106,7 +108,7 @@ Note that the consuming code here doesn't know or care too much about which data
 
 ## What Data Stores Can I Use?
 
-Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **PostgreSQL/Marten Document Database**, **Amazon S3**, and **Google Drive**.
+Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **Azure Table Storage**, **PostgreSQL/Marten Document Database**, **Amazon S3**, **FTP**, **HTTP**, and **Google Drive**.
 
 Serialization integrations are provided for **JSON**, **YAML**, **XML**, as well as super-efficient **Bond** and **Protobuf** protocols. Note that some serializers have special requirements for data classes to be serialized.
 
@@ -116,7 +118,7 @@ Optional compression via **GZIP** is provided as well. This can make a 10:1 diff
 
 Data Stores is available as a constellation of Nuget packages, broken up primarily by third party dependency requirements.
 
-The `Halforbit.DataStores` package is required, and includes Local Storage, JSON, and GZIP capabilities. 
+The `Halforbit.DataStores` package is required, and includes Local Storage, FTP, JSON, and GZIP capabilities. 
 
 Include any other packages with the functionality you desire:
 
@@ -137,5 +139,7 @@ Include any other packages with the functionality you desire:
 [Halforbit.DataStores.FileStores.Serialization.Protobuf](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Protobuf/)
 
 [Halforbit.DataStores.FileStores.Serialization.Yaml](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Yaml/)
+
+[Halforbit.DataStores.TableStores.AzureTables](https://www.nuget.org/packages/Halforbit.DataStores.TableStores.AzureTables/)
 
 [![Build status](https://ci.appveyor.com/api/projects/status/w8tliyvw96obytai?svg=true)](https://ci.appveyor.com/project/halforbit/data-stores)

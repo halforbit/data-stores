@@ -59,7 +59,7 @@ As you can see, this technique is useful with data that is keyed off of time.
 
 ### Simple Key Types
 
-You can use simple types such as `Guid?` and `int?` for your key type. In this case you can use `this` to refer to the key itself in your key map:
+You can use simple types such as `Guid` and `int` for your key type. In this case you can use `this` to refer to the key itself in your key map:
 
 ```cs
 [KeyMap("persons/{this}")]
