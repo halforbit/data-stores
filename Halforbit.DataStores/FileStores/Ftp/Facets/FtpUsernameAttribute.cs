@@ -4,11 +4,11 @@ using System;
 
 namespace Halforbit.DataStores.FileStores.Ftp.Facets
 {
-    public class FtpHostAttribute : FacetParameterAttribute
+    public class FtpUsernameAttribute : FacetParameterAttribute
     {
-        public FtpHostAttribute(string value = null, string configKey = null) : base(value, configKey) { }
+        public FtpUsernameAttribute(string value = null, string configKey = null) : base(value, configKey) { }
 
-        public override string ParameterName => "host";
+        public override string ParameterName => "username";
 
         public override Type TargetType => typeof(FtpFileStore);
     }
