@@ -1,4 +1,5 @@
-﻿using Halforbit.DataStores.FileStores.Interface;
+﻿using Halforbit.DataStores.Exceptions;
+using Halforbit.DataStores.FileStores.Interface;
 using Halforbit.DataStores.FileStores.Model;
 using Halforbit.DataStores.Model;
 using Halforbit.Facets.Attributes;
@@ -337,7 +338,18 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             {
                 var blob = _blobFileStore.GetBlob(key);
 
-                return await blob.AcquireLeaseAsync(leaseTime);
+                try
+                {
+                    return await blob.AcquireLeaseAsync(leaseTime);
+                }
+                catch(StorageException stex)
+                {
+                    if (stex.RequestInformation.HttpStatusCode == 409)
+                    {
+                        throw new LeaseAlreadyAcquiredException();
+                    }
+                    else throw;
+                }
             }
 
             public async Task RenewLease(string key, string leaseId)
