@@ -304,6 +304,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 cloudBlockBlob.Uri.AbsoluteUri,
                 cloudBlockBlob.Properties.ContentType,
                 cloudBlockBlob.Properties.ContentEncoding,
+                cloudBlockBlob.Properties.ContentMD5,
                 ConvertLeaseState(cloudBlockBlob.Properties.LeaseState),
                 cloudBlockBlob.Properties.LeaseStatus == LeaseStatus.Locked);
 

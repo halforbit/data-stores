@@ -11,6 +11,7 @@ namespace Halforbit.DataStores.Model
             string absoluteUri,
             string contentType,
             string contentEncoding,
+            string contentHash,
             LeaseState leaseState,
             bool leaseLocked)
         {
@@ -25,6 +26,8 @@ namespace Halforbit.DataStores.Model
             ContentType = contentType;
 
             ContentEncoding = contentEncoding;
+
+            ContentHash = contentHash;
 
             LeaseState = leaseState;
 
@@ -42,6 +45,8 @@ namespace Halforbit.DataStores.Model
         public string ContentType { get; }
 
         public string ContentEncoding { get; }
+
+        public string ContentHash { get; }
 
         public LeaseState LeaseState { get; }
 
