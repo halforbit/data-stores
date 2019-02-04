@@ -463,27 +463,27 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public async Task<string> AcquireLease(TKey key, TimeSpan leaseTime)
             {
-                return await _fileStoreContext.AcquireLease(_keyMap.Map(key), leaseTime);
+                return await _fileStoreContext.AcquireLease(GetPath(key), leaseTime);
             }
 
             public async Task BreakLease(TKey key, TimeSpan breakReleaseTime)
             {
-                await _fileStoreContext.BreakLease(_keyMap.Map(key), breakReleaseTime);
+                await _fileStoreContext.BreakLease(GetPath(key), breakReleaseTime);
             }
 
             public async Task<string> ChangeLease(TKey key, string currentLeaseId)
             {
-                return await _fileStoreContext.ChangeLease(_keyMap.Map(key), currentLeaseId);
+                return await _fileStoreContext.ChangeLease(GetPath(key), currentLeaseId);
             }
 
             public async Task<EntityInfo> GetEntityInfo(TKey key)
             {
-                return await _fileStoreContext.GetEntityInfo(_keyMap.Map(key)).ConfigureAwait(false);
+                return await _fileStoreContext.GetEntityInfo(GetPath(key)).ConfigureAwait(false);
             }
 
             public async Task<IReadOnlyDictionary<string, string>> GetMetadata(TKey key)
             {
-                return await _fileStoreContext.GetMetadata(_keyMap.Map(key)).ConfigureAwait(false);
+                return await _fileStoreContext.GetMetadata(GetPath(key)).ConfigureAwait(false);
             }
 
             public async Task<Uri> GetSharedAccessUrl(
@@ -492,7 +492,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 Access access)
             {
                 return await _fileStoreContext.GetSharedAccessUrl(
-                    $"{_keyMap.Map(key)}{_fileExtension}",
+                    GetPath(key),
                     expiration,
                     access).ConfigureAwait(false);
             }
@@ -511,12 +511,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public async Task ReleaseLease(TKey key, string leaseId)
             {
-                await _fileStoreContext.ReleaseLease(_keyMap.Map(key), leaseId);
+                await _fileStoreContext.ReleaseLease(GetPath(key), leaseId);
             }
 
             public async Task RenewLease(TKey key, string leaseId)
             {
-                await _fileStoreContext.RenewLease(_keyMap.Map(key), leaseId);
+                await _fileStoreContext.RenewLease(GetPath(key), leaseId);
             }
 
             public async Task SetEntityInfo(
@@ -524,7 +524,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 EntityInfo entityInfo)
             {
                 await _fileStoreContext.SetEntityInfo(
-                    _keyMap.Map(key),
+                    GetPath(key),
                     entityInfo).ConfigureAwait(false);
             }
 
@@ -533,9 +533,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 IReadOnlyDictionary<string, string> keyValues)
             {
                 await _fileStoreContext.SetMetadata(
-                    _keyMap.Map(key),
+                    GetPath(key),
                     keyValues).ConfigureAwait(false);
             }
+
+            string GetPath(TKey key) => $"{_keyMap.Map(key)}{_fileExtension}";
         }
     }
 }
