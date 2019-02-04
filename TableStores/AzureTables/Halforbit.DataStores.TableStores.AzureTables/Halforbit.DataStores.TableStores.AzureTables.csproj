@@ -3,13 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <RepositoryUrl>https://github.com/halforbit/data-stores</RepositoryUrl>
     <PackageProjectUrl>https://github.com/halforbit/data-stores</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.4.1" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.4.5" />
     <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="0.10.0-preview" />
   </ItemGroup>
 
