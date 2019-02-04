@@ -9,7 +9,7 @@
     <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
     <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.7</Version>
+    <Version>1.1.8</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bond.CSharp" Version="6.0.0" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.4.1" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.4.5" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
   </ItemGroup>
 
