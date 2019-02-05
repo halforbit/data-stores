@@ -481,9 +481,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 return await _fileStoreContext.GetEntityInfo(GetPath(key)).ConfigureAwait(false);
             }
 
-            public async Task<IReadOnlyDictionary<string, string>> GetMetadata(TKey key)
+            public async Task<IReadOnlyDictionary<string, string>> GetMetadata(
+                TKey key,
+                bool percentDecodeValues = true)
             {
-                return await _fileStoreContext.GetMetadata(GetPath(key)).ConfigureAwait(false);
+                var keyValues = await _fileStoreContext.GetMetadata(GetPath(key), percentDecodeValues).ConfigureAwait(false);
+
+                return keyValues;
             }
 
             public async Task<Uri> GetSharedAccessUrl(
@@ -530,11 +534,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public async Task SetMetadata(
                 TKey key,
-                IReadOnlyDictionary<string, string> keyValues)
+                IReadOnlyDictionary<string, string> keyValues,
+                bool percentEncodeValues = true)
             {
                 await _fileStoreContext.SetMetadata(
                     GetPath(key),
-                    keyValues).ConfigureAwait(false);
+                    keyValues,
+                    percentEncodeValues).ConfigureAwait(false);
             }
 
             string GetPath(TKey key) => $"{_keyMap.Map(key)}{_fileExtension}";

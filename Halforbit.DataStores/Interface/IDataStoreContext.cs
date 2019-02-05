@@ -23,11 +23,14 @@ namespace Halforbit.DataStores.Interface
         Task<IReadOnlyDictionary<TKey, IReadOnlyDictionary<string, string>>> ListMetadatas(
             Expression<Func<TKey, bool>> selector = null);
 
-        Task<IReadOnlyDictionary<string, string>> GetMetadata(TKey key);
+        Task<IReadOnlyDictionary<string, string>> GetMetadata(
+            TKey key,
+            bool percentDecodeValues = true);
 
         Task SetMetadata(
             TKey key,
-            IReadOnlyDictionary<string, string> keyValues);
+            IReadOnlyDictionary<string, string> keyValues,
+            bool percentEncodeValues = true);
 
         Task<string> AcquireLease(TKey key, TimeSpan leaseTime);
 
