@@ -8,6 +8,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
@@ -205,7 +206,9 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 }
             }
 
-            public async Task<IReadOnlyDictionary<string, string>> GetMetadata(string key)
+            public async Task<IReadOnlyDictionary<string, string>> GetMetadata(
+                string key,
+                bool percentDecodeValues = true)
             {
                 AssertAccess(Access.Get);
 
@@ -215,7 +218,16 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 {
                     await blob.FetchAttributesAsync();
 
-                    return blob.Metadata as IReadOnlyDictionary<string, string>;
+                    var keyValues = blob.Metadata as IReadOnlyDictionary<string, string>;
+
+                    if (keyValues != null && percentDecodeValues)
+                    {
+                        keyValues = keyValues
+                            .Select(kv => new KeyValuePair<string, string>(kv.Key, Uri.UnescapeDataString(kv.Value)))
+                            .ToDictionary(kv => kv.Key, kv => kv.Value);
+                    }
+
+                    return keyValues;
                 }
                 else
                 {
@@ -269,16 +281,24 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             }
 
             public async Task SetMetadata(
-                string key, 
-                IReadOnlyDictionary<string, string> keyValues)
+                string key,
+                IReadOnlyDictionary<string, string> keyValues,
+                bool percentEncodeValues = true)
             {
                 AssertAccess(Access.Put);
+
+                if (percentEncodeValues)
+                {
+                    keyValues = keyValues
+                        .Select(kv => new KeyValuePair<string, string>(kv.Key, Uri.EscapeDataString(kv.Value)))
+                        .ToDictionary(kv => kv.Key, kv => kv.Value);
+                }
 
                 var blob = _blobFileStore.GetBlob(key);
 
                 blob.Metadata.Clear();
 
-                foreach(var kv in keyValues)
+                foreach (var kv in keyValues)
                 {
                     blob.Metadata[kv.Key] = kv.Value;
                 }
