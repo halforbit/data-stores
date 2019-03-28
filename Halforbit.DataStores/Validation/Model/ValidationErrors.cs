@@ -1,6 +1,8 @@
 ﻿using Halforbit.ObjectTools.Extensions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Halforbit.DataStores.Validation.Model
 {
@@ -12,7 +14,7 @@ namespace Halforbit.DataStores.Validation.Model
         {
             Empty = new ValidationErrors(new ValidationError[] { });
         }
-        
+
         internal ValidationErrors(IReadOnlyList<ValidationError> validationErrors)
         {
             _validationErrors = validationErrors;
@@ -21,7 +23,7 @@ namespace Halforbit.DataStores.Validation.Model
         public static ValidationErrors Empty { get; private set; }
 
         public int Count => _validationErrors.Count;
-        
+
         public ValidationError this[int index] => _validationErrors[index];
 
         public IEnumerator<ValidationError> GetEnumerator() => _validationErrors.GetEnumerator();
@@ -34,7 +36,7 @@ namespace Halforbit.DataStores.Validation.Model
     public static class ValidationErrorsExtensions
     {
         public static ValidationErrors With(
-            this ValidationErrors source, 
+            this ValidationErrors source,
             ValidationError validationError)
         {
             var validationErrors = new List<ValidationError>(source.Count + 1);
@@ -65,7 +67,7 @@ namespace Halforbit.DataStores.Validation.Model
             ValidationError validationError)
         {
             return predicate ?
-                source.With(validationError) : 
+                source.With(validationError) :
                 source;
         }
 
@@ -74,7 +76,38 @@ namespace Halforbit.DataStores.Validation.Model
             TValue value,
             string name)
         {
-            return value.IsDefaultValue() ?
+            var valueType = typeof(TValue);
+
+            var enumerableInterface = valueType
+                .GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReadOnlyCollection<>));
+
+            var missing = false;
+
+            if (value is string str)
+            {
+                missing = string.IsNullOrWhiteSpace(str);
+            }
+            else if (valueType == typeof(Guid?))
+            {
+                var g = (Guid?)(object)value;
+
+                missing = !g.HasValue || g.Value == Guid.Empty;
+            }
+            else if (value == null)
+            {
+                missing = true;
+            }
+            else if (enumerableInterface != null)
+            {
+                missing = (int)valueType.GetProperty(nameof(IReadOnlyCollection<object>.Count)).GetValue(value) == 0;
+            }
+            else
+            {
+                missing = value.IsDefaultValue();
+            }
+
+            return missing ?
                 source.With(ValidationError.Required(name)) :
                 source;
         }
