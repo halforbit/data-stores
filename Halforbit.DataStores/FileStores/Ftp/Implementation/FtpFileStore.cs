@@ -290,6 +290,16 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
             }
         }
 
+        public Task<Stream> ReadStream(string path, bool getETag = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        {
+            throw new NotImplementedException();
+        }
+
         class ListEntry
         {
             public ListEntry(

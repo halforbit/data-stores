@@ -1,5 +1,6 @@
 ﻿using Halforbit.DataStores.FileStores.Model;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.FileStores.Interface
@@ -23,6 +24,13 @@ namespace Halforbit.DataStores.FileStores.Interface
         Task<bool> WriteAllBytes(
             string path, 
             byte[] contents,
+            string eTag = null);
+
+        Task<Stream> ReadStream(string path, bool getETag = false);
+
+        Task<bool> WriteStream(
+            string path,
+            Stream contents,
             string eTag = null);
     }
 }

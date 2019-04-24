@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.FileStores.Web.Implementation
@@ -103,5 +102,15 @@ namespace Halforbit.DataStores.FileStores.Web.Implementation
         }
 
         string GetUrl(string path) => $"{_rootUrl}/{path}";
+
+        public Task<Stream> ReadStream(string path, bool getETag = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
