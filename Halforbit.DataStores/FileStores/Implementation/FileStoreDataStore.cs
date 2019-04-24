@@ -12,6 +12,7 @@ using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
     public class FileStoreDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
     {
+        static readonly bool _valueIsStream;
+
         readonly InvariantExtractor _invariantExtractor = new InvariantExtractor();
 
         readonly IFileStore _fileStore;
@@ -36,6 +39,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
         readonly string _fileExtension;
 
         readonly Lazy<IDataStoreContext<TKey>> _context;
+
+        static FileStoreDataStore()
+        {
+            _valueIsStream = typeof(TValue) == typeof(Stream);
+        }
 
         public FileStoreDataStore(
             IFileStore fileStore,
@@ -83,9 +91,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 return false;
             }
 
-            var contents = await GetContents(value).ConfigureAwait(false);
+            if(_valueIsStream)
+            {
+                await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
+            }
+            else
+            {
+                var contents = await GetContents(value).ConfigureAwait(false);
 
-            await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+                await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+            }
 
             return true;
         }
@@ -117,7 +132,14 @@ namespace Halforbit.DataStores.FileStores.Implementation
         {
             var path = GetPath(key);
 
-            return await GetValue(path).ConfigureAwait(false);
+            if (_valueIsStream)
+            {
+                return (TValue)(object)(await _fileStore.ReadStream(path).ConfigureAwait(false));
+            }
+            else
+            {
+                return await GetValue(path).ConfigureAwait(false);
+            }
         }
 
         public async Task<IEnumerable<TKey>> ListKeys(
@@ -132,8 +154,17 @@ namespace Halforbit.DataStores.FileStores.Implementation
             var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
             var tasks = keys
-                .Select(async keyPath => await GetValue($"{keyPath.Value}{_fileExtension}")
-                .ConfigureAwait(false))
+                .Select(async keyPath =>
+                {
+                    if(_valueIsStream)
+                    {
+                        return (TValue)(object)(await _fileStore.ReadStream($"{keyPath.Value}{_fileExtension}").ConfigureAwait(false));
+                    }
+                    else
+                    {
+                        return await GetValue($"{keyPath.Value}{_fileExtension}").ConfigureAwait(false);
+                    }
+                })
                 .ToArray();
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -147,9 +178,21 @@ namespace Halforbit.DataStores.FileStores.Implementation
             Expression<Func<TKey, bool>> predicate)
         {
             var tasks = (await ResolveKeyPaths(predicate).ConfigureAwait(false))
-                .Select(async kv => new KeyValuePair<TKey, TValue>(
-                    kv.Key,
-                    await GetValue($"{kv.Value}{_fileExtension}")))
+                .Select(async kv =>
+                {
+                    if(_valueIsStream)
+                    {
+                        return new KeyValuePair<TKey, TValue>(
+                            kv.Key,
+                            (TValue)(object)(await _fileStore.ReadStream($"{kv.Value}{_fileExtension}").ConfigureAwait(false)));
+                    }
+                    else
+                    {
+                        return new KeyValuePair<TKey, TValue>(
+                            kv.Key,
+                            await GetValue($"{kv.Value}{_fileExtension}"));
+                    }
+                })
                 .ToArray();
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -170,9 +213,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 return false;
             }
 
-            var contents = await GetContents(value).ConfigureAwait(false);
+            if (_valueIsStream)
+            {
+                await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
+            }
+            else
+            {
+                var contents = await GetContents(value).ConfigureAwait(false);
 
-            await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+                await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+            }
 
             return true;
         }
@@ -187,9 +237,16 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var exists = await _fileStore.Exists(path).ConfigureAwait(false);
 
-            var contents = await GetContents(value).ConfigureAwait(false);
+            if(_valueIsStream)
+            {
+                await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
+            }
+            else
+            {
+                var contents = await GetContents(value).ConfigureAwait(false);
 
-            await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+                await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+            }
 
             return exists;
         }
@@ -210,12 +267,21 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 await ValidatePut(key, mutation);
 
-                var contents = await GetContents(mutation).ConfigureAwait(false);
+                var success = default(bool);
 
-                var success = await _fileStore.WriteAllBytes(
-                    path: path,
-                    contents: contents,
-                    eTag: current.Item2).ConfigureAwait(false);
+                if(_valueIsStream)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    var contents = await GetContents(mutation).ConfigureAwait(false);
+
+                    success = await _fileStore.WriteAllBytes(
+                        path: path,
+                        contents: contents,
+                        eTag: current.Item2).ConfigureAwait(false);
+                }
 
                 if (success)
                 {

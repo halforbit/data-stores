@@ -221,5 +221,15 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Implementation
                 return memoryStream.ToArray();
             }
         }
+
+        public Task<Stream> ReadStream(string path, bool getETag = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
