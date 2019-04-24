@@ -118,6 +118,11 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
             }
         }
 
+        public Task<bool> ReadStream(string path, Stream contents, bool getETag = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> WriteAllBytes(
             string path,
             byte[] contents,
@@ -147,6 +152,11 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
 
                 return true;
             }
+        }
+
+        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        {
+            throw new NotImplementedException();
         }
 
         AmazonS3Client GetClient() => new AmazonS3Client(

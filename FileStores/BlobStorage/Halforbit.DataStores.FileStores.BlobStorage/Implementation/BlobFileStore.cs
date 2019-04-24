@@ -108,6 +108,18 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 eTag: getETag ? blob.Properties.ETag : null);
         }
 
+        public async Task<bool> ReadStream(
+            string path, 
+            Stream contents, 
+            bool getETag = false)
+        {
+            var blob = GetBlob(path);
+
+            await blob.DownloadToStreamAsync(contents);
+
+            return true;
+        }
+
         public async Task<bool> WriteAllBytes(
             string path, 
             byte[] contents,
@@ -167,6 +179,15 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             {
                 await blob.SetPropertiesAsync();
             }
+
+            return true;
+        }
+
+        public async Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        {
+            var blob = GetBlob(path);
+
+            await blob.UploadFromStreamAsync(contents);
 
             return true;
         }
