@@ -14,6 +14,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -464,6 +465,11 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Implementation
                     throw new ValidationException(validationErrors);
                 }
             }
+        }
+
+        public Task<bool> GetToStream(TKey key, Stream stream)
+        {
+            throw new NotImplementedException();
         }
     }
 }

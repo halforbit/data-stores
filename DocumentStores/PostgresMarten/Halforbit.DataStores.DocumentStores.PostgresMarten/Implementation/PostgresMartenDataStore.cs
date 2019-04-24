@@ -14,6 +14,7 @@ using Marten.Services;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -261,6 +262,11 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                     $"Path for {typeof(TValue).Name} could not be evaluated " +
                     $"because key {typeof(TKey).Name} was missing a value for {ex.ParamName}.");
             }
+        }
+
+        public Task<bool> GetToStream(TKey key, Stream stream)
+        {
+            throw new NotImplementedException();
         }
 
         class QuerySession : IQuerySession<TKey, TValue>

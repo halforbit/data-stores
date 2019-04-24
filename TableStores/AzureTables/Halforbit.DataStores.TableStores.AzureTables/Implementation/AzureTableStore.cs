@@ -11,6 +11,7 @@ using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using Microsoft.Azure.Cosmos.Table;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -387,6 +388,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
                     throw new ValidationException(validationErrors);
                 }
             }
+        }
+
+        public Task<bool> GetToStream(TKey key, Stream stream)
+        {
+            throw new NotImplementedException();
         }
     }
 }

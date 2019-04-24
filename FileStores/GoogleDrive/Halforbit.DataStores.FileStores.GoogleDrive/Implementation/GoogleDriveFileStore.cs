@@ -7,8 +7,10 @@ using Halforbit.DataStores.FileStores.Interface;
 using Halforbit.DataStores.FileStores.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using File = Google.Apis.Drive.v3.Data.File;
 using MemoryStream = System.IO.MemoryStream;
 
 namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
@@ -208,6 +210,21 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
             var l = response.Files.ToList();
 
             return l.Select(i => i.Id).Single();
+        }
+
+        public Task<Stream> ReadStream(string path, bool getETag = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> ReadStream(string path, Stream contents, bool getETag = false)
+        {
+            throw new NotImplementedException();
         }
     }
 }
