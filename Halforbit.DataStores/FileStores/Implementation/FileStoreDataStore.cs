@@ -134,7 +134,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             if (_valueIsStream)
             {
-                return (TValue)(object)(await _fileStore.ReadStream(path).ConfigureAwait(false));
+                throw new NotSupportedException();
             }
             else
             {
@@ -158,7 +158,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 {
                     if(_valueIsStream)
                     {
-                        return (TValue)(object)(await _fileStore.ReadStream($"{keyPath.Value}{_fileExtension}").ConfigureAwait(false));
+                        throw new NotSupportedException();
                     }
                     else
                     {
@@ -182,9 +182,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 {
                     if(_valueIsStream)
                     {
-                        return new KeyValuePair<TKey, TValue>(
-                            kv.Key,
-                            (TValue)(object)(await _fileStore.ReadStream($"{kv.Value}{_fileExtension}").ConfigureAwait(false)));
+                        throw new NotSupportedException();
                     }
                     else
                     {
@@ -271,7 +269,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 if(_valueIsStream)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
                 else
                 {
@@ -464,6 +462,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
                     throw new ValidationException(validationErrors);
                 }
             }
+        }
+
+        public async Task<bool> GetToStream(TKey key, Stream stream)
+        {
+            var path = GetPath(key);
+
+            return await _fileStore.ReadStream(path, stream);
         }
 
         class QuerySession : IQuerySession<TKey, TValue>
