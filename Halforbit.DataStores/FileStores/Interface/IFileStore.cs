@@ -26,7 +26,10 @@ namespace Halforbit.DataStores.FileStores.Interface
             byte[] contents,
             string eTag = null);
 
-        Task<Stream> ReadStream(string path, bool getETag = false);
+        Task<bool> ReadStream(
+            string path, 
+            Stream contents,
+            bool getETag = false);
 
         Task<bool> WriteStream(
             string path,

@@ -1,6 +1,7 @@
 ﻿using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -17,6 +18,8 @@ namespace Halforbit.DataStores.Interface
         Task<bool> Delete(TKey key);
 
         Task<TValue> Get(TKey key);
+
+        Task<bool> GetToStream(TKey key, Stream stream);
 
         Task<IEnumerable<TKey>> ListKeys(Expression<Func<TKey, bool>> predicate = null);
 

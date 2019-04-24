@@ -103,12 +103,12 @@ namespace Halforbit.DataStores.FileStores.Web.Implementation
 
         string GetUrl(string path) => $"{_rootUrl}/{path}";
 
-        public Task<Stream> ReadStream(string path, bool getETag = false)
+        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        public Task<bool> ReadStream(string path, Stream contents, bool getETag = false)
         {
             throw new NotImplementedException();
         }

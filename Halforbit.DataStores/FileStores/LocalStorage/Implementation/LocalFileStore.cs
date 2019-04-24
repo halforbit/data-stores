@@ -222,14 +222,47 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Implementation
             }
         }
 
-        public Task<Stream> ReadStream(string path, bool getETag = false)
+        public async Task<bool> WriteStream(
+            string path, 
+            Stream contents, 
+            string eTag = null)
         {
-            throw new NotImplementedException();
+            var localPath = LocalizePath(path);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(localPath));
+
+            if (eTag == null)
+            {
+                using (var file = File.Create(localPath))
+                {
+                    await contents.CopyToAsync(file);
+                }
+
+                return true;
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
-        public Task<bool> WriteStream(string path, Stream contents, string eTag = null)
+        public async Task<bool> ReadStream(
+            string path, 
+            Stream contents, 
+            bool getETag = false)
         {
-            throw new NotImplementedException();
+            if (getETag) throw new NotImplementedException();
+
+            var localPath = LocalizePath(path);
+
+            if (!File.Exists(localPath)) return false;
+
+            using (var file = File.OpenRead(path))
+            {
+                await file.CopyToAsync(contents);
+            }
+
+            return true;
         }
     }
 }
