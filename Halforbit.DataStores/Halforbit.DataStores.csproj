@@ -20,11 +20,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="FileStores\LocalStorage\Attributes\" />
-    <Folder Include="FileStores\LocalStorage\Implementation\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Halforbit.Facets" Version="1.0.40" />
     <PackageReference Include="Halforbit.ObjectTools" Version="1.0.21" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
