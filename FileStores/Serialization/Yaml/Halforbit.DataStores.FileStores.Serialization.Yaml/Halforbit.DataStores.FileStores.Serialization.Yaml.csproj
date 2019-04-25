@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Halforbit.DataStores" Version="1.5.3" />
-    <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
+    <PackageReference Include="YamlDotNet" Version="6.0.0" />
   </ItemGroup>
 
 </Project>
