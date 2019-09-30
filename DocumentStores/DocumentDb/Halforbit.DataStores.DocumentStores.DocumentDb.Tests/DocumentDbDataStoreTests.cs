@@ -80,6 +80,8 @@ namespace Halforbit.DataStores.DocumentStores.DocumentDb.Tests
 
                 Assert.Equal(2, result.Count);
             }
+
+            ClearDataStore(dataStore);
         }
     }
 
