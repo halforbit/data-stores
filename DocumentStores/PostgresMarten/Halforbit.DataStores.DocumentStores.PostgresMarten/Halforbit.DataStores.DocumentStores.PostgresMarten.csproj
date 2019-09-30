@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.5.3" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.5.22" />
     <PackageReference Include="Marten" Version="2.3.0" />
   </ItemGroup>
 

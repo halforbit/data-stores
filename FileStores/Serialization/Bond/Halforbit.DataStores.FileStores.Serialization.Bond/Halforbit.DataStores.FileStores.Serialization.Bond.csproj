@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bond.CSharp" Version="6.0.0" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.5.3" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.5.22" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
   </ItemGroup>
 
