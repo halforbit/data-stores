@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>A DataStore compressor using LZMA.</Description>
+    <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
+    <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
