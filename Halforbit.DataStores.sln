@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores", "Halforbit.DataStores\Halforbit.DataStores.csproj", "{AEF9C37A-ABB7-4AB9-9FB6-8AAF98A3701C}"
 EndProject
@@ -79,6 +79,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.TableStores.AzureTables", "TableStores\AzureTables\Halforbit.DataStores.TableStores.AzureTables\Halforbit.DataStores.TableStores.AzureTables.csproj", "{8C6F9F55-CEFA-4356-8A1E-7493BF63BA40}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.TableStores.AzureTables.Tests", "TableStores\AzureTables\Halforbit.DataStores.TableStores.AzureTables.Tests\Halforbit.DataStores.TableStores.AzureTables.Tests.csproj", "{754932E3-CD98-46AF-9911-E06C25669634}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compression", "Compression", "{CE066590-2B2D-4556-B176-277269A7A8C0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lzma", "Lzma", "{27778942-8CDF-43D9-B2F8-2E44E39E45EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Compression.Lzma", "Halforbit.DataStores.FileStores.Compression.Lzma\Halforbit.DataStores.FileStores.Compression.Lzma.csproj", "{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -162,6 +168,10 @@ Global
 		{754932E3-CD98-46AF-9911-E06C25669634}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{754932E3-CD98-46AF-9911-E06C25669634}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{754932E3-CD98-46AF-9911-E06C25669634}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -193,6 +203,9 @@ Global
 		{335FA862-5B2E-4A94-AB96-C0A157CC88D9} = {0C62F645-E697-440C-9854-3F78F9C23FBF}
 		{8C6F9F55-CEFA-4356-8A1E-7493BF63BA40} = {335FA862-5B2E-4A94-AB96-C0A157CC88D9}
 		{754932E3-CD98-46AF-9911-E06C25669634} = {335FA862-5B2E-4A94-AB96-C0A157CC88D9}
+		{CE066590-2B2D-4556-B176-277269A7A8C0} = {BA07BDA9-8F86-49C2-87E5-9AB5026C59B0}
+		{27778942-8CDF-43D9-B2F8-2E44E39E45EC} = {CE066590-2B2D-4556-B176-277269A7A8C0}
+		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D} = {27778942-8CDF-43D9-B2F8-2E44E39E45EC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5BC1191-5358-4BC2-8427-D1482D49ED83}

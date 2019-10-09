@@ -4,7 +4,7 @@ A single, unified API over any file store or document database.
 
 **Data Stores** lets you store, retrieve, and query your data with a universal, low-ceremony pattern that abstracts away the implementation details of any given data store.
 
-Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **Azure Blob Storage**, **Azure Table Storage**, **DocumentDb**, **PostgreSQL+Marten**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
+Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **Azure Blob Storage**, **Azure Table Storage**, **DocumentDb**, **PostgreSQL+Marten**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, **LZMA**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
 
 ## What Is It?
 
@@ -112,7 +112,7 @@ Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Az
 
 Serialization integrations are provided for **JSON**, **YAML**, **XML**, as well as super-efficient **Bond** and **Protobuf** protocols. Note that some serializers have special requirements for data classes to be serialized.
 
-Optional compression via **GZIP** is provided as well. This can make a 10:1 difference in stored / transferred data payload size for formats like JSON.
+Optional compression via **GZIP** or **LZMA** (the compression used by 7-Zip) is provided as well. This can make a large difference in stored / transferred data payload size for formats like JSON.
 
 ## How Do I Get It?
 

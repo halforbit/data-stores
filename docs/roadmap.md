@@ -17,7 +17,7 @@ Here are some things Data Stores might do in the future:
     - ~~Postgres+JSON via Marten~~
     - MongoDB
 - Compression
-  - 7-Zip
+  - ~LZMA (7-Zip)~
   - ZIP File
 - Delimited Data Files (CSV, TSV, etc.)
 - Relational Data (e.g. SQL Server)
