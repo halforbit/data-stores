@@ -13,10 +13,6 @@ namespace Halforbit.DataStores.FtpFileStore.Tests
                 "test",
                 "test");
 
-                //"***REMOVED***", 
-                //"***REMOVED***",
-                //"***REMOVED***");
-
             var xfiles = ftpFileStore.GetFiles("peanuts/lemons", string.Empty).Result;
 
             var files = ftpFileStore.GetFiles(string.Empty, string.Empty).Result;
