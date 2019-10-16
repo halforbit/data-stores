@@ -84,7 +84,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compression", "Compression"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lzma", "Lzma", "{27778942-8CDF-43D9-B2F8-2E44E39E45EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Compression.Lzma", "Halforbit.DataStores.FileStores.Compression.Lzma\Halforbit.DataStores.FileStores.Compression.Lzma.csproj", "{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.FileStores.Compression.Lzma", "FileStores\Compression\Lzma\Halforbit.FileStores.Compression.Lzma.csproj", "{B9FD3900-2347-4F0D-8A06-9DEC55D7A147}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -168,10 +168,10 @@ Global
 		{754932E3-CD98-46AF-9911-E06C25669634}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{754932E3-CD98-46AF-9911-E06C25669634}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{754932E3-CD98-46AF-9911-E06C25669634}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9FD3900-2347-4F0D-8A06-9DEC55D7A147}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9FD3900-2347-4F0D-8A06-9DEC55D7A147}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9FD3900-2347-4F0D-8A06-9DEC55D7A147}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9FD3900-2347-4F0D-8A06-9DEC55D7A147}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -205,7 +205,7 @@ Global
 		{754932E3-CD98-46AF-9911-E06C25669634} = {335FA862-5B2E-4A94-AB96-C0A157CC88D9}
 		{CE066590-2B2D-4556-B176-277269A7A8C0} = {BA07BDA9-8F86-49C2-87E5-9AB5026C59B0}
 		{27778942-8CDF-43D9-B2F8-2E44E39E45EC} = {CE066590-2B2D-4556-B176-277269A7A8C0}
-		{36D4C8AF-E918-46FE-AFA4-FC96E64A553D} = {27778942-8CDF-43D9-B2F8-2E44E39E45EC}
+		{B9FD3900-2347-4F0D-8A06-9DEC55D7A147} = {27778942-8CDF-43D9-B2F8-2E44E39E45EC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5BC1191-5358-4BC2-8427-D1482D49ED83}
