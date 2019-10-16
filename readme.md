@@ -1,10 +1,8 @@
 # Data Stores
 
-A single, unified API over any file store or document database.
+**Data Stores** lets you store, retrieve, and query your data with a universal, low-ceremony pattern that abstracts away the implementation details of any given storage technology.
 
-**Data Stores** lets you store, retrieve, and query your data with a universal, low-ceremony pattern that abstracts away the implementation details of any given data store.
-
-Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **Azure Blob Storage**, **Azure Table Storage**, **DocumentDb**, **PostgreSQL+Marten**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, **LZMA**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
+Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **Azure Blob Storage**, **CosmosDb** (formerly **DocumentDb**), **PostgreSQL+Marten**, **Azure Table Storage**, **FTP**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, **LZMA**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
 
 ## What Is It?
 
