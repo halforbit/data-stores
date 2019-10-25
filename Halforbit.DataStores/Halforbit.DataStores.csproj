@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.Facets" Version="1.0.40" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.43" />
     <PackageReference Include="Halforbit.ObjectTools" Version="1.0.22" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
