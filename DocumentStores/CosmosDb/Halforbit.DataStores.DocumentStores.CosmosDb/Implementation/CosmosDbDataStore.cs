@@ -249,9 +249,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 queryDefinition: new QueryDefinition(query),
                 requestOptions: new QueryRequestOptions
                 {
-                    //PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
-                    //    new PartitionKey(partitionKey) :
-                    //    default,
+                    PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
+                        new PartitionKey(partitionKey) :
+                        null as PartitionKey?,
 
                     MaxItemCount = -1
                 });
@@ -366,7 +366,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             var extracted = predicate != null ?
                 new InvariantExtractor().ExtractInvariantDictionary(
                     predicate,
-                    out Expression<Func<TKey, bool>> invariant) :
+                    out _) :
                 EmptyReadOnlyDictionary<string, object>.Instance;
 
             var partitionKey = default(string);
@@ -387,37 +387,6 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 .Replace('/', '|');
 
             return (partitionKey, idPrefix);
-        }
-
-        class QuerySession : IQuerySession<TKey, TValue>
-        {
-            readonly CosmosDbDataStore<TKey, TValue> _dataStore;
-
-            public QuerySession(CosmosDbDataStore<TKey, TValue> dataStore)
-            {
-                _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
-            }
-
-            public void Dispose() { }
-
-            public IQueryable<TValue> Query(
-                Expression<Func<TKey, bool>> predicate = null)
-            {
-                var (partitionKey, idPrefix) = _dataStore.GetPartitionKeyAndIdPrefixFromPredicate(predicate);
-
-                return _dataStore._container
-                    .GetItemLinqQueryable<TValue>(
-                        allowSynchronousQueryExecution: true,
-                        requestOptions: new QueryRequestOptions
-                        {
-                            //PartitionKey = partitionKey != null ?
-                            //    new PartitionKey(partitionKey) : 
-                            //    PartitionKey.None,
-
-                            MaxItemCount = -1
-                        })
-                    .Where(e => e.Id.StartsWith(idPrefix));
-            }
         }
 
         static async Task<V> Execute<V>(
@@ -524,6 +493,37 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task<bool> GetToStream(TKey key, Stream stream)
         {
             throw new NotImplementedException();
+        }
+
+        class QuerySession : IQuerySession<TKey, TValue>
+        {
+            readonly CosmosDbDataStore<TKey, TValue> _dataStore;
+
+            public QuerySession(CosmosDbDataStore<TKey, TValue> dataStore)
+            {
+                _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
+            }
+
+            public void Dispose() { }
+
+            public IQueryable<TValue> Query(
+                Expression<Func<TKey, bool>> predicate = null)
+            {
+                var (partitionKey, idPrefix) = _dataStore.GetPartitionKeyAndIdPrefixFromPredicate(predicate);
+
+                return _dataStore._container
+                    .GetItemLinqQueryable<TValue>(
+                        allowSynchronousQueryExecution: true,
+                        requestOptions: new QueryRequestOptions
+                        {
+                            PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
+                                new PartitionKey(partitionKey) :
+                                null as PartitionKey?,
+
+                            MaxItemCount = -1
+                        })
+                    .Where(e => e.Id.StartsWith(idPrefix));
+            }
         }
     }
 }
