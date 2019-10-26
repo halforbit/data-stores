@@ -71,6 +71,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                     .ToList();
 
                 Assert.Equal(2, result.Count);
+
+                var result2 = session
+                    .Query(k => k.PartitionId == values[0].PartitionId)
+                    .ToList();
+
+                Assert.Single(result2);
             }
 
             ClearDataStore(dataStore);
