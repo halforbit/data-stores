@@ -204,7 +204,15 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
 
             var iterator = _container.GetItemQueryIterator<JObject>(
-                queryDefinition: new QueryDefinition(query));
+                queryDefinition: new QueryDefinition(query),
+                requestOptions: new QueryRequestOptions
+                {
+                    PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
+                        new PartitionKey(partitionKey) :
+                        null as PartitionKey?,
+
+                    MaxItemCount = -1
+                });
 
             var results = new List<TKey>();
 
