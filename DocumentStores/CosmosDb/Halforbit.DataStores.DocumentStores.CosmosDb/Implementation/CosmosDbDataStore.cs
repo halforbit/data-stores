@@ -102,7 +102,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             TValue value)
         {
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
             var (partitionKey, documentId) = GetDocumentId(key);
 
@@ -128,7 +128,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         public async Task<bool> Delete(TKey key)
         {
-            await ValidateDelete(key);
+            await ValidateDelete(key).ConfigureAwait(false);
 
             var (partitionKey, documentId) = GetDocumentId(key);
 
@@ -468,7 +468,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             if (_validator != null)
             {
-                var validationErrors = await _validator.ValidatePut(key, value, _keyMap);
+                var validationErrors = await _validator.ValidatePut(key, value, _keyMap).ConfigureAwait(false);
 
                 if (validationErrors?.Any() ?? false)
                 {
@@ -481,7 +481,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             if(_validator != null)
             {
-                var validationErrors = await _validator.ValidateDelete(key, _keyMap);
+                var validationErrors = await _validator.ValidateDelete(key, _keyMap).ConfigureAwait(false);
 
                 if (validationErrors?.Any() ?? false)
                 {
