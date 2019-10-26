@@ -84,7 +84,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compression", "Compression"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lzma", "Lzma", "{27778942-8CDF-43D9-B2F8-2E44E39E45EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.FileStores.Compression.Lzma", "FileStores\Compression\Lzma\Halforbit.FileStores.Compression.Lzma.csproj", "{B9FD3900-2347-4F0D-8A06-9DEC55D7A147}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Compression.Lzma", "FileStores\Compression\Lzma\Halforbit.DataStores.FileStores.Compression.Lzma.csproj", "{B9FD3900-2347-4F0D-8A06-9DEC55D7A147}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CosmosDb", "CosmosDb", "{0BA695A6-E43F-4FD4-9F92-D7E7539BC1A0}"
 EndProject

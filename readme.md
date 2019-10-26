@@ -106,7 +106,7 @@ Note that the consuming code here doesn't know or care too much about which data
 
 ## What Data Stores Can I Use?
 
-Data Store integrations are provided for **Local Storage**, **DocumentDb**, **Azure Blob Storage**, **Azure Table Storage**, **PostgreSQL/Marten Document Database**, **Amazon S3**, **FTP**, **HTTP**, and **Google Drive**.
+Data Store integrations are provided for **Local Storage**, **CosmosDb**, **Azure Blob Storage**, **Azure Table Storage**, **PostgreSQL/Marten Document Database**, **Amazon S3**, **FTP**, **HTTP**, and **Google Drive**.
 
 Serialization integrations are provided for **JSON**, **YAML**, **XML**, as well as super-efficient **Bond** and **Protobuf** protocols. Note that some serializers have special requirements for data classes to be serialized.
 
@@ -122,21 +122,23 @@ Include any other packages with the functionality you desire:
 
 [Halforbit.DataStores](https://www.nuget.org/packages/Halforbit.DataStores/)
 
-[Halforbit.DataStores.DocumentStores.DocumentDb](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.DocumentDb/)
-
-[Halforbit.DataStores.DocumentStores.PostgresMarten](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.PostgresMarten/)
+[Halforbit.DataStores.FileStores.BlobStorage](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.BlobStorage/)
 
 [Halforbit.DataStores.FileStores.AmazonS3](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.AmazonS3/)
 
-[Halforbit.DataStores.FileStores.BlobStorage](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.BlobStorage/)
-
 [Halforbit.DataStores.FileStores.GoogleDrive](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.GoogleDrive/)
 
-[Halforbit.DataStores.FileStores.Serialization.Bond](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Bond/)
+[Halforbit.DataStores.FileStores.Compression.Lzma](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Compression.Lzma/)
+
+[Halforbit.DataStores.FileStores.Serialization.Yaml](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Yaml/)
 
 [Halforbit.DataStores.FileStores.Serialization.Protobuf](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Protobuf/)
 
-[Halforbit.DataStores.FileStores.Serialization.Yaml](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Yaml/)
+[Halforbit.DataStores.FileStores.Serialization.Bond](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Bond/)
+
+[Halforbit.DataStores.DocumentStores.CosmosDb](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.CosmosDb/)
+
+[Halforbit.DataStores.DocumentStores.PostgresMarten](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.PostgresMarten/)
 
 [Halforbit.DataStores.TableStores.AzureTables](https://www.nuget.org/packages/Halforbit.DataStores.TableStores.AzureTables/)
 
