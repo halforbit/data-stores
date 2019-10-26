@@ -35,7 +35,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                 authKey: GetConfig("AuthKey"),
                 databaseId: GetConfig("DatabaseId"),
                 containerId: GetConfig("CollectionId"),
-                keyMap: "{PartitionId:D}|test-values/{AccountId}");
+                keyMap: "{PartitionId}|test-values/{AccountId}");
 
             ClearDataStore(dataStore);
                 

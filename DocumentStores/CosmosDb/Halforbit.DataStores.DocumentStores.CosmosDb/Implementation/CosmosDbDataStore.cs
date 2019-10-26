@@ -73,6 +73,21 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
                 _partitionKey = m.Groups["Key"].Value;
 
+                var partitionKeyProperty = typeof(TValue).GetProperty(_partitionKey);
+
+                if (partitionKeyProperty == null)
+                {
+                    throw new ArgumentException($"Type {typeof(TValue).Name} is missing partition key property '{_partitionKey}'");
+                }
+
+                if(partitionKeyProperty.PropertyType == typeof(Guid) || 
+                    partitionKeyProperty.PropertyType == typeof(Guid?))
+                {
+                    // Automagically set partition key guids to dashed
+
+                    _keyMap = $"{{{_partitionKey}:D}}|{keyMap.Substring(m.Value.Length)}";
+                }
+
                 _keyMapWithoutPartitionKey = keyMap.Substring(m.Value.Length);
             }
             else
