@@ -10,13 +10,14 @@ using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
-using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
@@ -25,9 +26,17 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         IDataStore<TKey, TValue>
         where TValue : IDocument
     {
+        static readonly Regex _partitionKeyMatcher = new Regex(
+            @"^\{(?<Key>[a-z0-9]+)(:.*?){0,1}\}\|", 
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         readonly Container _container;
 
         readonly StringMap<TKey> _keyMap;
+
+        readonly StringMap<TKey> _keyMapWithoutPartitionKey;
+
+        readonly string _partitionKey;
 
         readonly IValidator<TKey, TValue> _validator;
 
@@ -53,6 +62,24 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             _keyMap = keyMap;
 
+            if (keyMap.Contains('|'))
+            {
+                var m = _partitionKeyMatcher.Match(keyMap);
+
+                if (!m.Success)
+                {
+                    throw new ArgumentException("Unable to comprehend partition key in key map.");
+                }
+
+                _partitionKey = m.Groups["Key"].Value;
+
+                _keyMapWithoutPartitionKey = keyMap.Substring(m.Value.Length);
+            }
+            else
+            {
+                _keyMapWithoutPartitionKey = _keyMap;
+            }
+
             _validator = validator;
         }
 
@@ -62,7 +89,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             await ValidatePut(key, value);
 
-            value.Id = GetDocumentId(key);
+            var (partitionKey, documentId) = GetDocumentId(key);
+
+            value.Id = documentId;
 
             try
             {
@@ -86,14 +115,16 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             await ValidateDelete(key);
 
-            var documentId = GetDocumentId(key);
+            var (partitionKey, documentId) = GetDocumentId(key);
 
             try
             {
                 await Execute(() => _container
                     .DeleteItemAsync<TValue>(
                         id: documentId,
-                        partitionKey: PartitionKey.None))
+                        partitionKey: partitionKey != null ? 
+                            new PartitionKey(partitionKey) : 
+                            PartitionKey.None))
                     .ConfigureAwait(false);
 
                 return true;
@@ -116,14 +147,17 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         public async Task<TValue> Get(TKey key)
         {
-            var documentId = GetDocumentId(key);
+            var (partitionKey, documentId) = GetDocumentId(key);
 
             try
             {
                 var item = await Execute(
                     () => _container.ReadItemAsync<TValue>(
                         id: documentId,
-                        partitionKey: PartitionKey.None)).ConfigureAwait(false);
+                        partitionKey: partitionKey != null ? 
+                            new PartitionKey(partitionKey) : 
+                            PartitionKey.None))
+                    .ConfigureAwait(false);
 
                 return item;
             }
@@ -143,54 +177,98 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public async Task<IEnumerable<TKey>> ListKeys(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListValues(predicate).ConfigureAwait(false)).Select(v => ParseDocumentId(v.Id));
+            var (partitionKey, idPrefix) = GetPartitionKeyAndIdPrefixFromPredicate(predicate);
+
+            var query = _partitionKey != null ?
+                $"SELECT c.id, c.{_partitionKey} AS pk FROM c" :
+                "SELECT c.id FROM c";
+
+            if (!string.IsNullOrWhiteSpace(idPrefix))
+            {
+                query += $@" WHERE STARTSWITH(c.id, ""{idPrefix}"")";
+            }
+
+            var iterator = _container.GetItemQueryIterator<JObject>(
+                queryDefinition: new QueryDefinition(query));
+
+            var results = new List<TKey>();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var item in await iterator.ReadNextAsync())
+                {
+                    var id = item.Value<string>("id");
+
+                    var pk = item.Value<string>("pk");
+
+                    var k = ParseDocumentId(pk, id);
+
+                    results.Add(k);
+                }
+            }
+
+            return results;
         }
 
         public async Task<IEnumerable<TValue>> ListValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            var extracted = predicate != null ? 
-                new InvariantExtractor().ExtractInvariantDictionary(
-                    predicate,
-                    out Expression<Func<TKey, bool>> invariant) : 
-                EmptyReadOnlyDictionary<string, object>.Instance;
-
-            var keyPrefix = _keyMap
-                .Map(
-                    extracted,
-                    allowPartialMap: true)
-                .Replace('/', '|');
-
-            var queryable = _container
-                .GetItemLinqQueryable<TValue>(
-                    allowSynchronousQueryExecution: true,
-                    requestOptions: new QueryRequestOptions
-                    {
-                        MaxItemCount = -1 
-                    })
-                .Where(v => v.Id.StartsWith(keyPrefix));
-
-            var results = queryable.ToList();
-
-            var keyValues = results.Select(o => new KeyValuePair<TKey, TValue>(
-                ParseDocumentId(o.Id),
-                o));
-
-            var filter = predicate?.Compile();
-
-            if(filter != null)
-            {
-                keyValues = keyValues.Where(kv => filter(kv.Key));
-            }
-
-            return keyValues.Select(kv => kv.Value);
+            return (await ListKeyValues(predicate)).Select(kv => kv.Value);
         }
 
         public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListValues(predicate).ConfigureAwait(false))
-                .Select(v => new KeyValuePair<TKey, TValue>(ParseDocumentId(v.Id), v));
+            var (partitionKey, idPrefix) = GetPartitionKeyAndIdPrefixFromPredicate(predicate);
+
+            var query = "SELECT * FROM c";
+
+            if (!string.IsNullOrWhiteSpace(idPrefix))
+            {
+                query += $@" WHERE STARTSWITH(c.id, ""{idPrefix}"")";
+            }
+
+            var results = new List<KeyValuePair<TKey, TValue>>();
+
+            var iterator = _container.GetItemQueryIterator<JObject>(
+                queryDefinition: new QueryDefinition(query),
+                requestOptions: new QueryRequestOptions
+                {
+                    //PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
+                    //    new PartitionKey(partitionKey) :
+                    //    default,
+
+                    MaxItemCount = -1
+                });
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var item in await iterator.ReadNextAsync())
+                {
+                    var id = item.Value<string>("id");
+
+                    var pk = _partitionKey != null ? 
+                        item.Value<string>(_partitionKey) : 
+                        null;
+
+                    var key = ParseDocumentId(pk, id);
+
+                    results.Add(new KeyValuePair<TKey, TValue>( 
+                        key,
+                        item.ToObject<TValue>()));
+                }
+            }
+
+            var filter = predicate?.Compile();
+
+            if (filter != null)
+            {
+                return results
+                    .Where(kv => filter(kv.Key))
+                    .ToList();
+            }
+
+            return results;
         }
 
         public async Task<bool> Update(
@@ -199,11 +277,11 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             await ValidatePut(key, value);
 
-            var documentId = GetDocumentId(key);
+            var (partitionKey, documentId) = GetDocumentId(key);
 
             try
             {
-                value.Id = GetDocumentId(key);
+                value.Id = documentId;
 
                 await Execute(() => _container.ReplaceItemAsync(
                     item: value,
@@ -228,7 +306,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             await ValidatePut(key, value);
 
-            value.Id = GetDocumentId(key);
+            var (partitionKey, documentId) = GetDocumentId(key);
+
+            value.Id = documentId;
 
             await Execute(() => _container.UpsertItemAsync(
                 item: value,
@@ -265,6 +345,35 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
+        (string PartitionKey, string IdPrefix) GetPartitionKeyAndIdPrefixFromPredicate(
+            Expression<Func<TKey, bool>> predicate)
+        {
+            var extracted = predicate != null ?
+                new InvariantExtractor().ExtractInvariantDictionary(
+                    predicate,
+                    out Expression<Func<TKey, bool>> invariant) :
+                EmptyReadOnlyDictionary<string, object>.Instance;
+
+            var partitionKey = default(string);
+
+            if (_partitionKey != null)
+            {
+                var mapped = _keyMap.Map(
+                    extracted,
+                    allowPartialMap: true);
+
+                partitionKey = mapped.Split('|')[0];
+            }
+
+            var idPrefix = _keyMapWithoutPartitionKey
+                .Map(
+                    extracted,
+                    allowPartialMap: true)
+                .Replace('/', '|');
+
+            return (partitionKey, idPrefix);
+        }
+
         class QuerySession : IQuerySession<TKey, TValue>
         {
             readonly CosmosDbDataStore<TKey, TValue> _dataStore;
@@ -279,28 +388,20 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             public IQueryable<TValue> Query(
                 Expression<Func<TKey, bool>> predicate = null)
             {
-                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as
-                    IReadOnlyDictionary<string, object>;
-
-                if (predicate != null)
-                {
-                    memberValues = new InvariantExtractor().ExtractInvariantDictionary(
-                        predicate,
-                        out var invariantExpression);
-                }
-
-                var keyPrefix = _dataStore
-                    .EvaluatePath(memberValues, allowPartialMap: true)
-                    .Replace('/', '|');
+                var (partitionKey, idPrefix) = _dataStore.GetPartitionKeyAndIdPrefixFromPredicate(predicate);
 
                 return _dataStore._container
                     .GetItemLinqQueryable<TValue>(
                         allowSynchronousQueryExecution: true,
                         requestOptions: new QueryRequestOptions
                         {
+                            //PartitionKey = partitionKey != null ?
+                            //    new PartitionKey(partitionKey) : 
+                            //    PartitionKey.None,
+
                             MaxItemCount = -1
                         })
-                    .Where(e => e.Id.StartsWith(keyPrefix));
+                    .Where(e => e.Id.StartsWith(idPrefix));
             }
         }
 
@@ -345,9 +446,39 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
-        string GetDocumentId(TKey key) => _keyMap.Map(key).Replace('/', '|');
+        (string PartitionKey, string documentId) GetDocumentId(TKey key)
+        {
+            var mapped = _keyMap.Map(key);
 
-        TKey ParseDocumentId(string id) => _keyMap.Map(id.Replace('|', '/'));
+            var parts = mapped.Split('|');
+
+            if (parts.Length == 2)
+            {
+                return (parts[0], parts[1].Replace('/', '|'));
+            }
+            else if(parts.Length == 1)
+            {
+                return (null, parts[0].Replace('/', '|'));
+            }
+            else
+            {
+                throw new Exception("Unrecognized key format, too many '|' characters.");
+            }
+        }
+
+        TKey ParseDocumentId(
+            string partitionKey,
+            string documentId)
+        {
+            if (partitionKey != null)
+            {
+                return _keyMap.Map($"{partitionKey}|{documentId.Replace('|', '/')}");
+            }
+            else
+            {
+                return _keyMap.Map(documentId.Replace('|', '/'));
+            }
+        }
 
         async Task ValidatePut(TKey key, TValue value)
         {

@@ -9,24 +9,24 @@ using Xunit;
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
 {
-    public class CosmosDbDataStoreTests : UniversalIntegrationTest
+    public class CosmosDbDataStoreFixedTests : UniversalIntegrationTest
     {
-        protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.CosmosDb.Tests.";
+        protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.CosmosDb.Tests.Fixed.";
 
         [Fact, Trait("Type", "Integration")]
-        public void TestCosmosDb()
+        public void TestCosmosDbFixed()
         {
-            var testKey = new TestValue.Key(accountId: Guid.NewGuid());
+            var testKey = new FixedTestValue.Key(accountId: Guid.NewGuid());
 
-            var testValueA = new TestValue(
+            var testValueA = new FixedTestValue(
                 accountId: testKey.AccountId.Value,
                 message: "Hello, world!");
 
-            var testValueB = new TestValue(
+            var testValueB = new FixedTestValue(
                 accountId: testKey.AccountId.Value,
                 message: "Kthx, world!");
 
-            var dataStore = new CosmosDbDataStore<TestValue.Key, TestValue>(
+            var dataStore = new CosmosDbDataStore<FixedTestValue.Key, FixedTestValue>(
                 endpoint: GetConfig("Endpoint"),
                 authKey: GetConfig("AuthKey"),
                 databaseId: GetConfig("DatabaseId"),
@@ -44,20 +44,20 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
             TestQuery(dataStore);
         }
 
-        static void TestQuery(IDataStore<TestValue.Key, TestValue> dataStore)
+        static void TestQuery(IDataStore<FixedTestValue.Key, FixedTestValue> dataStore)
         {
             var values = new[]
             {
-                    new TestValue(Guid.NewGuid(), "abc"),
+                    new FixedTestValue(Guid.NewGuid(), "abc"),
 
-                    new TestValue(Guid.NewGuid(), "bcd"),
+                    new FixedTestValue(Guid.NewGuid(), "bcd"),
 
-                    new TestValue(Guid.NewGuid(), "cde")
+                    new FixedTestValue(Guid.NewGuid(), "cde")
                 };
 
             foreach (var value in values)
             {
-                dataStore.Create(new TestValue.Key(value.AccountId), value).Wait();
+                dataStore.Create(new FixedTestValue.Key(value.AccountId), value).Wait();
             }
 
             using (var session = dataStore.StartQuery())
@@ -73,9 +73,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         }
     }
 
-    public class TestValue : Document
+    public class FixedTestValue : Document
     {
-        public TestValue(
+        public FixedTestValue(
             Guid accountId = default(Guid),
             string message = default(string))
         {

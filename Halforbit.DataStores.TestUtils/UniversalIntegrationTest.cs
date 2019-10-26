@@ -128,7 +128,12 @@ namespace Halforbit.DataStores.Tests
         {
             foreach (var k in dataStore.ListKeys().Result)
             {
-                dataStore.Delete(k).Wait();
+                var deleted = dataStore.Delete(k).Result;
+
+                if (!deleted)
+                {
+                    throw new Exception("Failed to clear data store");
+                }
             }
         }
 
