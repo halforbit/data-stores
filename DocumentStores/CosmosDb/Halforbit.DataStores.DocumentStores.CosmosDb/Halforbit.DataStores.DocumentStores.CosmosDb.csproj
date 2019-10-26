@@ -20,12 +20,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Facets\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Halforbit.DataStores" Version="1.5.26" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.6.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.3.2" />
   </ItemGroup>
 
 </Project>

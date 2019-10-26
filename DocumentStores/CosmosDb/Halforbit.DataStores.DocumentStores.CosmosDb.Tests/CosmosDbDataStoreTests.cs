@@ -26,34 +26,22 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                 accountId: testKey.AccountId.Value,
                 message: "Kthx, world!");
 
-            try
-            {
-                var dataStore = new CosmosDbDataStore<TestValue.Key, TestValue>(
-                    endpoint: GetConfig("Endpoint"),
-                    authKey: GetConfig("AuthKey"),
-                    database: GetConfig("Database"),
-                    collection: GetConfig("Collection"),
-                    keyMap: "test-values/{AccountId}");
+            var dataStore = new CosmosDbDataStore<TestValue.Key, TestValue>(
+                endpoint: GetConfig("Endpoint"),
+                authKey: GetConfig("AuthKey"),
+                databaseId: GetConfig("DatabaseId"),
+                containerId: GetConfig("CollectionId"),
+                keyMap: "test-values/{AccountId}");
 
-                ClearDataStore(dataStore);
+            ClearDataStore(dataStore);
                 
-                TestDataStore(
-                    dataStore,
-                    testKey,
-                    testValueA,
-                    testValueB);
+            TestDataStore(
+                dataStore,
+                testKey,
+                testValueA,
+                testValueB);
 
-                TestQuery(dataStore);
-            }
-            catch (Exception ex)
-            {
-                if (ex.ToString().Contains("Unable to connect"))
-                {
-                    //Assert.Inconclusive("Cannot connect to the DocumentDB emulator");
-                }
-
-                throw;
-            }
+            TestQuery(dataStore);
         }
 
         static void TestQuery(IDataStore<TestValue.Key, TestValue> dataStore)

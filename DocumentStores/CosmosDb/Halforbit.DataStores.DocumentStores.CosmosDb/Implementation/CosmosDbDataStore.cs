@@ -9,15 +9,14 @@ using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Interface;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
@@ -26,11 +25,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         IDataStore<TKey, TValue>
         where TValue : IDocument
     {
-        readonly DocumentClient _documentClient;
-
-        readonly string _database;
-
-        readonly string _collection;
+        readonly Container _container;
 
         readonly StringMap<TKey> _keyMap;
 
@@ -43,31 +38,22 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public CosmosDbDataStore(
             string endpoint,
             string authKey,
-            string database,
-            string collection,
+            string databaseId,
+            string containerId,
             string keyMap,
             [Optional]IValidator<TKey, TValue> validator = null)
         {
-            _documentClient = DocumentClientFactory.GetDocumentClient(
-                new Uri(endpoint), 
-                authKey);
-
-            _database = database;
-
-            _collection = collection;
+            _container = 
+                new CosmosClient(
+                    accountEndpoint: endpoint,
+                    authKeyOrResourceToken: authKey)
+                .GetContainer(
+                    databaseId: databaseId, 
+                    containerId: containerId);
 
             _keyMap = keyMap;
 
             _validator = validator;
-
-            // Disabled these because they cause a deadlock in ASP.NET.
-            
-            // Don't re-enable without testing that ASP.NET controller 
-            // use works correctly.
-
-            CreateDatabaseIfNotExistsAsync().Wait();
-
-            CreateCollectionIfNotExistsAsync().Wait();
         }
 
         public async Task<bool> Create(
@@ -80,15 +66,14 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             try
             {
-                await Execute(() => _documentClient.CreateDocumentAsync(
-                    GetCollectionUri(),
-                    value)).ConfigureAwait(false);
+                await Execute(() => _container.CreateItemAsync(
+                    item: value)).ConfigureAwait(false);
 
                 return true;
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.Conflict)
+                if (ce.StatusCode == HttpStatusCode.Conflict)
                 {
                     return false;
                 }
@@ -105,14 +90,17 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             try
             {
-                await Execute(() => _documentClient.DeleteDocumentAsync(
-                    GetDocumentUri(documentId))).ConfigureAwait(false);
+                await Execute(() => _container
+                    .DeleteItemAsync<TValue>(
+                        id: documentId,
+                        partitionKey: PartitionKey.None))
+                    .ConfigureAwait(false);
 
                 return true;
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     return false;
                 }
@@ -132,15 +120,16 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             try
             {
-                Document document = await Execute(
-                    () => _documentClient.ReadDocumentAsync(
-                        GetDocumentUri(documentId))).ConfigureAwait(false);
+                var item = await Execute(
+                    () => _container.ReadItemAsync<TValue>(
+                        id: documentId,
+                        partitionKey: PartitionKey.None)).ConfigureAwait(false);
 
-                return (TValue)(dynamic)document;
+                return item;
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     return default;
                 }
@@ -172,29 +161,16 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                     allowPartialMap: true)
                 .Replace('/', '|');
 
-            IQueryable<TValue> queryable = await Execute(
-                () => Task.FromResult(_documentClient
-                    .CreateDocumentQuery<TValue>(
-                        GetCollectionUri(),
-                        new FeedOptions
-                        {
-                            MaxItemCount = -1,
+            var queryable = _container
+                .GetItemLinqQueryable<TValue>(
+                    allowSynchronousQueryExecution: true,
+                    requestOptions: new QueryRequestOptions
+                    {
+                        MaxItemCount = -1 
+                    })
+                .Where(v => v.Id.StartsWith(keyPrefix));
 
-                            EnableCrossPartitionQuery = true
-                        })
-                    .Where(v => v.Id.StartsWith(keyPrefix)))).ConfigureAwait(false);
-
-            var documentQuery = queryable.AsDocumentQuery();
-
-            var results = new List<TValue>();
-
-            while (documentQuery.HasMoreResults)
-            {
-                foreach (var result in documentQuery.ExecuteNextAsync<TValue>().Result)
-                {
-                    results.Add(result);
-                }
-            }
+            var results = queryable.ToList();
 
             var keyValues = results.Select(o => new KeyValuePair<TKey, TValue>(
                 ParseDocumentId(o.Id),
@@ -229,15 +205,15 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             {
                 value.Id = GetDocumentId(key);
 
-                await Execute(() => _documentClient.ReplaceDocumentAsync(
-                    GetDocumentUri(documentId), 
-                    value)).ConfigureAwait(false);
+                await Execute(() => _container.ReplaceItemAsync(
+                    item: value,
+                    id: documentId)).ConfigureAwait(false);
 
                 return true;
             }
-            catch (DocumentClientException e)
+            catch (CosmosException ce)
             {
-                if (e.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     return false;
                 }
@@ -254,9 +230,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             value.Id = GetDocumentId(key);
 
-            await Execute(() => _documentClient.UpsertDocumentAsync(
-                GetCollectionUri(), 
-                value)).ConfigureAwait(false);
+            await Execute(() => _container.UpsertItemAsync(
+                item: value,
+                partitionKey: default)).ConfigureAwait(false);
 
             return true;
         }
@@ -303,10 +279,10 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             public IQueryable<TValue> Query(
                 Expression<Func<TKey, bool>> predicate = null)
             {
-                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as 
+                var memberValues = EmptyReadOnlyDictionary<string, object>.Instance as
                     IReadOnlyDictionary<string, object>;
 
-                if(predicate != null)
+                if (predicate != null)
                 {
                     memberValues = new InvariantExtractor().ExtractInvariantDictionary(
                         predicate,
@@ -317,71 +293,14 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                     .EvaluatePath(memberValues, allowPartialMap: true)
                     .Replace('/', '|');
 
-                return Execute(
-                    () => Task.FromResult(_dataStore._documentClient
-                        .CreateDocumentQuery<TValue>(
-                            _dataStore.GetCollectionUri(),
-                            new FeedOptions
-                            {
-                                MaxItemCount = -1,
-
-                                EnableCrossPartitionQuery = true
-                            })
-                        .Where(e => e.Id.StartsWith(keyPrefix)))).Result;
-            }
-        }
-
-        async Task CreateDatabaseIfNotExistsAsync()
-        {
-            try
-            {
-                await _documentClient.ReadDatabaseAsync(GetDatabaseUri()).ConfigureAwait(false);
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    await _documentClient
-                        .CreateDatabaseAsync(new Database
+                return _dataStore._container
+                    .GetItemLinqQueryable<TValue>(
+                        allowSynchronousQueryExecution: true,
+                        requestOptions: new QueryRequestOptions
                         {
-                            Id = _database
+                            MaxItemCount = -1
                         })
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        async Task CreateCollectionIfNotExistsAsync()
-        {
-            try
-            {
-                await _documentClient.ReadDocumentCollectionAsync(GetCollectionUri()).ConfigureAwait(false);
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    await _documentClient
-                        .CreateDocumentCollectionAsync(
-                            UriFactory.CreateDatabaseUri(_database),
-                            new DocumentCollection
-                            {
-                                Id = _collection
-                            },
-                            new RequestOptions
-                            {
-                                OfferThroughput = 1000
-                            })
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    throw;
-                }
+                    .Where(e => e.Id.StartsWith(keyPrefix));
             }
         }
 
@@ -396,46 +315,35 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 {
                     return await func().ConfigureAwait(false);
                 }
-                catch (DocumentClientException de)
+                catch (CosmosException ce)
                 {
-                    if ((int)de.StatusCode != 429)
+                    if ((int)ce.StatusCode != 429)
                     {
                         throw;
                     }
 
-                    sleepTime = de.RetryAfter;
+                    sleepTime = ce.RetryAfter ?? TimeSpan.FromSeconds(10);
                 }
                 catch (AggregateException ae)
                 {
-                    if (!(ae.InnerException is DocumentClientException))
+                    if (!(ae.InnerException is CosmosException))
                     {
                         throw;
                     }
 
-                    var de = (DocumentClientException)ae.InnerException;
+                    var ce = (CosmosException)ae.InnerException;
 
-                    if ((int)de.StatusCode != 429)
+                    if ((int)ce.StatusCode != 429)
                     {
                         throw;
                     }
 
-                    sleepTime = de.RetryAfter;
+                    sleepTime = ce.RetryAfter ?? TimeSpan.FromSeconds(10);
                 }
 
                 await Task.Delay(sleepTime).ConfigureAwait(false);
             }
         }
-
-        Uri GetDatabaseUri() => UriFactory.CreateDatabaseUri(_database);
-
-        Uri GetCollectionUri() => UriFactory.CreateDocumentCollectionUri(
-            _database,
-            _collection);
-
-        Uri GetDocumentUri(string documentId) => UriFactory.CreateDocumentUri(
-            _database,
-            _collection,
-            documentId);
 
         string GetDocumentId(TKey key) => _keyMap.Map(key).Replace('/', '|');
 

@@ -10,6 +10,6 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Facets
 
         public override Type TargetType => typeof(CosmosDbDataStore<,>);
 
-        public override string ParameterName => "database";
+        public override string ParameterName => "databaseId";
     }
 }
