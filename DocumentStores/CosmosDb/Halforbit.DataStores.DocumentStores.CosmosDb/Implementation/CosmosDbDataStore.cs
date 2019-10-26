@@ -446,7 +446,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
             else
             {
-                throw new Exception("Unrecognized key format, too many '|' characters.");
+                throw new ArgumentException("Unrecognized key format, too many '|' characters.");
             }
         }
 
