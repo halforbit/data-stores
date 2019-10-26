@@ -28,7 +28,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
 
             try
             {
-                var dataStore = new DocumentDbDataStore<TestValue.Key, TestValue>(
+                var dataStore = new CosmosDbDataStore<TestValue.Key, TestValue>(
                     endpoint: GetConfig("Endpoint"),
                     authKey: GetConfig("AuthKey"),
                     database: GetConfig("Database"),

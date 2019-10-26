@@ -8,7 +8,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Facets
     {
         public AuthKeyAttribute(string value = null, string configKey = null) : base(value, configKey) { }
 
-        public override Type TargetType => typeof(DocumentDbDataStore<,>);
+        public override Type TargetType => typeof(CosmosDbDataStore<,>);
 
         public override string ParameterName => "authKey";
     }

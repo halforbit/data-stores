@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 {
-    public class DocumentDbDataStore<TKey, TValue> :
+    public class CosmosDbDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
         where TValue : IDocument
     {
@@ -40,7 +40,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         public IStringMap<TKey> KeyMap => _keyMap;
 
-        public DocumentDbDataStore(
+        public CosmosDbDataStore(
             string endpoint,
             string authKey,
             string database,
@@ -291,9 +291,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         class QuerySession : IQuerySession<TKey, TValue>
         {
-            readonly DocumentDbDataStore<TKey, TValue> _dataStore;
+            readonly CosmosDbDataStore<TKey, TValue> _dataStore;
 
-            public QuerySession(DocumentDbDataStore<TKey, TValue> dataStore)
+            public QuerySession(CosmosDbDataStore<TKey, TValue> dataStore)
             {
                 _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
             }
