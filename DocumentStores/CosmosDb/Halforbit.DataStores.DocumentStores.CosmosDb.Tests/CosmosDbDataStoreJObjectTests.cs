@@ -11,7 +11,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.CosmosDb.Tests.Partitioned.";
 
         [Fact, Trait("Type", "Integration")]
-        public void TestCosmosDbJObjectPartitioned()
+        public void TestCosmosDbJObject()
         {
             var testKey = new JObjectTestKey(
                 partitionId: Guid.NewGuid(),
@@ -32,7 +32,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                 authKey: GetConfig("AuthKey"),
                 databaseId: GetConfig("DatabaseId"),
                 containerId: GetConfig("CollectionId"),
-                keyMap: "{PartitionId:D}|test-jobject-values/{AccountId}");
+                keyMap: "{PartitionId}|test-jobject-values/{AccountId}");
 
             ClearDataStore(dataStore);
                 

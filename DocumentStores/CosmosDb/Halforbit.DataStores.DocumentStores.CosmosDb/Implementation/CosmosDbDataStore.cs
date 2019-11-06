@@ -465,7 +465,14 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             if (parts.Length == 2)
             {
-                return (parts[0], parts[1].Replace('/', '|'));
+                if (Guid.TryParse(parts[0], out var g))
+                {
+                    return ($"{g:D}", parts[1].Replace('/', '|'));
+                }
+                else
+                {
+                    return (parts[0], parts[1].Replace('/', '|'));
+                }
             }
             else if(parts.Length == 1)
             {
