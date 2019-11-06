@@ -3,6 +3,7 @@ using Halforbit.DataStores.Interface;
 using Halforbit.ObjectTools.Extensions;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,9 +38,19 @@ namespace Halforbit.DataStores.Tests
                 MembersToIgnore = new List<string> { "Id" }
             };
 
-            var compareLogic = new CompareLogic(compareConfig);
-
-            Action<object, object> assertAreEqual = (a, b) => Assert.True(compareLogic.Compare(a, b).AreEqual);
+            Action<object, object> assertAreEqual = (a, b) =>
+            {
+                if (a.GetType() == typeof(string))
+                {
+                    Assert.Equal(a, b);
+                }
+                else
+                {
+                    Assert.Equal(
+                      StripUnderscoreProperties(JObject.FromObject(a)).ToString(),
+                      StripUnderscoreProperties(JObject.FromObject(b)).ToString());
+                }
+            };
 
             var preExistsResult = dataStore.Exists(testKey).Result;
 
@@ -135,6 +146,21 @@ namespace Halforbit.DataStores.Tests
                     throw new Exception("Failed to clear data store");
                 }
             }
+        }
+
+        static JObject StripUnderscoreProperties(JObject jObject)
+        {
+            var copy = jObject.DeepClone() as JObject;
+
+            foreach (var property in jObject)
+            {
+                if (property.Key.StartsWith("_"))
+                {
+                    copy.Remove(property.Key);
+                }
+            }
+
+            return copy;
         }
 
         public interface ITestKey

@@ -20,11 +20,17 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+// TODO:
+// - Retry 429 and 503 with polly
+// - Bulk transfer
+// - Context SQL execution
+// - Support JObject as TValue
+// - Remove IDocument requirement for POCOs
+
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 {
     public class CosmosDbDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
-        where TValue : IDocument
     {
         static readonly Regex _partitionKeyMatcher = new Regex(
             @"^\{(?<Key>[a-z0-9]+)(:.*?){0,1}\}\|", 
@@ -73,19 +79,22 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
                 _partitionKey = m.Groups["Key"].Value;
 
-                var partitionKeyProperty = typeof(TValue).GetProperty(_partitionKey);
-
-                if (partitionKeyProperty == null)
+                if (typeof(IDocument).IsAssignableFrom(typeof(TValue)))
                 {
-                    throw new ArgumentException($"Type {typeof(TValue).Name} is missing partition key property '{_partitionKey}'");
-                }
+                    var partitionKeyProperty = typeof(TValue).GetProperty(_partitionKey);
 
-                if(partitionKeyProperty.PropertyType == typeof(Guid) || 
-                    partitionKeyProperty.PropertyType == typeof(Guid?))
-                {
-                    // Automagically set partition key guids to dashed
+                    if (partitionKeyProperty == null)
+                    {
+                        throw new ArgumentException($"Type {typeof(TValue).Name} is missing partition key property '{_partitionKey}'");
+                    }
 
-                    _keyMap = $"{{{_partitionKey}:D}}|{keyMap.Substring(m.Value.Length)}";
+                    if (partitionKeyProperty.PropertyType == typeof(Guid) ||
+                        partitionKeyProperty.PropertyType == typeof(Guid?))
+                    {
+                        // Automagically set partition key guids to dashed
+
+                        _keyMap = $"{{{_partitionKey}:D}}|{keyMap.Substring(m.Value.Length)}";
+                    }
                 }
 
                 _keyMapWithoutPartitionKey = keyMap.Substring(m.Value.Length);
@@ -106,7 +115,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             var (partitionKey, documentId) = GetDocumentId(key);
 
-            value.Id = documentId;
+            SetDocumentId(value, documentId);
 
             try
             {
@@ -304,7 +313,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             try
             {
-                value.Id = documentId;
+                SetDocumentId(value, documentId);
 
                 await Execute(() => _container.ReplaceItemAsync(
                     item: value,
@@ -331,7 +340,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             var (partitionKey, documentId) = GetDocumentId(key);
 
-            value.Id = documentId;
+            SetDocumentId(value, documentId);
 
             await Execute(() => _container.UpsertItemAsync(
                 item: value,
@@ -349,7 +358,17 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         public IQuerySession<TKey, TValue> StartQuery()
         {
-            return new QuerySession(this);
+            if (!typeof(IDocument).IsAssignableFrom(typeof(TValue)))
+            {
+                throw new ArgumentException($"Type {typeof(TValue).Name} is not {nameof(IDocument)}.");
+            }
+
+            var qst = typeof(QuerySession<>).MakeGenericType(
+                typeof(TKey), 
+                typeof(TValue), 
+                typeof(TValue));
+
+            return Activator.CreateInstance(qst, this) as IQuerySession<TKey, TValue>;
         }
 
         string EvaluatePath(
@@ -503,7 +522,24 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             throw new NotImplementedException();
         }
 
-        class QuerySession : IQuerySession<TKey, TValue>
+        static void SetDocumentId(TValue value, string documentId)
+        {
+            if (value is IDocument d)
+            {
+                d.Id = documentId;
+            }
+            else if (value is JObject j)
+            {
+                j["id"] = documentId;
+            }
+            else
+            {
+                throw new ArgumentException($"TValue {typeof(TValue).Name} is neither {nameof(IDocument)} nor {nameof(JObject)}.");
+            }
+        }
+
+        class QuerySession<TResultValue> : IQuerySession<TKey, TResultValue>
+            where TResultValue : IDocument
         {
             readonly CosmosDbDataStore<TKey, TValue> _dataStore;
 
@@ -514,20 +550,20 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             public void Dispose() { }
 
-            public IQueryable<TValue> Query(
+            public IQueryable<TResultValue> Query(
                 Expression<Func<TKey, bool>> predicate = null)
             {
                 var (partitionKey, idPrefix) = _dataStore.GetPartitionKeyAndIdPrefixFromPredicate(predicate);
 
                 return _dataStore._container
-                    .GetItemLinqQueryable<TValue>(
+                    .GetItemLinqQueryable<TResultValue>(
                         allowSynchronousQueryExecution: true,
                         requestOptions: new QueryRequestOptions
                         {
                             PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
                                 new PartitionKey(partitionKey) :
                                 null as PartitionKey?,
-
+                            
                             MaxItemCount = -1
                         })
                     .Where(e => e.Id.StartsWith(idPrefix));
