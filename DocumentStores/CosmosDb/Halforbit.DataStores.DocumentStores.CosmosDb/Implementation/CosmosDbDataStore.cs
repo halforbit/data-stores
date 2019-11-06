@@ -457,7 +457,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
-        (string PartitionKey, string documentId) GetDocumentId(TKey key)
+        (string PartitionKey, string DocumentId) GetDocumentId(TKey key)
         {
             var mapped = _keyMap.Map(key);
 
