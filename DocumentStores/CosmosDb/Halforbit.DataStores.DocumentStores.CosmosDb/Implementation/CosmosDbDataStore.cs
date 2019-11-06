@@ -11,6 +11,8 @@ using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json.Linq;
+using Polly;
+using Polly.Retry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,6 +34,17 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
     public class CosmosDbDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
     {
+        static readonly AsyncRetryPolicy _retryPolicy = Policy
+            .Handle<CosmosException>(cex => cex.StatusCode == (HttpStatusCode)429)
+            .Or<CosmosException>(cex => cex.StatusCode == HttpStatusCode.ServiceUnavailable)
+            .WaitAndRetryAsync(
+                retryCount: 5,
+                sleepDurationProvider: (count, exception, context) =>
+                {
+                    return (exception as CosmosException)?.RetryAfter ?? TimeSpan.FromSeconds(Math.Pow(2, count));
+                },
+                onRetryAsync: (exception, timespan, count, context) => Task.CompletedTask);
+        
         static readonly Regex _partitionKeyMatcher = new Regex(
             @"^\{(?<Key>[a-z0-9]+)(:.*?){0,1}\}\|", 
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -416,47 +429,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             return (partitionKey, idPrefix);
         }
 
-        static async Task<V> Execute<V>(
-            Func<Task<V>> func)
-        {
-            TimeSpan sleepTime = TimeSpan.Zero;
-
-            while (true)
-            {
-                try
-                {
-                    return await func().ConfigureAwait(false);
-                }
-                catch (CosmosException ce)
-                {
-                    if ((int)ce.StatusCode != 429)
-                    {
-                        throw;
-                    }
-
-                    sleepTime = ce.RetryAfter ?? TimeSpan.FromSeconds(10);
-                }
-                catch (AggregateException ae)
-                {
-                    if (!(ae.InnerException is CosmosException))
-                    {
-                        throw;
-                    }
-
-                    var ce = (CosmosException)ae.InnerException;
-
-                    if ((int)ce.StatusCode != 429)
-                    {
-                        throw;
-                    }
-
-                    sleepTime = ce.RetryAfter ?? TimeSpan.FromSeconds(10);
-                }
-
-                await Task.Delay(sleepTime).ConfigureAwait(false);
-            }
-        }
-
+        static async Task<V> Execute<V>(Func<Task<V>> func) => await _retryPolicy.ExecuteAsync(func);
+        
         (string PartitionKey, string DocumentId) GetDocumentId(TKey key)
         {
             var mapped = _keyMap.Map(key);
