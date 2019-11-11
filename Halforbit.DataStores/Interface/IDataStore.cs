@@ -33,6 +33,8 @@ namespace Halforbit.DataStores.Interface
 
         Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator);
 
+        Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator);
+
         IQuerySession<TKey, TValue> StartQuery();
 
         IStringMap<TKey> KeyMap { get; }

@@ -299,6 +299,54 @@ namespace Halforbit.DataStores.FileStores.Implementation
             throw new Exception("Failed after all attempts to conditionally upsert.");
         }
 
+        public async Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
+        {
+            var path = GetPath(key);
+
+            var attemptsLeft = 100;
+
+            while (attemptsLeft > 0)
+            {
+                var current = await GetValueWithETag(path).ConfigureAwait(false);
+
+                var mutation = await mutator(current.Item1);
+
+                await ValidatePut(key, mutation);
+
+                var success = default(bool);
+
+                if (_valueIsStream)
+                {
+                    throw new NotSupportedException();
+                }
+                else
+                {
+                    var contents = await GetContents(mutation).ConfigureAwait(false);
+
+                    success = await _fileStore.WriteAllBytes(
+                        path: path,
+                        contents: contents,
+                        eTag: current.Item2).ConfigureAwait(false);
+                }
+
+                if (success)
+                {
+                    return true;
+                }
+
+                if (attemptsLeft < 100)
+                {
+                    //Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
+                }
+
+                Task.Delay(100).Wait();
+
+                attemptsLeft--;
+            }
+
+            throw new Exception("Failed after all attempts to conditionally upsert.");
+        }
+
         public IQuerySession<TKey, TValue> StartQuery()
         {
             return new QuerySession(this);
