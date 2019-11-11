@@ -22,7 +22,9 @@ namespace Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation
         {
              _jsonSerializer = new JsonSerializer
              {
-                 ContractResolver = new CamelCasePropertyNamesContractResolver()
+                 ContractResolver = new CamelCasePropertyNamesContractResolver(), 
+                 
+                 DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
              };
 
             _jsonSerializer.Converters.Add(new StringEnumConverter { CamelCaseText = true });
