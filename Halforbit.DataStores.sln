@@ -92,6 +92,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.Docume
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.DocumentStores.CosmosDb.Tests", "DocumentStores\CosmosDb\Halforbit.DataStores.DocumentStores.CosmosDb.Tests\Halforbit.DataStores.DocumentStores.CosmosDb.Tests.csproj", "{7C67A643-ED3A-4D0D-B1AF-622491C1FF6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Serialization.Json.Tests", "Halforbit.DataStores.FileStores.Serialization.Json.Tests\Halforbit.DataStores.FileStores.Serialization.Json.Tests.csproj", "{95D3CCC4-BF17-4187-85DF-8ABEC1648D72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -186,6 +188,10 @@ Global
 		{7C67A643-ED3A-4D0D-B1AF-622491C1FF6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C67A643-ED3A-4D0D-B1AF-622491C1FF6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C67A643-ED3A-4D0D-B1AF-622491C1FF6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95D3CCC4-BF17-4187-85DF-8ABEC1648D72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95D3CCC4-BF17-4187-85DF-8ABEC1648D72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95D3CCC4-BF17-4187-85DF-8ABEC1648D72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95D3CCC4-BF17-4187-85DF-8ABEC1648D72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
