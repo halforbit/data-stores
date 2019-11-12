@@ -220,6 +220,11 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             throw new NotImplementedException();
         }
 
+        public Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
+        {
+            throw new NotImplementedException();
+        }
+
         string GetDocumentId(TKey key) => _keyMap.Map(key);
 
         async Task ValidatePut(TKey key, TValue value)

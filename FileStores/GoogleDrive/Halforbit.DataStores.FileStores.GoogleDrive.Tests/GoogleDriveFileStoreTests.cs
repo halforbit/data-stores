@@ -1,6 +1,7 @@
 using Halforbit.DataStores.FileStores.GoogleDrive.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.Json.Model;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
@@ -30,7 +31,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
                     applicationName: GetConfig("ApplicationName"),
                     serviceAccountEmail: GetConfig("ServiceAccountEmail"),
                     serviceAccountKey: GetConfig("ServiceAccountKey")),
-                serializer: new JsonSerializer(),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
                 keyMap: "test-values/{AccountId}",
                 fileExtension: ".json");
 

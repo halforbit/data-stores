@@ -1,6 +1,7 @@
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.Yaml.Model;
 using Halforbit.DataStores.Tests;
 using System;
 using System.IO;
@@ -39,7 +40,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 
             var dataStore = new FileStoreDataStore<YamlTestValue.Key, YamlTestValue>(
                 fileStore: new LocalFileStore(rootPath: rootPath),
-                serializer: new YamlSerializer(),
+                serializer: new YamlSerializer($"{YamlOptions.Default}"),
                 keyMap: "test-values/{AccountId}",
                 fileExtension: ".yaml");
 

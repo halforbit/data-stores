@@ -103,7 +103,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Implementation
             {
                 return false;
             }
-
+            
             for (int i = 0; i < _byteOrderMarkLength; i++)
             {
                 if (data[i] != _byteOrderMark[i])

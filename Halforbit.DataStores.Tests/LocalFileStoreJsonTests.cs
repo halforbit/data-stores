@@ -2,6 +2,7 @@ using Halforbit.DataStores.FileStores.Compression.GZip.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.Json.Model;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
@@ -40,7 +41,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 
             var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
                 fileStore: new LocalFileStore(rootPath: rootPath),
-                serializer: new JsonSerializer(),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
                 keyMap: "test-values/{AccountId}",
                 fileExtension: ".json");
 
@@ -72,7 +73,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Tests
 
             var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
                 fileStore: new LocalFileStore(rootPath: rootPath),
-                serializer: new JsonSerializer(),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
                 compressor: new GZipCompressor(),
                 keyMap: "test-values/{AccountId}",
                 fileExtension: ".json.gzip");

@@ -1,6 +1,7 @@
 using Halforbit.DataStores.FileStores.AmazonS3.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.Json.Model;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +32,7 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Tests
                     accessKeyId: GetConfig("AccessKeyId"),
                     secretAccessKey: GetConfig("SecretAccessKey"),
                     bucketName: GetConfig("BucketName")),
-                serializer: new JsonSerializer(),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
                 keyMap: "test-values/{AccountId}",
                 fileExtension: ".json");
 

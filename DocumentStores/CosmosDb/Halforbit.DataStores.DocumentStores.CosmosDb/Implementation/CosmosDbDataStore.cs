@@ -23,11 +23,11 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 // TODO:
-// - Retry 429 and 503 with polly
 // - Bulk transfer
 // - Context SQL execution
-// - Support JObject as TValue
 // - Remove IDocument requirement for POCOs
+// x Retry 429 and 503 with polly
+// x Support JObject as TValue
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 {
@@ -365,6 +365,11 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public async Task<bool> Upsert(
             TKey key, 
             Func<TValue, TValue> mutator)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
             throw new NotImplementedException();
         }
