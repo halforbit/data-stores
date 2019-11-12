@@ -3,7 +3,7 @@ using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.Facets.Attributes;
 using System;
 
-namespace HalfOrbit.DataStores.FileStores.LocalStorage.Attributes
+namespace Halforbit.DataStores.FileStores.LocalStorage.Attributes
 {
     public class RootPathAttribute : FacetParameterAttribute
     {
