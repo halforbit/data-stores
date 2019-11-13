@@ -333,6 +333,38 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         }
 
         [Fact, Trait("Type", "RunOnBuild")]
+        public async Task DeserializeFromLegacyClassDefaultOptions_Success()
+        {
+            var jsonSerializer = new HalforbitJsonSerializer($"{None}");
+
+            var jsonDeserializer = new HalforbitJsonSerializer($"{Default}");
+
+            var serialized = await jsonSerializer.Serialize(TestItem);
+
+            var actual = await jsonDeserializer.Deserialize<Item>(serialized);
+
+            Assert.Equal(
+                JsonConvert.SerializeObject(TestItem),
+                JsonConvert.SerializeObject(actual));
+        }
+
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task DeserializeToLegacyClassDefaultOptions_Success()
+        {
+            var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
+
+            var jsonDeserializer = new HalforbitJsonSerializer($"{None}");
+
+            var serialized = await jsonSerializer.Serialize(TestItem);
+
+            var actual = await jsonDeserializer.Deserialize<Item>(serialized);
+
+            Assert.Equal(
+                JsonConvert.SerializeObject(TestItem),
+                JsonConvert.SerializeObject(actual));
+        }
+
+        [Fact, Trait("Type", "RunOnBuild")]
         public async Task DeserializeNullClassDefaultOptions_Success()
         {
             var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
