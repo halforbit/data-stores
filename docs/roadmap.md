@@ -10,6 +10,7 @@ Here are some things Data Stores might do in the future:
     - Azure CosmosDB Tables
   - File Stores
     - ~~FTP~~
+	- SFTP
     - Microsoft OneDrive
     - iCloud
     - Dropbox

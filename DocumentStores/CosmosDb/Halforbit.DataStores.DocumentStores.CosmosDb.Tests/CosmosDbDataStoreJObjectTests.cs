@@ -28,8 +28,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                 message: "Kthx, world!"));
 
             var dataStore = new CosmosDbDataStore<JObjectTestKey, JObject>(
-                endpoint: GetConfig("Endpoint"),
-                authKey: GetConfig("AuthKey"),
+                connectionString: GetConfig("ConnectionString"),
                 databaseId: GetConfig("DatabaseId"),
                 containerId: GetConfig("CollectionId"),
                 keyMap: "{PartitionId}|test-jobject-values/{AccountId}");

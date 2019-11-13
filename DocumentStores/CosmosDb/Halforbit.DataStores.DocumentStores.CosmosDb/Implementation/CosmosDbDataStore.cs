@@ -64,8 +64,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public IStringMap<TKey> KeyMap => _keyMap;
 
         public CosmosDbDataStore(
-            string endpoint,
-            string authKey,
+            string connectionString,
             string databaseId,
             string containerId,
             string keyMap,
@@ -73,8 +72,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             _container = 
                 new CosmosClient(
-                    accountEndpoint: endpoint,
-                    authKeyOrResourceToken: authKey)
+                    connectionString: connectionString)
                 .GetContainer(
                     databaseId: databaseId, 
                     containerId: containerId);

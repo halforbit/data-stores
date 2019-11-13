@@ -4,12 +4,12 @@ using System;
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Facets
 {
-    public class AuthKeyAttribute : FacetParameterAttribute
+    public class ConnectionStringAttribute : FacetParameterAttribute
     {
-        public AuthKeyAttribute(string value = null, string configKey = null) : base(value, configKey) { }
+        public ConnectionStringAttribute(string value = null, string configKey = null) : base(value, configKey) { }
 
         public override Type TargetType => typeof(CosmosDbDataStore<,>);
 
-        public override string ParameterName => "authKey";
+        public override string ParameterName => "connectionString";
     }
 }
