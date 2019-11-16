@@ -2,7 +2,7 @@
 using Halforbit.Facets.Attributes;
 using System;
 
-namespace Halforbit.DataStores.FileStores.Compression.GZip.Facets
+namespace Halforbit.DataStores.FileStores.Compression.Lzma.Facets
 {
     public class LzmaCompressionAttribute : FacetAttribute
     {
