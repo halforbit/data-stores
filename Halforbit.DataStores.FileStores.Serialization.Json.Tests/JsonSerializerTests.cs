@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -232,6 +233,28 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
             var expected = _encoding.GetBytes("\"7e900426-dbc2-46bc-be10-0d503644b830\"");
 
             var actual = await jsonSerializer.Serialize(guid);
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task SerializeBigInteger_Success()
+        {
+            var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
+            var source = new Immutable<BigInteger>(BigInteger.Parse(sourceString));
+
+            var expected = _encoding.GetBytes($@"
+{{
+  ""property"": ""{sourceString}""
+}}
+".Trim());
+
+            var actual = await jsonSerializer.Serialize(source);
+
+            var xx = _encoding.GetString(actual);
 
             Assert.Equal(expected, actual);
         }
@@ -472,6 +495,26 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
             Assert.Null(actual);
         }
 
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task DeserializeImmutableBigInteger_Success()
+        {
+            var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
+            var source = _encoding.GetBytes($@"
+{{
+  ""property"": ""{sourceString}""
+}}
+".Trim());
+
+            var actual = await jsonSerializer.Deserialize<Immutable<BigInteger>>(source);
+
+            Assert.Equal(
+                sourceString, 
+                actual.Property.ToString());
+        }
+
         // DESERIALIZE - ARRAY TYPES //////////////////////////////////////////
 
         [Fact, Trait("Type", "RunOnBuild")]
@@ -651,6 +694,16 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
             public Options Options { get; }
 
             public DateTime CreateTime { get; }
+        }
+
+        class Immutable<TProperty>
+        {
+            public Immutable(TProperty property)
+            {
+                Property = property;
+            }
+
+            public TProperty Property { get; }
         }
     }
 }

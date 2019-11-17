@@ -31,6 +31,8 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Implementation
 
             _jsonSerializer = new Newtonsoft.Json.JsonSerializer();
 
+            _jsonSerializer.Converters.Add(new BigIntegerJsonConverter());
+
             if (o.HasFlag(JsonOptions.CamelCaseEnumValues))
             {
                 _jsonSerializer.Converters.Add(new StringEnumConverter { CamelCaseText = true });
