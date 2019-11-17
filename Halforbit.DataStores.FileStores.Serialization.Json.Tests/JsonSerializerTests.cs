@@ -12,7 +12,7 @@ using HalforbitJsonSerializer = Halforbit.DataStores.FileStores.Serialization.Js
 
 namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
 {
-    public class HalforbitJsonSerializerTests
+    public class JsonSerializerTests
     {
         readonly Encoding _encoding = new UTF8Encoding(false);
 
@@ -244,6 +244,20 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
 
             var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
 
+            var actual = await jsonSerializer.Serialize(BigInteger.Parse(sourceString));
+
+            Assert.Equal(
+                _encoding.GetBytes($"\"{sourceString}\""),
+                actual);
+        }
+
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task SerializeImmutableBigInteger_Success()
+        {
+            var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
             var source = new Immutable<BigInteger>(BigInteger.Parse(sourceString));
 
             var expected = _encoding.GetBytes($@"
@@ -253,8 +267,6 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
 ".Trim());
 
             var actual = await jsonSerializer.Serialize(source);
-
-            var xx = _encoding.GetString(actual);
 
             Assert.Equal(expected, actual);
         }
@@ -493,6 +505,22 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
             var actual = await jsonSerializer.Deserialize<Guid?>(serialized);
 
             Assert.Null(actual);
+        }
+
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task DeserializeBigInteger_Success()
+        {
+            var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
+            var source = _encoding.GetBytes($@"""{sourceString}""");
+
+            var actual = await jsonSerializer.Deserialize<BigInteger>(source);
+
+            Assert.Equal(
+                BigInteger.Parse(sourceString),
+                actual);
         }
 
         [Fact, Trait("Type", "RunOnBuild")]

@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
@@ -39,6 +40,8 @@ namespace Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation
             }
 
             _jsonSerializer = new Newtonsoft.Json.JsonSerializer();
+
+            _jsonSerializer.Converters.Add(new BigIntegerJsonConverter());
 
             if (o.HasFlag(YamlOptions.CamelCaseEnumValues))
             {
@@ -184,6 +187,12 @@ namespace Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation
                 (type.Equals(typeof(Guid)) || type.Equals(typeof(Guid?))))
             {
                 return Serialize($"{value:N}");
+            }
+            else if (type.Equals(typeof(BigInteger)) || type.Equals(typeof(BigInteger?)))
+            {
+                return Task.FromResult(
+                    _encoding.GetBytes(
+                        _serializer.Serialize(((BigInteger)(object)value).ToString())));
             }
             else if (IsSimpleType(type))
             {

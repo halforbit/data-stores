@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -210,6 +211,38 @@ createTime: 2019-01-02T03:04:05.0060007Z
             Assert.Equal(expected, actual);
         }
 
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task SerializeBigInteger_Success()
+        {
+            var yamlSerializer = new YamlSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
+            var actual = await yamlSerializer.Serialize(BigInteger.Parse(sourceString));
+
+            Assert.Equal(
+                _encoding.GetBytes($"{sourceString}\r\n"),
+                actual);
+        }
+
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task SerializeImmutableBigInteger_Success()
+        {
+            var yamlSerializer = new YamlSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
+            var source = new Immutable<BigInteger>(BigInteger.Parse(sourceString));
+
+            var expected = _encoding.GetBytes($@"
+property: {sourceString}
+".TrimStart());
+
+            var actual = await yamlSerializer.Serialize(source);
+
+            Assert.Equal(expected, actual);
+        }
+
         // SERIALIZE - ARRAY TYPES ////////////////////////////////////////////
 
         [Fact, Trait("Type", "RunOnBuild")]
@@ -402,6 +435,40 @@ Charlie: 123
             Assert.Null(actual);
         }
 
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task DeserializeBigInteger_Success()
+        {
+            var yamlSerializer = new YamlSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
+            var source = _encoding.GetBytes($"{sourceString}\r\n");
+
+            var actual = await yamlSerializer.Deserialize<BigInteger>(source);
+
+            Assert.Equal(
+                BigInteger.Parse(sourceString),
+                actual);
+        }
+
+        [Fact, Trait("Type", "RunOnBuild")]
+        public async Task DeserializeImmutableBigInteger_Success()
+        {
+            var yamlSerializer = new YamlSerializer($"{Default}");
+
+            var sourceString = string.Join(string.Empty, Enumerable.Repeat("1234567890", 10));
+
+            var source = _encoding.GetBytes($@"
+property: {sourceString}
+".TrimStart());
+
+            var actual = await yamlSerializer.Deserialize<Immutable<BigInteger>>(source);
+
+            Assert.Equal(
+                sourceString,
+                actual.Property.ToString());
+        }
+
         // DESERIALIZE - ARRAY TYPES //////////////////////////////////////////
 
         [Fact, Trait("Type", "RunOnBuild")]
@@ -581,6 +648,16 @@ Charlie: 123
             public Options Options { get; }
             
             public DateTime CreateTime { get; }
+        }
+
+        class Immutable<TProperty>
+        {
+            public Immutable(TProperty property)
+            {
+                Property = property;
+            }
+
+            public TProperty Property { get; }
         }
     }
 }
