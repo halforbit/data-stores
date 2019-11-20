@@ -17,6 +17,6 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Model
 
         Indented = 16,
 
-        Default = CamelCasePropertyNames | CamelCaseEnumValues | RemoveDefaultValues | OmitGuidDashes | Indented
+        Default = CamelCasePropertyNames | CamelCaseEnumValues | RemoveDefaultValues | OmitGuidDashes
     }
 }
