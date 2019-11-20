@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.6.9" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.6.11" />
     <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.1" />
   </ItemGroup>
 
