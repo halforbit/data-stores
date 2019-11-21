@@ -34,7 +34,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
     public class CosmosDbDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
     {
-        static readonly AsyncRetryPolicy _retryPolicy = Policy
+        static readonly RetryPolicy _retryPolicy = Policy
             .Handle<CosmosException>(cex => cex.StatusCode == (HttpStatusCode)429)
             .Or<CosmosException>(cex => cex.StatusCode == HttpStatusCode.ServiceUnavailable)
             .WaitAndRetryAsync(
