@@ -23,18 +23,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         {
             var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
 
-            var expected = _encoding.GetBytes(@"
-{
-  ""itemId"": ""7e900426dbc246bcbe100d503644b830"",
-  ""itemName"": ""alfa"",
-  ""subItems"": [
-    ""bravo"",
-    ""charlie""
-  ],
-  ""options"": ""all"",
-  ""createTime"": ""2019-01-02T03:04:05.0060007Z""
-}
-".Trim());
+            var expected = _encoding.GetBytes(@"{""itemId"":""7e900426dbc246bcbe100d503644b830"",""itemName"":""alfa"",""subItems"":[""bravo"",""charlie""],""options"":""all"",""createTime"":""2019-01-02T03:04:05.0060007Z""}");
 
             var actual = await jsonSerializer.Serialize(TestItem);
 
@@ -56,22 +45,13 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         [Fact, Trait("Type", "RunOnBuild")]
         public async Task SerializeIntegerEnumValues_Success()
         {
-            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCasePropertyNames | RemoveDefaultValues | OmitGuidDashes | Indented}");
+            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCasePropertyNames | RemoveDefaultValues | OmitGuidDashes}");
 
-            var expected = _encoding.GetBytes(@"
-{
-  ""itemId"": ""7e900426dbc246bcbe100d503644b830"",
-  ""itemName"": ""alfa"",
-  ""subItems"": [
-    ""bravo"",
-    ""charlie""
-  ],
-  ""options"": 3,
-  ""createTime"": ""2019-01-02T03:04:05.0060007Z""
-}
-".Trim());
+            var expected = _encoding.GetBytes(@"{""itemId"":""7e900426dbc246bcbe100d503644b830"",""itemName"":""alfa"",""subItems"":[""bravo"",""charlie""],""options"":3,""createTime"":""2019-01-02T03:04:05.0060007Z""}");
 
             var actual = await jsonSerializer.Serialize(TestItem);
+
+            var xx = _encoding.GetString(actual);
 
             Assert.Equal(expected, actual);
         }
@@ -79,20 +59,9 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         [Fact, Trait("Type", "RunOnBuild")]
         public async Task SerializePascalCasePropertyNames_Success()
         {
-            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | RemoveDefaultValues | OmitGuidDashes | Indented }");
+            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | RemoveDefaultValues | OmitGuidDashes }");
 
-            var expected = _encoding.GetBytes(@"
-{
-  ""ItemId"": ""7e900426dbc246bcbe100d503644b830"",
-  ""ItemName"": ""alfa"",
-  ""SubItems"": [
-    ""bravo"",
-    ""charlie""
-  ],
-  ""Options"": ""all"",
-  ""CreateTime"": ""2019-01-02T03:04:05.0060007Z""
-}
-".Trim());
+            var expected = _encoding.GetBytes(@"{""ItemId"":""7e900426dbc246bcbe100d503644b830"",""ItemName"":""alfa"",""SubItems"":[""bravo"",""charlie""],""Options"":""all"",""CreateTime"":""2019-01-02T03:04:05.0060007Z""}");
 
             var actual = await jsonSerializer.Serialize(TestItem);
 
@@ -102,20 +71,9 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         [Fact, Trait("Type", "RunOnBuild")]
         public async Task SerializeIncludeDefaultValues_Success()
         {
-            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | CamelCasePropertyNames | OmitGuidDashes | Indented}");
+            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | CamelCasePropertyNames | OmitGuidDashes}");
 
-            var expected = _encoding.GetBytes(@"
-{
-  ""itemId"": ""7e900426dbc246bcbe100d503644b830"",
-  ""itemName"": ""alfa"",
-  ""defaultValue"": null,
-  ""subItems"": [
-    ""bravo"",
-    ""charlie""
-  ],
-  ""options"": ""all"",
-  ""createTime"": ""2019-01-02T03:04:05.0060007Z""
-}".Trim());
+            var expected = _encoding.GetBytes(@"{""itemId"":""7e900426dbc246bcbe100d503644b830"",""itemName"":""alfa"",""defaultValue"":null,""subItems"":[""bravo"",""charlie""],""options"":""all"",""createTime"":""2019-01-02T03:04:05.0060007Z""}");
 
             var actual = await jsonSerializer.Serialize(TestItem);
 
@@ -125,20 +83,9 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         [Fact, Trait("Type", "RunOnBuild")]
         public async Task SerializeWithGuidDashes_Success()
         {
-            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | CamelCasePropertyNames | RemoveDefaultValues | Indented}");
+            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | CamelCasePropertyNames | RemoveDefaultValues}");
 
-            var expected = _encoding.GetBytes(@"
-{
-  ""itemId"": ""7e900426-dbc2-46bc-be10-0d503644b830"",
-  ""itemName"": ""alfa"",
-  ""subItems"": [
-    ""bravo"",
-    ""charlie""
-  ],
-  ""options"": ""all"",
-  ""createTime"": ""2019-01-02T03:04:05.0060007Z""
-}
-".Trim());
+            var expected = _encoding.GetBytes(@"{""itemId"":""7e900426-dbc2-46bc-be10-0d503644b830"",""itemName"":""alfa"",""subItems"":[""bravo"",""charlie""],""options"":""all"",""createTime"":""2019-01-02T03:04:05.0060007Z""}");
 
             var actual = await jsonSerializer.Serialize(TestItem);
 
@@ -226,7 +173,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         [Fact, Trait("Type", "RunOnBuild")]
         public async Task SerializeGuidWithGuidDashes_Success()
         {
-            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | CamelCasePropertyNames | RemoveDefaultValues | Indented}");
+            var jsonSerializer = new HalforbitJsonSerializer($"{CamelCaseEnumValues | CamelCasePropertyNames | RemoveDefaultValues}");
 
             var guid = new Guid("7e900426dbc246bcbe100d503644b830");
 
@@ -260,11 +207,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
 
             var source = new Immutable<BigInteger>(BigInteger.Parse(sourceString));
 
-            var expected = _encoding.GetBytes($@"
-{{
-  ""property"": ""{sourceString}""
-}}
-".Trim());
+            var expected = _encoding.GetBytes($@"{{""property"":""{sourceString}""}}");
 
             var actual = await jsonSerializer.Serialize(source);
 
@@ -278,30 +221,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         {
             var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
 
-            var expected = _encoding.GetBytes(@"
-[
-  {
-    ""itemId"": ""7e900426dbc246bcbe100d503644b830"",
-    ""itemName"": ""alfa"",
-    ""subItems"": [
-      ""bravo"",
-      ""charlie""
-    ],
-    ""options"": ""all"",
-    ""createTime"": ""2019-01-02T03:04:05.0060007Z""
-  },
-  {
-    ""itemId"": ""7e900426dbc246bcbe100d503644b830"",
-    ""itemName"": ""alfa"",
-    ""subItems"": [
-      ""bravo"",
-      ""charlie""
-    ],
-    ""options"": ""all"",
-    ""createTime"": ""2019-01-02T03:04:05.0060007Z""
-  }
-]
-".Trim());
+            var expected = _encoding.GetBytes(@"[{""itemId"":""7e900426dbc246bcbe100d503644b830"",""itemName"":""alfa"",""subItems"":[""bravo"",""charlie""],""options"":""all"",""createTime"":""2019-01-02T03:04:05.0060007Z""},{""itemId"":""7e900426dbc246bcbe100d503644b830"",""itemName"":""alfa"",""subItems"":[""bravo"",""charlie""],""options"":""all"",""createTime"":""2019-01-02T03:04:05.0060007Z""}]");
 
             var actual = await jsonSerializer.Serialize(new List<Item> { TestItem, TestItem } as IReadOnlyList<Item>);
 
@@ -313,12 +233,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
         {
             var jsonSerializer = new HalforbitJsonSerializer($"{Default}");
 
-            var expected = _encoding.GetBytes(@"
-[
-  ""alfa"",
-  ""bravo""
-]
-".Trim());
+            var expected = _encoding.GetBytes(@"[""alfa"",""bravo""]");
 
             var actual = await jsonSerializer.Serialize(new List<string> { "alfa", "bravo" } as IReadOnlyList<string>);
 
@@ -339,12 +254,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests
                 Charlie = 123
             });
 
-            var expected = _encoding.GetBytes(@"
-{
-  ""Alfa"": ""Bravo"",
-  ""Charlie"": 123
-}
-".Trim());
+            var expected = _encoding.GetBytes(@"{""Alfa"":""Bravo"",""Charlie"":123}");
 
             var actual = await jsonSerializer.Serialize(jObject);
 
