@@ -19,6 +19,8 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
     {
         readonly DriveService _driveService;
         
+        readonly string _serviceAccountEmail;
+
         public GoogleDriveFileStore(
             string applicationName,
             string serviceAccountEmail,
@@ -39,6 +41,8 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
                 HttpClientInitializer = serviceAccountCredential
             });
+
+            _serviceAccountEmail = serviceAccountEmail;
         }
 
         public IFileStoreContext FileStoreContext => throw new NotImplementedException();
@@ -149,7 +153,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
                     Role = "writer",
 
-                    EmailAddress = "jimnoble@gmail.com",
+                    EmailAddress = _serviceAccountEmail,
 
                     //AllowFileDiscovery = true
                 };
