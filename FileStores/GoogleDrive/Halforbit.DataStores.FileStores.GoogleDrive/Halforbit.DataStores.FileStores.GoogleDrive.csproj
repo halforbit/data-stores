@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.42.0.1750" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.6.17" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.6.20" />
   </ItemGroup>
 
 </Project>

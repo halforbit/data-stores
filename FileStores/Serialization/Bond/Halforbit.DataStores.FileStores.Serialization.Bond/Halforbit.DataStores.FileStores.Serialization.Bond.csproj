@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bond.CSharp" Version="6.0.0" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.6.17" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.6.20" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
   </ItemGroup>
 
