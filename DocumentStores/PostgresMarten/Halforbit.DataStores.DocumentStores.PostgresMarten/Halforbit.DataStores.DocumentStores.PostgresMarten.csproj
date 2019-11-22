@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.6.14" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.6.17" />
     <PackageReference Include="Marten" Version="2.3.0" />
   </ItemGroup>
 

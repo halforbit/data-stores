@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.6.14" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.6.17" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
     <PackageReference Include="YamlDotNet" Version="8.0.0" />
   </ItemGroup>

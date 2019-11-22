@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.DataStores" Version="1.6.14" />
+    <PackageReference Include="Halforbit.DataStores" Version="1.6.17" />
     <PackageReference Include="LZMA-SDK" Version="18.1.0" />
   </ItemGroup>
 
