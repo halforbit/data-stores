@@ -10,7 +10,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Implementation
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType.IsAssignableFrom(typeof(BigInteger));
+            return typeof(BigInteger).IsAssignableFrom(objectType);
         }
 
         public override void WriteJson(
