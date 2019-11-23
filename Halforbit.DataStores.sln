@@ -98,9 +98,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileSt
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sftp", "Sftp", "{5FB9B051-C447-4142-893F-8290F6BBB32F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Sftp.Tests", "FileStores\Sftp\Halforbit.DataStores.FileStores.Sftp.Tests\Halforbit.DataStores.FileStores.Sftp.Tests.csproj", "{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Sftp.Tests", "FileStores\Sftp\Halforbit.DataStores.FileStores.Sftp.Tests\Halforbit.DataStores.FileStores.Sftp.Tests.csproj", "{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Sftp", "FileStores\Sftp\Halforbit.DataStores.FileStores.Sftp\Halforbit.DataStores.FileStores.Sftp.csproj", "{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ftp", "Ftp", "{38F99F25-71BD-4680-A721-DE5DDF571E1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Ftp", "FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp\Halforbit.DataStores.FileStores.Ftp.csproj", "{08A2D525-CA6D-4998-9677-D22172E47823}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Ftp.Tests", "FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp.Tests\Halforbit.DataStores.FileStores.Ftp.Tests.csproj", "{F90DDC8A-405A-4993-81E6-1260059C69CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -212,6 +218,14 @@ Global
 		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08A2D525-CA6D-4998-9677-D22172E47823}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08A2D525-CA6D-4998-9677-D22172E47823}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08A2D525-CA6D-4998-9677-D22172E47823}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08A2D525-CA6D-4998-9677-D22172E47823}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F90DDC8A-405A-4993-81E6-1260059C69CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F90DDC8A-405A-4993-81E6-1260059C69CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F90DDC8A-405A-4993-81E6-1260059C69CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F90DDC8A-405A-4993-81E6-1260059C69CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -253,6 +267,9 @@ Global
 		{5FB9B051-C447-4142-893F-8290F6BBB32F} = {BA07BDA9-8F86-49C2-87E5-9AB5026C59B0}
 		{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E} = {5FB9B051-C447-4142-893F-8290F6BBB32F}
 		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD} = {5FB9B051-C447-4142-893F-8290F6BBB32F}
+		{38F99F25-71BD-4680-A721-DE5DDF571E1F} = {BA07BDA9-8F86-49C2-87E5-9AB5026C59B0}
+		{08A2D525-CA6D-4998-9677-D22172E47823} = {38F99F25-71BD-4680-A721-DE5DDF571E1F}
+		{F90DDC8A-405A-4993-81E6-1260059C69CF} = {38F99F25-71BD-4680-A721-DE5DDF571E1F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5BC1191-5358-4BC2-8427-D1482D49ED83}
