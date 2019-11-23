@@ -28,7 +28,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten.Tests
             try
             {
                 var dataStore = new PostgresMartenDataStore<TestValue.Key, TestValue>(
-                    connectionString: "User ID=postgres;Password=apples;Host=localhost;Port=5432;Database=postgres",
+                    connectionString: "User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=postgres",
                     keyMap: "test-values/{AccountId}");
 
                 ClearDataStore(dataStore);
