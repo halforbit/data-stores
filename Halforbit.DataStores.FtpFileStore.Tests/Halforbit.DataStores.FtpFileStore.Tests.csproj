@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
+    <ProjectReference Include="..\Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj" />
   </ItemGroup>
 
 </Project>

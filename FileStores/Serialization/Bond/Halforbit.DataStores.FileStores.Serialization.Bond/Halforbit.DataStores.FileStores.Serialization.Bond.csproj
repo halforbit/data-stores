@@ -22,8 +22,11 @@
 
   <ItemGroup>
     <PackageReference Include="Bond.CSharp" Version="6.0.0" />
-    <PackageReference Include="Halforbit.DataStores" Version="1.6.20" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
   </ItemGroup>
 
 </Project>
