@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bond.CSharp" Version="6.0.0" />
+    <PackageReference Include="Bond.CSharp" Version="8.2.0" />
     <PackageReference Include="YamlDotNet.NetStandard" Version="4.0.0" />
   </ItemGroup>
 
