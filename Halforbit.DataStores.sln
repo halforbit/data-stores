@@ -92,9 +92,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.Docume
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.DocumentStores.CosmosDb.Tests", "DocumentStores\CosmosDb\Halforbit.DataStores.DocumentStores.CosmosDb.Tests\Halforbit.DataStores.DocumentStores.CosmosDb.Tests.csproj", "{7C67A643-ED3A-4D0D-B1AF-622491C1FF6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Serialization.Json.Tests", "Halforbit.DataStores.FileStores.Serialization.Json.Tests\Halforbit.DataStores.FileStores.Serialization.Json.Tests.csproj", "{95D3CCC4-BF17-4187-85DF-8ABEC1648D72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Serialization.Json.Tests", "Halforbit.DataStores.FileStores.Serialization.Json.Tests\Halforbit.DataStores.FileStores.Serialization.Json.Tests.csproj", "{95D3CCC4-BF17-4187-85DF-8ABEC1648D72}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Serialization.Yaml.Tests", "FileStores\Serialization\Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml.Tests\Halforbit.DataStores.FileStores.Serialization.Yaml.Tests.csproj", "{2A6E80F4-2A2F-4768-8BAC-ED831D0CD41B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sftp", "Sftp", "{5FB9B051-C447-4142-893F-8290F6BBB32F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Sftp.Tests", "FileStores\Sftp\Halforbit.DataStores.FileStores.Sftp.Tests\Halforbit.DataStores.FileStores.Sftp.Tests.csproj", "{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Sftp", "FileStores\Sftp\Halforbit.DataStores.FileStores.Sftp\Halforbit.DataStores.FileStores.Sftp.csproj", "{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -198,6 +204,14 @@ Global
 		{2A6E80F4-2A2F-4768-8BAC-ED831D0CD41B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A6E80F4-2A2F-4768-8BAC-ED831D0CD41B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A6E80F4-2A2F-4768-8BAC-ED831D0CD41B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -236,6 +250,9 @@ Global
 		{641339B7-DCE6-4744-A994-8A7F78E5A289} = {0BA695A6-E43F-4FD4-9F92-D7E7539BC1A0}
 		{7C67A643-ED3A-4D0D-B1AF-622491C1FF6A} = {0BA695A6-E43F-4FD4-9F92-D7E7539BC1A0}
 		{2A6E80F4-2A2F-4768-8BAC-ED831D0CD41B} = {B71B7EEE-6F99-492F-9E41-A8908F51A52D}
+		{5FB9B051-C447-4142-893F-8290F6BBB32F} = {BA07BDA9-8F86-49C2-87E5-9AB5026C59B0}
+		{C0C9BD38-4004-4CEE-8182-F6DE7ABC693E} = {5FB9B051-C447-4142-893F-8290F6BBB32F}
+		{4C38631B-D67E-4E8B-96CA-46B67DE18AAD} = {5FB9B051-C447-4142-893F-8290F6BBB32F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5BC1191-5358-4BC2-8427-D1482D49ED83}
