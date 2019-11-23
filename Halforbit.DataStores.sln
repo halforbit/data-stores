@@ -70,8 +70,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.Docume
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.TestUtils", "Halforbit.DataStores.TestUtils\Halforbit.DataStores.TestUtils.csproj", "{488FAC29-FF2D-4CB1-B6F0-DAF8317727C6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FtpFileStore.Tests", "Halforbit.DataStores.FtpFileStore.Tests\Halforbit.DataStores.FtpFileStore.Tests.csproj", "{A17CBF76-CC36-4AAD-B2A0-5BFC45FC4E8A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TableStores", "TableStores", "{0C62F645-E697-440C-9854-3F78F9C23FBF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AzureTables", "AzureTables", "{335FA862-5B2E-4A94-AB96-C0A157CC88D9}"
@@ -178,10 +176,6 @@ Global
 		{488FAC29-FF2D-4CB1-B6F0-DAF8317727C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{488FAC29-FF2D-4CB1-B6F0-DAF8317727C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{488FAC29-FF2D-4CB1-B6F0-DAF8317727C6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A17CBF76-CC36-4AAD-B2A0-5BFC45FC4E8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A17CBF76-CC36-4AAD-B2A0-5BFC45FC4E8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A17CBF76-CC36-4AAD-B2A0-5BFC45FC4E8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A17CBF76-CC36-4AAD-B2A0-5BFC45FC4E8A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8C6F9F55-CEFA-4356-8A1E-7493BF63BA40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8C6F9F55-CEFA-4356-8A1E-7493BF63BA40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C6F9F55-CEFA-4356-8A1E-7493BF63BA40}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.FileStores.Ftp.Implementation
 {
-    public class FtpFileStore : IFileStore//, IRetryExecutor
+    public class FtpFileStore : IFileStore, IRetryExecutor
     {
         const int DefaultMaxConcurrentConnections = 10;
 
@@ -422,10 +422,10 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
             return (path.Substring(0, i), path.Substring(i + 1));
         }
 
-        //public async Task<TResult> ExecuteWithRetry<TResult>(Func<Task<TResult>> getTask)
-        //{
-        //    return await _retryPolicy.ExecuteAsync(getTask).ConfigureAwait(false);
-        //}
+        public async Task<TResult> ExecuteWithRetry<TResult>(Func<Task<TResult>> getTask)
+        {
+            return await _retryPolicy.ExecuteAsync(getTask).ConfigureAwait(false);
+        }
 
         class ConnectionInfo
         { 

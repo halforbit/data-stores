@@ -98,7 +98,7 @@ namespace Halforbit.DataStores.FileStores.Ftp.Tests
         [Fact, Trait("Type", "Integration")]
         public async Task TestFtpFileStore_Concurrent()
         {
-            int concurrentCount = 100;
+            int concurrentCount = 30;
 
             var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
                 fileStore: new FtpFileStore(

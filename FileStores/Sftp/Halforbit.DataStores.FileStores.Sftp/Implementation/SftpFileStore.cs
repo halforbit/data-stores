@@ -191,7 +191,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
         public async Task<bool> WriteAllBytes(string path, byte[] contents, string eTag = null)
         {
-            var (folder, filename) = GetFolderFilename(path);
+            var (folder, _) = GetFolderFilename(path);
 
             using (var lease = await _sftpClientPool.Lease().ConfigureAwait(false))
             {
