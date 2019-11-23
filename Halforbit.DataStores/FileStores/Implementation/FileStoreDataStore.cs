@@ -40,6 +40,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         readonly Lazy<IDataStoreContext<TKey>> _context;
 
+        readonly IRetryExecutor _retryExecutor;
+
         static FileStoreDataStore()
         {
             _valueIsStream = typeof(TValue) == typeof(Stream);
@@ -69,6 +71,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 _fileStore.FileStoreContext,
                 _keyMap,
                 _fileExtension));
+
+            _retryExecutor = fileStore as IRetryExecutor;
         }
 
         string InvariantPathPrefix => _keyMap
@@ -82,238 +86,70 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
-            var path = GetPath(key);
-
-            if (await _fileStore.Exists(path).ConfigureAwait(false))
+            return await Execute(async () =>
             {
-                return false;
-            }
 
-            if(_valueIsStream)
-            {
-                await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
-            }
-            else
-            {
-                var contents = await GetContents(value).ConfigureAwait(false);
+                var path = GetPath(key);
 
-                await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
-            }
+                if (await _fileStore.Exists(path).ConfigureAwait(false))
+                {
+                    return false;
+                }
 
-            return true;
+                if (_valueIsStream)
+                {
+                    await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
+                }
+                else
+                {
+                    var contents = await GetContents(value).ConfigureAwait(false);
+
+                    await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+                }
+
+                return true;
+            })
+            .ConfigureAwait(false);
         }
 
         public async Task<bool> Delete(TKey key)
         {
-            await ValidateDelete(key);
+            await ValidateDelete(key).ConfigureAwait(false);
 
-            var path = GetPath(key);
-
-            if (!await _fileStore.Exists(path).ConfigureAwait(false))
+            return await Execute(async () =>
             {
-                return false;
-            }
+                var path = GetPath(key);
 
-            await _fileStore.Delete(path).ConfigureAwait(false);
+                if (!await _fileStore.Exists(path).ConfigureAwait(false))
+                {
+                    return false;
+                }
 
-            return true;
+                await _fileStore.Delete(path).ConfigureAwait(false);
+
+                return true;
+            })
+            .ConfigureAwait(false);
         }
 
         public async Task<bool> Exists(TKey key)
         {
-            var path = GetPath(key);
+            return await Execute(async () =>
+            {
+                var path = GetPath(key);
 
-            return await _fileStore.Exists(path).ConfigureAwait(false);
+                return await _fileStore.Exists(path).ConfigureAwait(false);
+            })
+            .ConfigureAwait(false);
         }
 
         public async Task<TValue> Get(TKey key)
         {
-            var path = GetPath(key);
-
-            if (_valueIsStream)
+            return await Execute(async () =>
             {
-                throw new NotSupportedException();
-            }
-            else
-            {
-                return await GetValue(path).ConfigureAwait(false);
-            }
-        }
-
-        public async Task<IEnumerable<TKey>> ListKeys(
-            Expression<Func<TKey, bool>> predicate = null)
-        {
-            return (await ResolveKeyPaths(predicate).ConfigureAwait(false)).Select(kv => kv.Key);
-        }
-
-        public async Task<IEnumerable<TValue>> ListValues(
-            Expression<Func<TKey, bool>> predicate = null)
-        {
-            var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
-
-            var tasks = keys
-                .Select(async keyPath =>
-                {
-                    if(_valueIsStream)
-                    {
-                        throw new NotSupportedException();
-                    }
-                    else
-                    {
-                        return await GetValue($"{keyPath.Value}{_fileExtension}").ConfigureAwait(false);
-                    }
-                })
-                .ToArray();
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            return tasks
-                .Select(t => t.Result)
-                .Where(e => !e.IsDefaultValue());
-        }
-
-        public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
-            Expression<Func<TKey, bool>> predicate)
-        {
-            var tasks = (await ResolveKeyPaths(predicate).ConfigureAwait(false))
-                .Select(async kv =>
-                {
-                    if(_valueIsStream)
-                    {
-                        throw new NotSupportedException();
-                    }
-                    else
-                    {
-                        return new KeyValuePair<TKey, TValue>(
-                            kv.Key,
-                            await GetValue($"{kv.Value}{_fileExtension}"));
-                    }
-                })
-                .ToArray();
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            return tasks.Select(t => t.Result);
-        }
-
-        public async Task<bool> Update(
-            TKey key,
-            TValue value)
-        {
-            await ValidatePut(key, value);
-
-            var path = GetPath(key);
-
-            if (!await _fileStore.Exists(path).ConfigureAwait(false))
-            {
-                return false;
-            }
-
-            if (_valueIsStream)
-            {
-                await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
-            }
-            else
-            {
-                var contents = await GetContents(value).ConfigureAwait(false);
-
-                await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
-            }
-
-            return true;
-        }
-
-        public async Task<bool> Upsert(
-            TKey key,
-            TValue value)
-        {
-            await ValidatePut(key, value);
-
-            var path = GetPath(key);
-
-            var exists = await _fileStore.Exists(path).ConfigureAwait(false);
-
-            if(_valueIsStream)
-            {
-                await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
-            }
-            else
-            {
-                var contents = await GetContents(value).ConfigureAwait(false);
-
-                await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
-            }
-
-            return exists;
-        }
-
-        public async Task<bool> Upsert(
-            TKey key,
-            Func<TValue, TValue> mutator)
-        {
-            var path = GetPath(key);
-
-            var attemptsLeft = 100;
-
-            while (attemptsLeft > 0)
-            {
-                var current = await GetValueWithETag(path).ConfigureAwait(false);
-
-                var mutation = mutator(current.Item1);
-
-                await ValidatePut(key, mutation);
-
-                var success = default(bool);
-
-                if(_valueIsStream)
-                {
-                    throw new NotSupportedException();
-                }
-                else
-                {
-                    var contents = await GetContents(mutation).ConfigureAwait(false);
-
-                    success = await _fileStore.WriteAllBytes(
-                        path: path,
-                        contents: contents,
-                        eTag: current.Item2).ConfigureAwait(false);
-                }
-
-                if (success)
-                {
-                    return true;
-                }
-
-                if (attemptsLeft < 100)
-                {
-                    //Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
-                }
-
-                Task.Delay(100).Wait();
-
-                attemptsLeft--;
-            }
-
-            throw new Exception("Failed after all attempts to conditionally upsert.");
-        }
-
-        public async Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
-        {
-            var path = GetPath(key);
-
-            var attemptsLeft = 100;
-
-            while (attemptsLeft > 0)
-            {
-                var current = await GetValueWithETag(path).ConfigureAwait(false);
-
-                var mutation = await mutator(current.Item1);
-
-                await ValidatePut(key, mutation);
-
-                var success = default(bool);
+                var path = GetPath(key);
 
                 if (_valueIsStream)
                 {
@@ -321,35 +157,271 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 }
                 else
                 {
-                    var contents = await GetContents(mutation).ConfigureAwait(false);
-
-                    success = await _fileStore.WriteAllBytes(
-                        path: path,
-                        contents: contents,
-                        eTag: current.Item2).ConfigureAwait(false);
+                    return await GetValue(path).ConfigureAwait(false);
                 }
+            })
+            .ConfigureAwait(false);
+        }
 
-                if (success)
+        public async Task<IEnumerable<TKey>> ListKeys(
+            Expression<Func<TKey, bool>> predicate = null)
+        {
+            return await Execute(async () =>
+            {
+                return (await ResolveKeyPaths(predicate).ConfigureAwait(false)).Select(kv => kv.Key);
+            })
+            .ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<TValue>> ListValues(
+            Expression<Func<TKey, bool>> predicate = null)
+        {
+            return await Execute(async () =>
+            {
+                var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
+
+                var tasks = keys
+                    .Select(async keyPath =>
+                    {
+                        if (_valueIsStream)
+                        {
+                            throw new NotSupportedException();
+                        }
+                        else
+                        {
+                            return await GetValue($"{keyPath.Value}{_fileExtension}").ConfigureAwait(false);
+                        }
+                    })
+                    .ToArray();
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                return tasks
+                    .Select(t => t.Result)
+                    .Where(e => !e.IsDefaultValue());
+            })
+            .ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
+            Expression<Func<TKey, bool>> predicate)
+        {
+            return await Execute(async () =>
+            {
+                var tasks = (await ResolveKeyPaths(predicate).ConfigureAwait(false))
+                    .Select(async kv =>
+                    {
+                        if (_valueIsStream)
+                        {
+                            throw new NotSupportedException();
+                        }
+                        else
+                        {
+                            return new KeyValuePair<TKey, TValue>(
+                                kv.Key,
+                                await GetValue($"{kv.Value}{_fileExtension}"));
+                        }
+                    })
+                    .ToArray();
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                return tasks.Select(t => t.Result);
+            })
+            .ConfigureAwait(false);
+        }
+
+        public async Task<bool> Update(
+            TKey key,
+            TValue value)
+        {
+            await ValidatePut(key, value).ConfigureAwait(false);
+
+            return await Execute(async () =>
+            {
+                var path = GetPath(key);
+
+                if (!await _fileStore.Exists(path).ConfigureAwait(false))
                 {
-                    return true;
+                    return false;
                 }
 
-                if (attemptsLeft < 100)
+                if (_valueIsStream)
                 {
-                    //Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
+                    await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
+                }
+                else
+                {
+                    var contents = await GetContents(value).ConfigureAwait(false);
+
+                    await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
                 }
 
-                Task.Delay(100).Wait();
+                return true;
+            })
+            .ConfigureAwait(false);
+        }
 
-                attemptsLeft--;
-            }
+        public async Task<bool> Upsert(
+            TKey key,
+            TValue value)
+        {
+            await ValidatePut(key, value).ConfigureAwait(false);
 
-            throw new Exception("Failed after all attempts to conditionally upsert.");
+            return await Execute(async () =>
+            {
+                var path = GetPath(key);
+
+                var exists = await _fileStore.Exists(path).ConfigureAwait(false);
+
+                if (_valueIsStream)
+                {
+                    await _fileStore.WriteStream(path, value as Stream).ConfigureAwait(false);
+                }
+                else
+                {
+                    var contents = await GetContents(value).ConfigureAwait(false);
+
+                    await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
+                }
+
+                return exists;
+            })
+            .ConfigureAwait(false);
+        }
+
+        public async Task<bool> Upsert(
+            TKey key,
+            Func<TValue, TValue> mutator)
+        {
+            return await Execute(async () =>
+            {
+                var path = GetPath(key);
+
+                var attemptsLeft = 100;
+
+                while (attemptsLeft > 0)
+                {
+                    var current = await GetValueWithETag(path).ConfigureAwait(false);
+
+                    var mutation = mutator(current.Item1);
+
+                    await ValidatePut(key, mutation).ConfigureAwait(false);
+
+                    var success = default(bool);
+
+                    if (_valueIsStream)
+                    {
+                        throw new NotSupportedException();
+                    }
+                    else
+                    {
+                        var contents = await GetContents(mutation).ConfigureAwait(false);
+
+                        success = await _fileStore.WriteAllBytes(
+                            path: path,
+                            contents: contents,
+                            eTag: current.Item2).ConfigureAwait(false);
+                    }
+
+                    if (success)
+                    {
+                        return true;
+                    }
+
+                    if (attemptsLeft < 100)
+                    {
+                        //Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
+                    }
+
+                    Task.Delay(100).Wait();
+
+                    attemptsLeft--;
+                }
+
+                throw new Exception("Failed after all attempts to conditionally upsert.");
+            })
+            .ConfigureAwait(false);
+        }
+
+        public async Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
+        {
+            return await Execute(async () =>
+            {
+                var path = GetPath(key);
+
+                var attemptsLeft = 100;
+
+                while (attemptsLeft > 0)
+                {
+                    var current = await GetValueWithETag(path).ConfigureAwait(false);
+
+                    var mutation = await mutator(current.Item1);
+
+                    await ValidatePut(key, mutation).ConfigureAwait(false);
+
+                    var success = default(bool);
+
+                    if (_valueIsStream)
+                    {
+                        throw new NotSupportedException();
+                    }
+                    else
+                    {
+                        var contents = await GetContents(mutation).ConfigureAwait(false);
+
+                        success = await _fileStore.WriteAllBytes(
+                            path: path,
+                            contents: contents,
+                            eTag: current.Item2).ConfigureAwait(false);
+                    }
+
+                    if (success)
+                    {
+                        return true;
+                    }
+
+                    if (attemptsLeft < 100)
+                    {
+                        //Console.WriteLine("Failed with attempts left " + attemptsLeft + " " + path);
+                    }
+
+                    Task.Delay(100).Wait();
+
+                    attemptsLeft--;
+                }
+
+                throw new Exception("Failed after all attempts to conditionally upsert.");
+            })
+            .ConfigureAwait(false);
         }
 
         public IQuerySession<TKey, TValue> StartQuery()
         {
             return new QuerySession(this);
+        }
+
+        public async Task<bool> GetToStream(TKey key, Stream stream)
+        {
+            return await Execute(async () =>
+            {
+                var path = GetPath(key);
+
+                return await _fileStore.ReadStream(path, stream);
+            })
+            .ConfigureAwait(false);
+        }
+
+        async Task<TResult> Execute<TResult>(Func<Task<TResult>> func)
+        {
+            if (_retryExecutor == null)
+            {
+                return await func().ConfigureAwait(false);
+            }
+            else
+            {
+                return await _retryExecutor.ExecuteWithRetry(func).ConfigureAwait(false);
+            }
         }
 
         async Task<byte[]> GetContents(TValue value)
@@ -510,13 +582,6 @@ namespace Halforbit.DataStores.FileStores.Implementation
                     throw new ValidationException(validationErrors);
                 }
             }
-        }
-
-        public async Task<bool> GetToStream(TKey key, Stream stream)
-        {
-            var path = GetPath(key);
-
-            return await _fileStore.ReadStream(path, stream);
         }
 
         class QuerySession : IQuerySession<TKey, TValue>

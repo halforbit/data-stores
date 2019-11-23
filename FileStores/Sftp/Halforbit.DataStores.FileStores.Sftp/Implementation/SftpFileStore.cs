@@ -17,13 +17,12 @@ using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 {
-    public class SftpFileStore : IFileStore
+    public class SftpFileStore : IFileStore, IRetryExecutor
     {
         const int DefaultMaxConcurrentConnections = 10;
 
         static readonly RetryPolicy _retryPolicy = Policy
-            .Handle<SftpPermissionDeniedException>()
-            .Or<SshException>(ex => ex.Message == "Bad message")
+            .Handle<SftpException>()
             .WaitAndRetryAsync(
                 retryCount: 5,
                 sleepDurationProvider: (count, exception, context) =>
@@ -138,7 +137,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
         {
             var (folder, _) = GetFolderFilename(pathPrefix);
 
-            using (var lease = await _sftpClientPool.Lease())
+            using (var lease = await _sftpClientPool.Lease().ConfigureAwait(false))
             {
                 bool exists;
 
@@ -380,6 +379,11 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
             if (i < 0) return (string.Empty, path);
 
             return (path.Substring(0, i), path.Substring(i + 1));
+        }
+
+        public async Task<TResult> ExecuteWithRetry<TResult>(Func<Task<TResult>> getTask)
+        {
+            return await _retryPolicy.ExecuteAsync(getTask).ConfigureAwait(false);
         }
 
         class SftpClientLease : IDisposable

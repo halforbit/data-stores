@@ -98,7 +98,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Tests
         [Fact, Trait("Type", "Integration")]
         public async Task TestSftpFileStore_Concurrent()
         {
-            int concurrentCount = 100;
+            int concurrentCount = 30;
 
             var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
                 fileStore: new SftpFileStore(
