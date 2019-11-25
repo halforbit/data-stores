@@ -19,12 +19,13 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
     {
         readonly DriveService _driveService;
         
-        readonly string _serviceAccountEmail;
+        readonly string _grantAccessToEmails;
 
         public GoogleDriveFileStore(
             string applicationName,
             string serviceAccountEmail,
-            string serviceAccountKey)
+            string serviceAccountKey,
+            string grantAccessToEmails)
         {
             var serviceAccountCredential = new ServiceAccountCredential(
                 new ServiceAccountCredential.Initializer(serviceAccountEmail)
@@ -41,8 +42,8 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
                 HttpClientInitializer = serviceAccountCredential
             });
-
-            _serviceAccountEmail = serviceAccountEmail;
+            
+            _grantAccessToEmails = grantAccessToEmails;
         }
 
         public IFileStoreContext FileStoreContext => throw new NotImplementedException();
@@ -147,41 +148,33 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
                 if (response.Exception != null) throw response.Exception;
 
-                var permission = new Permission
+                if (!string.IsNullOrWhiteSpace(_grantAccessToEmails))
                 {
-                    Type = "user",
+                    var emails = _grantAccessToEmails
+                        .Split(
+                            new char[] { ';', ',', ' ' },
+                            StringSplitOptions.RemoveEmptyEntries)
+                        .Select(e => e.Trim());
 
-                    Role = "writer",
+                    var permission = new Permission
+                    {
+                        Type = "user",
 
-                    EmailAddress = _serviceAccountEmail,
+                        Role = "writer",
 
-                    //AllowFileDiscovery = true
-                };
+                        EmailAddress = _grantAccessToEmails
 
-                var permissionsRequest = _driveService.Permissions.Create(
-                    permission,
-                    request.ResponseBody.Id);
+                        //AllowFileDiscovery = true
+                    };
 
-                permissionsRequest.Fields = "id";
+                    var permissionsRequest = _driveService.Permissions.Create(
+                        permission,
+                        request.ResponseBody.Id);
 
-                permissionsRequest.Execute();
+                    permissionsRequest.Fields = "id";
 
-                //permission = new Permission
-                //{
-                //    Type = "domain",
-
-                //    Role = "writer",
-
-                //    Domain = "cloud-data-163219.iam.gserviceaccount.com"
-                //};
-
-                //permissionsRequest = _driveService.Permissions.Create(
-                //    permission,
-                //    request.ResponseBody.Id);
-
-                //permissionsRequest.Fields = "id";
-
-                //permissionsRequest.Execute();
+                    permissionsRequest.Execute();
+                }
             }
             else
             {

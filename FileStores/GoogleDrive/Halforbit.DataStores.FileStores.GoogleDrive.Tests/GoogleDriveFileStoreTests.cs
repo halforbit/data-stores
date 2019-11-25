@@ -36,7 +36,8 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
                 fileStore: new GoogleDriveFileStore(
                     applicationName: GetConfig("ApplicationName"),
                     serviceAccountEmail: GetConfig("ServiceAccountEmail"),
-                    serviceAccountKey: GetConfig("ServiceAccountKey")),
+                    serviceAccountKey: GetConfig("ServiceAccountKey"),
+                    grantAccessToEmails: GetConfig("GrantAccessToEmails")),
                 serializer: new JsonSerializer($"{JsonOptions.Default}"),
                 keyMap: "test-values/{AccountId}",
                 fileExtension: ".json");
@@ -88,6 +89,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
     {
         [ApplicationName(configKey: "ApplicationName")]
         [ServiceAccountEmail(configKey: "ServiceAccountEmail"), ServiceAccountKey(configKey: "ServiceAccountKey")]
+        [GrantAccessToEmails("jim@halforbit.com")]
         [JsonSerialization, FileExtension(".json")]
         [KeyMap("test-values/{AccountId}")]
         IDataStore<UniversalIntegrationTest.TestValue.Key, UniversalIntegrationTest.TestValue> Store { get; }
