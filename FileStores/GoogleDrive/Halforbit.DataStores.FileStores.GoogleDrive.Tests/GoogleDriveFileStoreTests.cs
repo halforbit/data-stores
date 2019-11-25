@@ -1,15 +1,21 @@
+using Halforbit.DataStores.Facets;
+using Halforbit.DataStores.FileStores.Facets;
+using Halforbit.DataStores.FileStores.GoogleDrive.Facets;
 using Halforbit.DataStores.FileStores.GoogleDrive.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.Json.Facets;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Model;
+using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Tests;
-using Halforbit.ObjectTools.Extensions;
+using Halforbit.Facets.Implementation;
+using Halforbit.Facets.Interface;
 using System;
 using Xunit;
 
 namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
 {
-    public class GoogleFileStoreDriveTests : UniversalIntegrationTest
+    public class GoogleDriveFileStoreTests : UniversalIntegrationTest
     {
         protected override string ConfigPrefix => "Halforbit.DataStores.FileStores.GoogleDrive.Tests.";
 
@@ -42,30 +48,48 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
                 testValueB);
         }
 
-        public class TestValue
+        [Fact, Trait("Type", "Integration")]
+        public void TestGoogleDrive_Context()
         {
-            public TestValue(
-                Guid accountId = default(Guid),
-                string message = default(string))
-            {
-                AccountId = accountId.OrNewGuidIfDefault();
+            var testKey = new TestValue.Key(accountId: Guid.NewGuid());
 
-                Message = message;
-            }
+            var testValueA = new TestValue(
+                accountId: testKey.AccountId.Value,
+                message: "Hello, world!");
 
-            public Guid AccountId { get; }
+            var testValueB = new TestValue(
+                accountId: testKey.AccountId.Value,
+                message: "Kthx, world!");
 
-            public string Message { get; }
+            var dataStore = new ContextFactory(new ConfigurationProvider(k => GetConfig(k)))
+                .Create<IGoogleDriveTestDataContext>().Store;
 
-            public class Key : UniversalIntegrationTest.ITestKey
-            {
-                public Key(Guid? accountId)
-                {
-                    AccountId = accountId;
-                }
-
-                public Guid? AccountId { get; }
-            }
+            TestDataStore(
+                dataStore,
+                testKey,
+                testValueA,
+                testValueB);
         }
+
+        class ConfigurationProvider : IConfigurationProvider
+        {
+            readonly Func<string, string> _getValue;
+
+            public ConfigurationProvider(Func<string, string> getValue)
+            {
+                _getValue = getValue;
+            }
+
+            public string GetValue(string key) => _getValue(key);
+        }
+    }
+
+    public interface IGoogleDriveTestDataContext : IContext
+    {
+        [ApplicationName(configKey: "ApplicationName")]
+        [ServiceAccountEmail(configKey: "ServiceAccountEmail"), ServiceAccountKey(configKey: "ServiceAccountKey")]
+        [JsonSerialization, FileExtension(".json")]
+        [KeyMap("test-values/{AccountId}")]
+        IDataStore<UniversalIntegrationTest.TestValue.Key, UniversalIntegrationTest.TestValue> Store { get; }
     }
 }
