@@ -22,7 +22,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
         const int DefaultMaxConcurrentConnections = 10;
 
         static readonly RetryPolicy _retryPolicy = Policy
-            .Handle<SftpException>()
+            .Handle<SftpException>(ex => ex.IsRetryable)
             .WaitAndRetryAsync(
                 retryCount: 5,
                 sleepDurationProvider: (count, exception, context) =>
@@ -186,7 +186,21 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
         public async Task<bool> ReadStream(string path, Stream contents, bool getETag = false)
         {
-            throw new System.NotImplementedException();
+            if (getETag) throw new NotSupportedException("SFTP does not support ETag retrieval or optimistic concurrency.");
+
+            using (var lease = await _sftpClientPool.Lease().ConfigureAwait(false))
+            {
+                try 
+                { 
+                    lease.SftpClient.DownloadFile(path, contents);
+                }
+                catch (Exception ex)
+                {
+                    throw new SftpException($"SFTP error on DownloadFile in ReadStream: {ex.Message}", ex);
+                }
+            }
+
+            return true;
         }
 
         public async Task<bool> WriteAllBytes(string path, byte[] contents, string eTag = null)
@@ -215,7 +229,28 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
         public async Task<bool> WriteStream(string path, Stream contents, string eTag = null)
         {
-            throw new System.NotImplementedException();
+            if (eTag != null) throw new NotSupportedException("SFTP does not support ETag retrieval or optimistic concurrency.");
+
+            var (folder, _) = GetFolderFilename(path);
+
+            using (var lease = await _sftpClientPool.Lease().ConfigureAwait(false))
+            {
+                EnsureFolderExists(lease.SftpClient, folder);
+
+                try
+                {
+                    lease.SftpClient.UploadFile(contents, path);
+                }
+                catch (Exception ex)
+                {
+                    throw new SftpException(
+                        $"SFTP error on UploadFile in WriteStream: {ex.Message}", 
+                        ex, 
+                        isRetryable: false);
+                }
+            }
+
+            return true;
         }
 
         IEnumerable<string> GetFiles(SftpClient sftpClient, string folder)
@@ -406,6 +441,8 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
         class SftpClientPool
         {
+            static readonly TimeSpan _maxLeaseAttemptTime = TimeSpan.FromMinutes(2);
+
             static readonly TimeSpan _maxLingerTime = TimeSpan.FromSeconds(10);
 
             static ConcurrentDictionary<string, SftpClientPool> _poolsByHost = new ConcurrentDictionary<string, SftpClientPool>();
@@ -456,9 +493,11 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
             public async Task<SftpClientLease> Lease()
             {
+                var startTime = DateTime.UtcNow;
+
                 while (true)
                 {
-                    if (_leaseCount < _maxConnectionCount)
+                    if (_leaseCount + _pooledSftpClients.Count < _maxConnectionCount)
                     {
                         while (_pooledSftpClients.TryDequeue(out var fromPool))
                         {
@@ -483,7 +522,14 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
                             throw new SftpException($"SFTP error on Connect in Lease: {sotex.Message}", sotex);
                         }
 
+                        Interlocked.Increment(ref _leaseCount);
+
                         return new SftpClientLease(this, sftpClient);
+                    }
+
+                    if ((DateTime.UtcNow - startTime) > _maxLeaseAttemptTime)
+                    {
+                        throw new TimeoutException("Timed out while trying to leas an FTP connection");
                     }
 
                     await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);

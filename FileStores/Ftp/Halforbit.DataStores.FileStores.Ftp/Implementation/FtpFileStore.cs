@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using FtpException = Halforbit.DataStores.FileStores.Ftp.Exceptions.FtpException;
 
 namespace Halforbit.DataStores.FileStores.Ftp.Implementation
 {
@@ -20,7 +21,7 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
         const int DefaultMaxConcurrentConnections = 10;
 
         static readonly RetryPolicy _retryPolicy = Policy
-            .Handle<FtpException>()
+            .Handle<FtpException>(ex => ex.IsRetryable)
             .WaitAndRetryAsync(
                 retryCount: 5,
                 sleepDurationProvider: (count, exception, context) =>
@@ -180,7 +181,21 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
 
         public async Task<bool> ReadStream(string path, Stream contents, bool getETag = false)
         {
-            throw new System.NotImplementedException();
+            if (getETag) throw new NotSupportedException("FTP does not support ETag retrieval or optimistic concurrency.");
+
+            using (var lease = await _ftpClientPool.Lease().ConfigureAwait(false))
+            {
+                try
+                {
+                    await lease.FtpClient.DownloadAsync(contents, path).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    throw new FtpException($"FTP error on DownloadFile in ReadStream: {ex.Message}", ex);
+                }
+            }
+
+            return true;
         }
 
         public async Task<bool> WriteAllBytes(string path, byte[] contents, string eTag = null)
@@ -209,7 +224,28 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
 
         public async Task<bool> WriteStream(string path, Stream contents, string eTag = null)
         {
-            throw new System.NotImplementedException();
+            if (eTag != null) throw new NotSupportedException("SFTP does not support ETag retrieval or optimistic concurrency.");
+
+            var (folder, _) = GetFolderFilename(path);
+
+            using (var lease = await _ftpClientPool.Lease().ConfigureAwait(false))
+            {
+                await EnsureFolderExists(lease.FtpClient, folder).ConfigureAwait(false);
+
+                try
+                {
+                    await lease.FtpClient.UploadAsync(contents, path).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    throw new FtpException(
+                        $"SFTP error on UploadFile in WriteStream: {ex.Message}",
+                        ex,
+                        isRetryable: false);
+                }
+            }
+
+            return true;
         }
 
         async Task<bool> FolderExists(FtpClient ftpClient, string path)
@@ -474,6 +510,8 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
 
         class FtpClientPool
         {
+            static readonly TimeSpan _maxLeaseAttemptTime = TimeSpan.FromMinutes(2);
+
             static readonly TimeSpan _maxLingerTime = TimeSpan.FromSeconds(10);
 
             static ConcurrentDictionary<string, FtpClientPool> _poolsByHost = new ConcurrentDictionary<string, FtpClientPool>();
@@ -524,9 +562,11 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
 
             public async Task<FtpClientLease> Lease()
             {
+                var startTime = DateTime.UtcNow;
+
                 while (true)
                 {
-                    if (_leaseCount < _maxConnectionCount)
+                    if (_leaseCount + _pooledFtpClients.Count < _maxConnectionCount)
                     {
                         while (_pooledFtpClients.TryDequeue(out var fromPool))
                         {
@@ -555,7 +595,14 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
                         //    throw new FtpException($"FTP error on Connect in Lease: {sotex.Message}", sotex);
                         //}
 
+                        Interlocked.Increment(ref _leaseCount);
+
                         return new FtpClientLease(this, ftpClient);
+                    }
+
+                    if ((DateTime.UtcNow - startTime) > _maxLeaseAttemptTime)
+                    {
+                        throw new TimeoutException("Timed out while trying to leas an FTP connection");
                     }
 
                     await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);

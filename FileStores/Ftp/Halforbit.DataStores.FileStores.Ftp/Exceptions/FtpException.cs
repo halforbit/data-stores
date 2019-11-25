@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Halforbit.DataStores.FileStores.Sftp.Exceptions
+namespace Halforbit.DataStores.FileStores.Ftp.Exceptions
 {
-    public class SftpException : Exception
+    public class FtpException : Exception
     {
-        public SftpException(
+        public FtpException(
             string message, 
             Exception innerException, 
-            bool isRetryable = true) : 
+            bool isRetryable = false) : 
                 base(message, innerException) 
         {
             IsRetryable = isRetryable;
