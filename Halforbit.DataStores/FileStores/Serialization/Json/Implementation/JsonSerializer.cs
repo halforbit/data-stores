@@ -40,7 +40,14 @@ namespace Halforbit.DataStores.FileStores.Serialization.Json.Implementation
 
             if (o.HasFlag(JsonOptions.CamelCasePropertyNames))
             {
-                _jsonSerializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                _jsonSerializer.ContractResolver =
+                    new DefaultContractResolver
+                    {
+                        NamingStrategy = new CamelCaseNamingStrategy
+                        {
+                            ProcessDictionaryKeys = false
+                        }
+                    };
             }
 
             if (o.HasFlag(JsonOptions.RemoveDefaultValues))
