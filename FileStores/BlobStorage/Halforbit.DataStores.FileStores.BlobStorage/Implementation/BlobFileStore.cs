@@ -113,6 +113,8 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             Stream contents, 
             bool getETag = false)
         {
+            if (getETag) throw new NotImplementedException("eTag based optimistic concurrency is not implemented.");
+
             var blob = GetBlob(path);
 
             await blob.DownloadToStreamAsync(contents);
@@ -185,9 +187,32 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
         public async Task<bool> WriteStream(string path, Stream contents, string eTag = null)
         {
+            if (eTag != null) throw new NotImplementedException("eTag based optimistic concurrency is not implemented for streams");
+
             var blob = GetBlob(path);
 
+            var updateProperties = false;
+
+            if (!string.IsNullOrWhiteSpace(_contentType))
+            {
+                blob.Properties.ContentType = _contentType;
+
+                updateProperties = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_contentEncoding))
+            {
+                blob.Properties.ContentEncoding = _contentEncoding;
+
+                updateProperties = true;
+            }
+
             await blob.UploadFromStreamAsync(contents);
+
+            if (updateProperties)
+            {
+                await blob.SetPropertiesAsync();
+            }
 
             return true;
         }
