@@ -448,6 +448,13 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 await blob.BreakLeaseAsync(breakReleaseTime);
             }
+
+            public Task<Uri> GetEntityUrl(string key)
+            {
+                var blob = _blobFileStore.GetBlob(key);
+
+                return Task.FromResult(blob.Uri);
+            }
         }
     }
 }

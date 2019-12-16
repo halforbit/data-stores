@@ -8,6 +8,8 @@ namespace Halforbit.DataStores.Interface
 {
     public interface IDataStoreContext<TKey>
     {
+        Task<Uri> GetEntityUrl(TKey key);
+
         Task<Uri> GetSharedAccessUrl(
             TKey key,
             DateTime expiration,

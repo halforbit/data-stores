@@ -600,6 +600,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 return await _fileStoreContext.GetEntityInfo(GetPath(key)).ConfigureAwait(false);
             }
 
+            public async Task<Uri> GetEntityUrl(TKey key)
+            {
+                return await _fileStoreContext.GetEntityUrl(GetPath(key)).ConfigureAwait(false);
+            }
+
             public async Task<IReadOnlyDictionary<string, string>> GetMetadata(
                 TKey key,
                 bool percentDecodeValues = true)
