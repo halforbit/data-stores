@@ -3,7 +3,7 @@ using ProtoBuf;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Cloud.Data.Serialization.Protobuf.Implementation
+namespace Halforbit.DataStores.Serialization.Protobuf.Implementation
 {
     public class ProtobufSerializer : ISerializer
     {

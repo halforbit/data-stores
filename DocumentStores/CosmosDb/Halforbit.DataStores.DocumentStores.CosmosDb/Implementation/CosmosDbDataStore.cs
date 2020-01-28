@@ -49,8 +49,14 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             @"^\{(?<Key>[a-z0-9]+)(:.*?){0,1}\}\|", 
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        readonly Container _container;
-
+        readonly Lazy<Container> _container;
+        
+        readonly string _connectionString;
+        
+        readonly string _databaseId;
+        
+        readonly string _containerId;
+        
         readonly StringMap<TKey> _keyMap;
 
         readonly StringMap<TKey> _keyMapWithoutPartitionKey;
@@ -70,12 +76,18 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             string keyMap,
             [Optional]IValidator<TKey, TValue> validator = null)
         {
-            _container = 
+            _connectionString = connectionString;
+            
+            _databaseId = databaseId;
+            
+            _containerId = containerId;
+
+            _container = new Lazy<Container>(() => 
                 new CosmosClient(
                     connectionString: connectionString)
                 .GetContainer(
-                    databaseId: databaseId, 
-                    containerId: containerId);
+                    databaseId: databaseId,
+                    containerId: containerId));
 
             _keyMap = keyMap;
 
@@ -130,7 +142,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             try
             {
-                await Execute(() => _container.CreateItemAsync(
+                await Execute(() => _container.Value.CreateItemAsync(
                     item: value)).ConfigureAwait(false);
 
                 return true;
@@ -154,7 +166,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             try
             {
-                await Execute(() => _container
+                await Execute(() => _container.Value
                     .DeleteItemAsync<TValue>(
                         id: documentId,
                         partitionKey: partitionKey != null ? 
@@ -187,7 +199,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             try
             {
                 var item = await Execute(
-                    () => _container.ReadItemAsync<TValue>(
+                    () => _container.Value.ReadItemAsync<TValue>(
                         id: documentId,
                         partitionKey: partitionKey != null ? 
                             new PartitionKey(partitionKey) : 
@@ -223,7 +235,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 query += $@" WHERE STARTSWITH(c.id, ""{idPrefix}"")";
             }
 
-            var iterator = _container.GetItemQueryIterator<JObject>(
+            var iterator = _container.Value.GetItemQueryIterator<JObject>(
                 queryDefinition: new QueryDefinition(query),
                 requestOptions: new QueryRequestOptions
                 {
@@ -273,7 +285,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             var results = new List<KeyValuePair<TKey, TValue>>();
 
-            var iterator = _container.GetItemQueryIterator<JObject>(
+            var iterator = _container.Value.GetItemQueryIterator<JObject>(
                 queryDefinition: new QueryDefinition(query),
                 requestOptions: new QueryRequestOptions
                 {
@@ -326,7 +338,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             {
                 SetDocumentId(value, documentId);
 
-                await Execute(() => _container.ReplaceItemAsync(
+                await Execute(() => _container.Value.ReplaceItemAsync(
                     item: value,
                     id: documentId)).ConfigureAwait(false);
 
@@ -353,7 +365,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             SetDocumentId(value, documentId);
 
-            await Execute(() => _container.UpsertItemAsync(
+            await Execute(() => _container.Value.UpsertItemAsync(
                 item: value,
                 partitionKey: default)).ConfigureAwait(false);
 
@@ -539,7 +551,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             {
                 var (partitionKey, idPrefix) = _dataStore.GetPartitionKeyAndIdPrefixFromPredicate(predicate);
 
-                return _dataStore._container
+                return _dataStore._container.Value
                     .GetItemLinqQueryable<TResultValue>(
                         allowSynchronousQueryExecution: true,
                         requestOptions: new QueryRequestOptions

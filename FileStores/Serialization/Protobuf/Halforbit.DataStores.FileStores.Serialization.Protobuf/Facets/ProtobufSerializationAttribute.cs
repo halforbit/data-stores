@@ -1,8 +1,8 @@
-﻿using Cloud.Data.Serialization.Protobuf.Implementation;
+﻿using Halforbit.DataStores.Serialization.Protobuf.Implementation;
 using Halforbit.Facets.Attributes;
 using System;
 
-namespace Cloud.Data.Serialization.Protobuf.Attributes
+namespace Halforbit.DataStores.Serialization.Protobuf.Attributes
 {
     public class ProtobufSerializationAttribute : FacetAttribute
     {

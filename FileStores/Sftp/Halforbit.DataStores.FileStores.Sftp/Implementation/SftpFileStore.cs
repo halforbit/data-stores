@@ -31,9 +31,19 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
                 },
                 onRetryAsync: (exception, timespan, count, context) => Task.CompletedTask);
 
-        readonly SftpClientPool _sftpClientPool;
+        readonly string _host;
+
+        readonly string _username;
+
+        readonly string _password;
+
+        readonly int _port;
 
         readonly bool _deleteEmptyFolders;
+
+        readonly int _maxConcurrentConnections;
+
+        readonly SftpClientPool _sftpClientPool;
 
         public SftpFileStore(
             string host,
@@ -49,27 +59,33 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException($"{nameof(password)} required.");
 
+            _host = host;
+
+            _username = username;
+
+            _password = password;
+
             ConnectionInfo connectionInfo;
 
             if (string.IsNullOrWhiteSpace(port))
             {
                 connectionInfo = new ConnectionInfo(
-                    host,
-                    username,
-                    new PasswordAuthenticationMethod(username, password));
+                    _host,
+                    _username,
+                    new PasswordAuthenticationMethod(_username, _password));
             }
             else
             {
-                if (!int.TryParse(port, out var intPort) || intPort < 1 || intPort > 65535)
+                if (!int.TryParse(port, out _port) || _port < 1 || _port > 65535)
                 {
                     throw new ArgumentException($"{nameof(port)} is invalid value `{port}`");
                 }
 
                 connectionInfo = new ConnectionInfo(
-                    host,
-                    intPort,
-                    username,
-                    new PasswordAuthenticationMethod(username, password));
+                    _host,
+                    _port,
+                    _username,
+                    new PasswordAuthenticationMethod(_username, _password));
             }
 
             if (!bool.TryParse(deleteEmptyFolders ?? $"{true}", out _deleteEmptyFolders))
@@ -80,8 +96,8 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
             if (!int.TryParse(
                     maxConcurrentConnections ?? $"{DefaultMaxConcurrentConnections}",
-                    out var maxConcurrentConnectionsInt) ||
-                maxConcurrentConnectionsInt < 0)
+                    out _maxConcurrentConnections) ||
+                _maxConcurrentConnections < 0)
             {
                 throw new ArgumentException(
                     $"{nameof(maxConcurrentConnections)} is invalid value `{maxConcurrentConnections}`");
@@ -89,7 +105,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
 
             _sftpClientPool = SftpClientPool.GetForHost(
                 connectionInfo,
-                maxConcurrentConnectionsInt);
+                _maxConcurrentConnections);
         }
 
         public IFileStoreContext FileStoreContext => throw new System.NotImplementedException();
