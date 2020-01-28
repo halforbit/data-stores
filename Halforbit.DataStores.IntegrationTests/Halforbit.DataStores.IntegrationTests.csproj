@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="coverlet.collector" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DocumentStores\CosmosDb\Halforbit.DataStores.DocumentStores.CosmosDb\Halforbit.DataStores.DocumentStores.CosmosDb.csproj" />
+    <ProjectReference Include="..\DocumentStores\PostgresMarten\Halforbit.DataStores.DocumentStores.PostgresMarten\Halforbit.DataStores.DocumentStores.PostgresMarten.csproj" />
+    <ProjectReference Include="..\FileStores\AmazonS3\Halforbit.DataStores.FileStores.AmazonS3\Halforbit.DataStores.FileStores.AmazonS3.csproj" />
+    <ProjectReference Include="..\FileStores\BlobStorage\Halforbit.DataStores.FileStores.BlobStorage\Halforbit.DataStores.FileStores.BlobStorage.csproj" />
+    <ProjectReference Include="..\FileStores\Compression\Lzma\Halforbit.DataStores.FileStores.Compression.Lzma.csproj" />
+    <ProjectReference Include="..\FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp\Halforbit.DataStores.FileStores.Ftp.csproj" />
+    <ProjectReference Include="..\FileStores\GoogleDrive\Halforbit.DataStores.FileStores.GoogleDrive\Halforbit.DataStores.FileStores.GoogleDrive.csproj" />
+    <ProjectReference Include="..\FileStores\Serialization\Bond\Halforbit.DataStores.FileStores.Serialization.Bond\Halforbit.DataStores.FileStores.Serialization.Bond.csproj" />
+    <ProjectReference Include="..\FileStores\Serialization\Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf.csproj" />
+    <ProjectReference Include="..\FileStores\Serialization\Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml.csproj" />
+    <ProjectReference Include="..\FileStores\Sftp\Halforbit.DataStores.FileStores.Sftp\Halforbit.DataStores.FileStores.Sftp.csproj" />
+    <ProjectReference Include="..\TableStores\AzureTables\Halforbit.DataStores.TableStores.AzureTables\Halforbit.DataStores.TableStores.AzureTables.csproj" />
+  </ItemGroup>
+
+</Project>

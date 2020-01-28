@@ -24,18 +24,22 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
     public class PostgresMartenDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
         where TValue : IDocument
-    {
-        readonly DocumentStore _documentStore;
-
+    {        
+        readonly string _connectionString;
+        
         readonly StringMap<TKey> _keyMap;
 
         readonly IValidator<TKey, TValue> _validator;
+        
+        readonly DocumentStore _documentStore;
 
         public PostgresMartenDataStore(
             string connectionString,
             string keyMap,
-            [Optional]IValidator<TKey, TValue> _validator = null)
+            [Optional]IValidator<TKey, TValue> validator = null)
         {
+            _connectionString = connectionString;
+
             var serializer = new JsonNetSerializer();
 
             serializer.Customize(c =>
@@ -45,16 +49,15 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
             _documentStore = DocumentStore.For(c =>
             {
-                c.Connection(connectionString);
+                c.Connection(_connectionString);
 
                 c.Schema.Include<MartenRegistry>();
 
                 c.Serializer(serializer);
             });
-
             _keyMap = keyMap;
 
-            this._validator = _validator;
+            _validator = validator;
         }
 
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();

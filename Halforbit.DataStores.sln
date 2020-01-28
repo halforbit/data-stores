@@ -102,9 +102,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileSt
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ftp", "Ftp", "{38F99F25-71BD-4680-A721-DE5DDF571E1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Ftp", "FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp\Halforbit.DataStores.FileStores.Ftp.csproj", "{08A2D525-CA6D-4998-9677-D22172E47823}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Ftp", "FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp\Halforbit.DataStores.FileStores.Ftp.csproj", "{08A2D525-CA6D-4998-9677-D22172E47823}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Ftp.Tests", "FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp.Tests\Halforbit.DataStores.FileStores.Ftp.Tests.csproj", "{F90DDC8A-405A-4993-81E6-1260059C69CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Ftp.Tests", "FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp.Tests\Halforbit.DataStores.FileStores.Ftp.Tests.csproj", "{F90DDC8A-405A-4993-81E6-1260059C69CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.IntegrationTests", "Halforbit.DataStores.IntegrationTests\Halforbit.DataStores.IntegrationTests.csproj", "{AA8373F6-FEC0-40A6-BD1E-51E960569403}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -220,6 +222,10 @@ Global
 		{F90DDC8A-405A-4993-81E6-1260059C69CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F90DDC8A-405A-4993-81E6-1260059C69CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F90DDC8A-405A-4993-81E6-1260059C69CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA8373F6-FEC0-40A6-BD1E-51E960569403}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA8373F6-FEC0-40A6-BD1E-51E960569403}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA8373F6-FEC0-40A6-BD1E-51E960569403}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA8373F6-FEC0-40A6-BD1E-51E960569403}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

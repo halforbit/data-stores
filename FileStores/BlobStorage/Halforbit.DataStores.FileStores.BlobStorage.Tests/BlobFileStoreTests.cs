@@ -1,14 +1,94 @@
+using Halforbit.DataStores.Facets;
+using Halforbit.DataStores.FileStores.BlobStorage.Facets;
 using Halforbit.DataStores.FileStores.BlobStorage.Implementation;
+using Halforbit.DataStores.FileStores.Facets;
 using Halforbit.DataStores.FileStores.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.Json.Facets;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Model;
+using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Tests;
+using Halforbit.Facets.Interface;
 using Halforbit.ObjectTools.Extensions;
+using Newtonsoft.Json.Converters;
 using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Xunit;
 
 namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
 {
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum TargetAdPlatform
+    {
+        Unknown = 0,
+        GoogleAdWords,
+        MicrosoftBing
+    }
+
+    public class CallExtensionOverride
+    {
+        public CallExtensionOverride(
+            Guid accountId,
+            TargetAdPlatform adPlatform)
+        {
+            AccountId = accountId;
+            AdPlatform = adPlatform;
+        }
+
+        public Guid AccountId { get; }
+
+        public TargetAdPlatform AdPlatform { get; }
+
+        public class Key : IEquatable<Key>
+        {
+            public Key(
+                Guid? accountId = null,
+                TargetAdPlatform? adPlatform = null)
+            {
+                AccountId = accountId;
+                AdPlatform = adPlatform;
+            }
+
+            public Guid? AccountId { get; }
+
+            public TargetAdPlatform? AdPlatform { get; }
+
+            #region IEquatable<Key> Members
+            public bool Equals(Key other)
+            {
+                return other != null &&
+                       EqualityComparer<Guid?>.Default.Equals(AccountId, other.AccountId) &&
+                       EqualityComparer<TargetAdPlatform?>.Default.Equals(AdPlatform, other.AdPlatform);
+            }
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as Key);
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 2035860012;
+                hashCode = hashCode* -1521134295 + EqualityComparer<Guid?>.Default.GetHashCode(AccountId);
+                hashCode = hashCode* -1521134295 + EqualityComparer<TargetAdPlatform?>.Default.GetHashCode(AdPlatform);
+                return hashCode;
+            }
+
+            #endregion
+        }
+    }
+
+    public interface ICallExtensionOverridesDataContext : IContext
+    {
+        [ConnectionString("***REMOVED***"),
+         ContainerName("adbuilderv3"),
+         JsonSerialization, ContentType("application/json"), ContentEncoding(""), FileExtension(".json")]
+        [KeyMap("call-extensions/account-id/{AccountId}/{AdPlatform:P}")]
+        //[Uses(typeof(CallExtensionOverrideValidator))]
+        IDataStore<CallExtensionOverride.Key, CallExtensionOverride> CallExtensionOverrides { get; }
+    }
+
+
     public class BlobFileStoreTests : UniversalIntegrationTest
     {
         protected override string ConfigPrefix => "Halforbit.DataStores.FileStores.BlobStorage.Tests.";

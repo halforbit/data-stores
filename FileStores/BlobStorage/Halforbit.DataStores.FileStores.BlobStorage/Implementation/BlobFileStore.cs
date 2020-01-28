@@ -17,8 +17,12 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 {
     public class BlobFileStore : IFileStore
     {
-        readonly CloudBlobContainer _cloudBlobContainer;
-
+        readonly Lazy<CloudBlobContainer> _cloudBlobContainer;
+        
+        readonly string _connectionString;
+        
+        readonly string _containerName;
+        
         readonly string _contentType;
 
         readonly string _contentEncoding;
@@ -31,17 +35,26 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             [Optional]string contentType = null,
             [Optional]string contentEncoding = null)
         {
-            var cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
-
-            var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
-
-            _cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
-
-            _cloudBlobContainer.CreateIfNotExistsAsync().Wait();
-
+            _connectionString = connectionString;
+            
+            _containerName = containerName;
+            
             _contentType = contentType;
 
             _contentEncoding = contentEncoding;
+
+            _cloudBlobContainer = new Lazy<CloudBlobContainer>(() =>
+            {
+                var cloudStorageAccount = CloudStorageAccount.Parse(_connectionString);
+
+                var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
+
+                var cloudBlobContainer = cloudBlobClient.GetContainerReference(_containerName);
+
+                cloudBlobContainer.CreateIfNotExistsAsync().Wait();
+
+                return cloudBlobContainer;
+            });
 
             _fileStoreContext = new Lazy<IFileStoreContext>(() => new BlobFileStoreContext(
                 this, 
@@ -69,7 +82,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
             do
             {
-                var resultSegment = await _cloudBlobContainer.ListBlobsSegmentedAsync(
+                var resultSegment = await _cloudBlobContainer.Value.ListBlobsSegmentedAsync(
                     pathPrefix,
                     blobContinuationToken);
 
@@ -217,7 +230,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             return true;
         }
 
-        CloudBlockBlob GetBlob(string path) => _cloudBlobContainer.GetBlockBlobReference(path);
+        CloudBlockBlob GetBlob(string path) => _cloudBlobContainer.Value.GetBlockBlobReference(path);
 
         class BlobFileStoreContext : IFileStoreContext
         {

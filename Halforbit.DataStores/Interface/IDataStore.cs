@@ -39,4 +39,29 @@ namespace Halforbit.DataStores.Interface
 
         IStringMap<TKey> KeyMap { get; }
     }
+
+    public interface IDataStore<TValue>
+    {
+        IDataStoreContext<object> Context { get; }
+
+        Task<bool> Exists();
+
+        Task<bool> Create(TValue value);
+
+        Task<bool> Delete();
+
+        Task<TValue> Get();
+
+        Task<bool> GetToStream(Stream stream);
+
+        Task<bool> Update(TValue value);
+
+        Task<bool> Upsert(TValue value);
+
+        Task<bool> Upsert(Func<TValue, TValue> mutator);
+
+        Task<bool> Upsert(Func<TValue, Task<TValue>> mutator);
+
+        IStringMap<object> Map { get; }
+    }
 }
