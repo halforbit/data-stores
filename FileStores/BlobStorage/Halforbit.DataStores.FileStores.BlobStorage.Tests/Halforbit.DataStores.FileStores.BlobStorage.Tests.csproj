@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.2;net462</TargetFrameworks> 
@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Halforbit.Facets" Version="1.0.45" />
+    <PackageReference Include="Halforbit.Facets" Version="1.0.47" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="WindowsAzure.Storage" Version="8.5.0" />
