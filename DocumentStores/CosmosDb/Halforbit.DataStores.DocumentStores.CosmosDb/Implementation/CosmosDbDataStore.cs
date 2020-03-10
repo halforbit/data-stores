@@ -84,7 +84,11 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             _container = new Lazy<Container>(() => 
                 new CosmosClient(
-                    connectionString: connectionString)
+                    connectionString: connectionString,
+                    clientOptions: new CosmosClientOptions
+                    {
+                        AllowBulkExecution = true
+                    })
                 .GetContainer(
                     databaseId: databaseId,
                     containerId: containerId));
