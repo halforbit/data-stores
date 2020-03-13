@@ -78,17 +78,6 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
         }
     }
 
-    public interface ICallExtensionOverridesDataContext : IContext
-    {
-        [ConnectionString("***REMOVED***"),
-         ContainerName("adbuilderv3"),
-         JsonSerialization, ContentType("application/json"), ContentEncoding(""), FileExtension(".json")]
-        [KeyMap("call-extensions/account-id/{AccountId}/{AdPlatform:P}")]
-        //[Uses(typeof(CallExtensionOverrideValidator))]
-        IDataStore<CallExtensionOverride.Key, CallExtensionOverride> CallExtensionOverrides { get; }
-    }
-
-
     public class BlobFileStoreTests : UniversalIntegrationTest
     {
         protected override string ConfigPrefix => "Halforbit.DataStores.FileStores.BlobStorage.Tests.";
