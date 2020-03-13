@@ -1,4 +1,4 @@
-﻿using Halforbit.DataStores.AmazonS3;
+﻿using Halforbit.DataStores.BlobStorage;
 using Halforbit.DataStores.FileStores;
 using Halforbit.DataStores.FileStores.BlobStorage.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
@@ -6,7 +6,7 @@ using Halforbit.ObjectTools.DeferredConstruction;
 
 namespace Halforbit.DataStores
 {
-    namespace AmazonS3
+    namespace BlobStorage
     {
         public interface INeedsConnectionString : IConstructionNode { }
 
@@ -31,7 +31,7 @@ namespace Halforbit.DataStores
         public static INeedsConnectionString BlobStorage(
             this INeedsIntegration target) 
         {
-            return new AmazonS3.Builder(target.Root
+            return new BlobStorage.Builder(target.Root
                 .Type(typeof(FileStoreDataStore<,>))
                 .Argument("fileStore", default(Constructable).Type(typeof(BlobFileStore))));
         }
@@ -40,7 +40,7 @@ namespace Halforbit.DataStores
             this INeedsConnectionString target, 
             string connectionString) 
         {
-            return new AmazonS3.Builder(target.Root
+            return new BlobStorage.Builder(target.Root
                 .Argument("fileStore", c => c.Argument("connectionString", connectionString)));
         }
 

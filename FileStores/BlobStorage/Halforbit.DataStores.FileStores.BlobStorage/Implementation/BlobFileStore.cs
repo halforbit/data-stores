@@ -113,8 +113,15 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             var memoryStream = new MemoryStream();
 
             var blob = GetBlob(path);
-            
-            await blob.DownloadToStreamAsync(memoryStream);
+
+            await blob.DownloadToStreamAsync(
+                target: memoryStream,
+                accessCondition: default,
+                options: new BlobRequestOptions
+                {
+                    DisableContentMD5Validation = true
+                },
+                operationContext: default);
 
             return new FileStoreReadAllBytesResult(
                 bytes: memoryStream.ToArray(),
@@ -130,7 +137,14 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
             var blob = GetBlob(path);
 
-            await blob.DownloadToStreamAsync(contents);
+            await blob.DownloadToStreamAsync(
+                target: contents,
+                accessCondition: default,
+                options: new BlobRequestOptions
+                {
+                    DisableContentMD5Validation = true
+                },
+                operationContext: default);
 
             return true;
         }
