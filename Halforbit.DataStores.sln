@@ -52,6 +52,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8E1EAFB1-0B21-46D1-B941-19A4B04707CE}"
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
+		release-notes.md = release-notes.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D769C34E-BD98-4FE5-8EBA-309AABF6413D}"
@@ -106,7 +107,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileSt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Ftp.Tests", "FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp.Tests\Halforbit.DataStores.FileStores.Ftp.Tests.csproj", "{F90DDC8A-405A-4993-81E6-1260059C69CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.IntegrationTests", "Halforbit.DataStores.IntegrationTests\Halforbit.DataStores.IntegrationTests.csproj", "{AA8373F6-FEC0-40A6-BD1E-51E960569403}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.IntegrationTests", "Halforbit.DataStores.IntegrationTests\Halforbit.DataStores.IntegrationTests.csproj", "{AA8373F6-FEC0-40A6-BD1E-51E960569403}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
