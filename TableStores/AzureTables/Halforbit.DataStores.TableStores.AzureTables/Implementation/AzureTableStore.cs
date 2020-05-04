@@ -289,6 +289,13 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             } 
             while(continuationToken != null);
 
+            if (predicate != null)
+            {
+                Func<TKey, bool> selectorFunc = predicate.Compile();
+
+                return results.Where(r => selectorFunc(GetKey(r.PartitionKey, r.RowKey)));
+            }
+
             return results;
         }
 
