@@ -37,14 +37,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void LocalStorage()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .JsonSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -69,7 +69,7 @@ namespace Halforbit.DataStores.IntegrationTests
         public void BlobStorage()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .BlobStorage()
                 .ConnectionString("UseDevelopmentStorage=true")
                 .Container("container")
@@ -79,7 +79,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -110,7 +110,7 @@ namespace Halforbit.DataStores.IntegrationTests
         public void BlobStorage_DefaultContentType_ContentEncoding()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .BlobStorage()
                 .ConnectionString("UseDevelopmentStorage=true")
                 .Container("container")
@@ -120,7 +120,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -151,7 +151,7 @@ namespace Halforbit.DataStores.IntegrationTests
         public void AmazonS3()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .AmazonS3()
                 .AccessKeyId("access-key-id")
                 .SecretAccessKey("secret-access-key")
@@ -160,7 +160,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -200,7 +200,7 @@ namespace Halforbit.DataStores.IntegrationTests
         //        .NoCompression()
         //        .FileExtension(".json")
         //        .Map<Guid, string>("my-stuff/{this}")
-        //        .NoValidation();
+        //        .Build();
 
         //    Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -233,7 +233,7 @@ namespace Halforbit.DataStores.IntegrationTests
         public void Ftp()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .Ftp()
                 .Host("host")
                 .Username("username")
@@ -245,7 +245,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -280,7 +280,7 @@ namespace Halforbit.DataStores.IntegrationTests
         public void Ftp_Port_DeleteEmptyFolders_MaxConcurrentConnections()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .Ftp()
                 .Host("host")
                 .Username("username")
@@ -292,7 +292,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -327,7 +327,7 @@ namespace Halforbit.DataStores.IntegrationTests
         public void Sftp()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .Sftp()
                 .Host("host")
                 .Username("username")
@@ -339,7 +339,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -374,7 +374,7 @@ namespace Halforbit.DataStores.IntegrationTests
         public void Sftp_Port_DeleteEmptyFolders_MaxConcurrentConnections()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .Sftp()
                 .Host("host")
                 .Username("username")
@@ -386,7 +386,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -423,13 +423,13 @@ namespace Halforbit.DataStores.IntegrationTests
         public void CosmosDb()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .CosmosDb()
                 .ConnectionString("connection-string")
                 .Database("database")
                 .Container("container")
                 .Map<Guid, MyDocument>(d => d.AccountId, "key-map/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<CosmosDbDataStore<Guid, MyDocument>>(dataStore);
 
@@ -448,11 +448,11 @@ namespace Halforbit.DataStores.IntegrationTests
         public void PostgresMarten()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .PostgresMarten()
                 .ConnectionString("connection-string")
                 .Map<Guid, MyDocument>("key-map/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<PostgresMartenDataStore<Guid, MyDocument>>(dataStore);
 
@@ -469,12 +469,12 @@ namespace Halforbit.DataStores.IntegrationTests
         public void TableStorage()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .AzureTables()
                 .ConnectionString("connection-string")
                 .Table("table")
                 .Map<Guid, MyDocument>("partition-map|key-map")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<AzureTableStore<Guid, MyDocument>>(dataStore);
 
@@ -497,14 +497,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void YamlSerialization()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .YamlSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -529,14 +529,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void ByteSerialization()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .ByteSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -561,14 +561,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void BondSerialization()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .BondSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -593,14 +593,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void ProtobufSerialization()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .ProtobufSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -627,14 +627,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void GZipCompression()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .JsonSerialization()
                 .GZipCompression()
                 .FileExtension(".json.gz")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -659,14 +659,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void LzmaCompression()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .JsonSerialization()
                 .LzmaCompression()
                 .FileExtension(".json.lzma")
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -693,14 +693,15 @@ namespace Halforbit.DataStores.IntegrationTests
         public void Validate()
         {
             var dataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .JsonSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<Guid, string>("my-stuff/{this}")
-                .Validation(new MyValidator());
+                .Validation(new MyValidator())
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -727,14 +728,14 @@ namespace Halforbit.DataStores.IntegrationTests
         public void Singleton()
         {
             var singletonDataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .JsonSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<string>("my-stuff")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<SingletonDataStore<string>>(singletonDataStore);
 
@@ -763,14 +764,15 @@ namespace Halforbit.DataStores.IntegrationTests
         public void Singleton_Validation()
         {
             var singletonDataStore = DataStore
-                .Build()
+                .Describe()
                 .LocalStorage()
                 .RootPath("c:/data")
                 .JsonSerialization()
                 .NoCompression()
                 .FileExtension(".json")
                 .Map<string>("my-stuff")
-                .Validation(new MySingletonValidator());
+                .Validation(new MySingletonValidator())
+                .Build();
 
             Assert.IsType<SingletonDataStore<string>>(singletonDataStore);
 
@@ -801,10 +803,11 @@ namespace Halforbit.DataStores.IntegrationTests
         public void FileStore_Location_Format()
         {
             var dataStore = DataStore
-                .Location(Location.LocalStorage.Data)
-                .Format(Format.Structured.Json)
+                .Describe()
+                .With(Location.LocalStorage.Data)
+                .With(Format.Structured.Json)
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -829,10 +832,11 @@ namespace Halforbit.DataStores.IntegrationTests
         public void FileStore_Config_Location_Format()
         {
             var dataStore = DataStore
-                .Location("c:/data", Location.LocalStorage.Data)
-                .Format(Format.Structured.Json)
+                .Describe()
+                .With(Location.LocalStorage.Data, "c:/data")
+                .With(Format.Structured.Json)
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -857,10 +861,11 @@ namespace Halforbit.DataStores.IntegrationTests
         public void BlobStore_Location_Format()
         {
             var dataStore = DataStore
-                .Location(Location.BlobStorage.MyStorageAccount.MyContainer)
-                .Format(Format.Structured.Json)
+                .Describe()
+                .With(Location.BlobStorage.MyStorageAccount.MyContainer)
+                .With(Format.Structured.Json)
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -891,10 +896,11 @@ namespace Halforbit.DataStores.IntegrationTests
         public void BlobStore_Config_Location_Format()
         {
             var dataStore = DataStore
-                .Location("alfa", Location.BlobStorage.MyStorageAccount.MyContainer)
-                .Format(Format.Structured.Json)
+                .Describe()
+                .With(Location.BlobStorage.MyStorageAccount.MyContainer, "alfa")
+                .With(Format.Structured.Json)
                 .Map<Guid, string>("my-stuff/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
 
@@ -925,9 +931,10 @@ namespace Halforbit.DataStores.IntegrationTests
         public void DocumentStore_Location_Format()
         {
             var dataStore = DataStore
-                .Location(Location.CosmosDb.MyInstance.MyDatabase.MyContainer)
+                .Describe()
+                .With(Location.CosmosDb.MyInstance.MyDatabase.MyContainer)
                 .Map<Guid, MyDocument>(d => d.AccountId, "key-map/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<CosmosDbDataStore<Guid, MyDocument>>(dataStore);
 
@@ -946,9 +953,10 @@ namespace Halforbit.DataStores.IntegrationTests
         public void DocumentStore_Config_Location_Format()
         {
             var dataStore = DataStore
-                .Location("alfa", Location.CosmosDb.MyInstance.MyDatabase.MyContainer)
+                .Describe()
+                .With(Location.CosmosDb.MyInstance.MyDatabase.MyContainer, "alfa")
                 .Map<Guid, MyDocument>(d => d.AccountId, "key-map/{this}")
-                .NoValidation();
+                .Build();
 
             Assert.IsType<CosmosDbDataStore<Guid, MyDocument>>(dataStore);
 
@@ -968,7 +976,7 @@ namespace Halforbit.DataStores.IntegrationTests
     {
         public class LocalStorage
         {
-            public static INeedsSerialization Data(string config, INeedsIntegration s) => s
+            public static INeedsSerialization Data(INeedsIntegration s, string config) => s
                 .LocalStorage()
                 .RootPath(config);
 
@@ -981,7 +989,7 @@ namespace Halforbit.DataStores.IntegrationTests
         {
             public class MyStorageAccount
             {
-                public static INeedsContentType MyContainer(string config, INeedsIntegration s) => s
+                public static INeedsContentType MyContainer(INeedsIntegration s, string config) => s
                     .BlobStorage()
                     .ConnectionString(config)
                     .Container("bravo");
@@ -999,7 +1007,7 @@ namespace Halforbit.DataStores.IntegrationTests
             {
                 public class MyDatabase
                 {
-                    public static INeedsDocumentMap MyContainer(string config, INeedsIntegration s) => s
+                    public static INeedsDocumentMap MyContainer(INeedsIntegration s, string config) => s
                         .CosmosDb()
                         .ConnectionString(config)
                         .Database("bravo")
@@ -1076,21 +1084,25 @@ namespace Halforbit.DataStores.IntegrationTests
         }
 
         public IDataStore<Guid, string> MyStrings => DataStore
-            .Location(_config["ConnectionString"], Location.BlobStorage.MyStorageAccount.MyContainer)
-            .Format(Format.Structured.Json)
+            .Describe()
+            .With(Location.BlobStorage.MyStorageAccount.MyContainer, _config["ConnectionString"])
+            .With(Format.Structured.Json)
             .Map<Guid, string>("my-stuff-2/{this}")
-            .Validation(_resolver.Resolve<MyValidator>());
+            .Validation(_resolver.Resolve<MyValidator>())
+            .Build();
 
         public IDataStore<string> MySingleton => DataStore
-            .Location(_config["ConnectionString"], Location.BlobStorage.MyStorageAccount.MyContainer)
-            .Format(Format.Structured.Json)
+            .Describe()
+            .With(Location.BlobStorage.MyStorageAccount.MyContainer, _config["ConnectionString"])
+            .With(Format.Structured.Json)
             .Map<string>("my-string")
-            .NoValidation();
+            .Build();
 
         public IDataStore<Guid, MyDocument> MyDocuments => DataStore
-            .Location(_config["ConnectionString"], Location.CosmosDb.MyInstance.MyDatabase.MyContainer)
+            .Describe()
+            .With(Location.CosmosDb.MyInstance.MyDatabase.MyContainer, _config["ConnectionString"])
             .Map<Guid, MyDocument>(v => v.AccountId, "my-documents/{this}")
-            .NoValidation();
+            .Build();
     }
 
     public static class PeekExtensions

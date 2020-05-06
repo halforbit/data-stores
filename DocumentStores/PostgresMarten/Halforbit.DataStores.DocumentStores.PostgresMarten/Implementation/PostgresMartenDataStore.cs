@@ -200,7 +200,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             return true;
         }
 
-        public async Task<bool> Upsert(TKey key, TValue value)
+        public async Task Upsert(TKey key, TValue value)
         {
             await ValidatePut(key, value);
 
@@ -208,22 +208,18 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
             using (var session = _documentStore.LightweightSession())
             {
-                var existing = session.Load<TValue>(id);
-
                 session.Store(value);
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
-
-                return !existing.IsDefaultValue();
             }
         }
 
-        public Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator)
+        public Task Upsert(TKey key, Func<TValue, TValue> mutator)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
+        public Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
             throw new NotImplementedException();
         }

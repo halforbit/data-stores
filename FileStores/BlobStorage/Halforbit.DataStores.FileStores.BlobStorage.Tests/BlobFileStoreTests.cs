@@ -133,16 +133,16 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
                 keyMap: "test-values/{AccountId}",
                 fileExtension: ".json");
 
-            var upsertResult1 = dataStore
+            dataStore
                 .Upsert(testKey, o =>
                 {
                     Assert.Null(o);
 
                     return testValueB;
                 })
-                .Result;
+                .Wait();
 
-            var upsertResult2 = dataStore
+            dataStore
                 .Upsert(testKey, o =>
                 {
                     Assert.Equal(testValueB.AccountId, o.AccountId);
@@ -151,7 +151,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
 
                     return testValueA;
                 })
-                .Result;
+                .Wait();
         }
     }
 

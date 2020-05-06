@@ -31,10 +31,10 @@ namespace Halforbit.DataStores.Implementation
 
         public Task<bool> Update(TValue value) => _source.Update(null, value);
 
-        public Task<bool> Upsert(TValue value) => _source.Upsert(null, value);
+        public Task Upsert(TValue value) => _source.Upsert(null, value);
 
-        public Task<bool> Upsert(Func<TValue, TValue> mutator) => _source.Upsert(null, mutator);
+        public Task Upsert(Func<TValue, TValue> mutator) => _source.Upsert(null, mutator);
 
-        public Task<bool> Upsert(Func<TValue, Task<TValue>> mutator) => _source.Upsert(null, mutator);
+        public Task Upsert(Func<TValue, Task<TValue>> mutator) => _source.Upsert(null, mutator);
     }
 }

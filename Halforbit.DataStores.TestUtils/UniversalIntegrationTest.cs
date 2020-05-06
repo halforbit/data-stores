@@ -104,9 +104,7 @@ namespace Halforbit.DataStores.Tests
 
             assertAreEqual(testValueB, secondGetResult);
 
-            var upsertResult = dataStore.Upsert(testKey, testValueA).Result;
-
-            Assert.True(upsertResult);
+            dataStore.Upsert(testKey, testValueA).Wait();
 
             var thirdGetResult = dataStore.Get(testKey).Result;
 

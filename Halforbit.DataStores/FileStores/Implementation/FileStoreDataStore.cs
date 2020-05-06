@@ -225,15 +225,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
             return true;
         }
 
-        public async Task<bool> Upsert(
+        public async Task Upsert(
             TKey key,
             TValue value)
         {
             await ValidatePut(key, value);
 
             var path = GetPath(key);
-
-            var exists = await _fileStore.Exists(path).ConfigureAwait(false);
 
             if (_valueIsStream)
             {
@@ -245,11 +243,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
             }
-
-            return exists;
         }
 
-        public async Task<bool> Upsert(
+        public async Task Upsert(
             TKey key,
             Func<TValue, TValue> mutator)
         {
@@ -283,7 +279,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 if (success)
                 {
-                    return true;
+                    return;
                 }
 
                 if (attemptsLeft < 100)
@@ -299,7 +295,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             throw new Exception("Failed after all attempts to conditionally upsert.");
         }
 
-        public async Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
+        public async Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
             var path = GetPath(key);
 
@@ -331,7 +327,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 if (success)
                 {
-                    return true;
+                    return;
                 }
 
                 if (attemptsLeft < 100)

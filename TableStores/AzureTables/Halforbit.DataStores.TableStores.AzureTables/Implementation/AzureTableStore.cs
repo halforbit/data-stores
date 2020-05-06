@@ -172,25 +172,20 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
                 HttpStatusCode.NoContent);
         }
 
-        public async Task<bool> Upsert(TKey key, TValue value)
+        public async Task Upsert(TKey key, TValue value)
         {
             await ValidatePut(key, value);
 
             var tableEntity = ConvertToTableEntity(key, value);
 
-            return await ExecuteTableOperationAsync(
+            await ExecuteTableOperationAsync(
                 TableOperation.InsertOrReplace(tableEntity), 
                 HttpStatusCode.NoContent);
         }
 
-        public async Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator)
+        public async Task Upsert(TKey key, Func<TValue, TValue> mutator)
         {
             var existing = await Get(key).ConfigureAwait(false);
-
-            if (existing == null) 
-            {
-                return false;
-            }
 
             var mutation = mutator(existing);
 
@@ -198,12 +193,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
             var tableEntity = ConvertToTableEntity(key, mutation);
 
-            return await ExecuteTableOperationAsync(
+            await ExecuteTableOperationAsync(
                 TableOperation.Replace(tableEntity), 
                 HttpStatusCode.NoContent);
         }
 
-        public Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
+        public Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
             throw new NotImplementedException();
         }

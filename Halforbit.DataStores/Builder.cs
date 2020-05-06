@@ -34,12 +34,12 @@ namespace Halforbit.DataStores
             Root = root;
         }
 
-        public Constructable Root{ get; }
+        public Constructable Root { get; }
     }
 
     public class Builder<TKey, TValue> :
         IConstructionNode,
-        INeedsValidation<TKey, TValue>
+        IDataStoreDescription<TKey, TValue>
     {
         public Builder(Constructable root)
         {
@@ -51,7 +51,7 @@ namespace Halforbit.DataStores
 
     public class Builder<TValue> :
         IConstructionNode,
-        INeedsValidation<TValue>
+        IDataStoreDescription<TValue>
     {
         public Builder(Constructable root)
         {
@@ -67,9 +67,9 @@ namespace Halforbit.DataStores
 
     public interface INeedsDocumentMap : IConstructionNode { }
 
-    public interface INeedsValidation<TKey, TValue> : IConstructionNode { }
+    public interface IDataStoreDescription<TKey, Value> : IConstructionNode { }
 
-    public interface INeedsValidation<TValue> : IConstructionNode { }
+    public interface IDataStoreDescription<TValue> : IConstructionNode { }
 
     namespace LocalStorage
     {
@@ -91,68 +91,40 @@ namespace Halforbit.DataStores
 
     public static class DataStore
     {
-        public static INeedsIntegration Build()
+        public static INeedsIntegration Describe()
         {
             return new Builder(null);
         }
 
-        // File Storage
-
-        public static INeedsSerialization Location<TConfig>(
-            TConfig config,
-            Func<TConfig, INeedsIntegration, INeedsSerialization> location)
+        public static TResult With<TResult>(
+            Func<INeedsIntegration, TResult> mixin)
         {
-            return location(config, Build());
+            return mixin(Describe());
         }
 
-        public static INeedsSerialization Location(
-            Func<INeedsIntegration, INeedsSerialization> location)
+        public static TResult With<TParameter, TResult>(
+            Func<INeedsIntegration, TParameter, TResult> mixin,
+            TParameter parameter)
         {
-            return location(Build());
+            return mixin(Describe(), parameter);
+        }
+    }
+
+    public static class DataStoreMixinExtensions
+    {
+        public static TResult With<TOperand, TResult>(
+            this TOperand operand,
+            Func<TOperand, TResult> mixin)
+        {
+            return mixin(operand);
         }
 
-        public static INeedsMap Format(
-            this INeedsSerialization target,
-            Func<INeedsSerialization, INeedsMap> format)
+        public static TResult With<TOperand, TParameter, TResult>(
+            this TOperand operand,
+            Func<TOperand, TParameter, TResult> mixin,
+            TParameter parameter)
         {
-            return format(target);
-        }
-
-        // Blob Storage
-
-        public static INeedsContentType Location<TConfig>(
-            TConfig config,
-            Func<TConfig, INeedsIntegration, INeedsContentType> location)
-        {
-            return location(config, Build());
-        }
-
-        public static INeedsContentType Location(
-            Func<INeedsIntegration, INeedsContentType> location)
-        {
-            return location(Build());
-        }
-
-        public static INeedsMap Format(
-            this INeedsContentType target,
-            Func<INeedsContentType, INeedsMap> format)
-        {
-            return format(target);
-        }
-
-        // Document Storage
-
-        public static INeedsDocumentMap Location<TConfig>(
-            TConfig config,
-            Func<TConfig, INeedsIntegration, INeedsDocumentMap> location)
-        {
-            return location(config, Build());
-        }
-
-        public static INeedsDocumentMap Location(
-            Func<INeedsIntegration, INeedsDocumentMap> location)
-        {
-            return location(Build());
+            return mixin(operand, parameter);
         }
     }
 
@@ -160,7 +132,7 @@ namespace Halforbit.DataStores
     {
         // Mapping ////////////////////////////////////////////////////////////
 
-        public static INeedsValidation<TKey, TValue> Map<TKey, TValue>(
+        public static IDataStoreDescription<TKey, TValue> Map<TKey, TValue>(
             this INeedsDocumentMap target,
             Expression<Func<TValue, object>> partition,
             string keyMap)
@@ -171,7 +143,7 @@ namespace Halforbit.DataStores
                 .Argument("keyMap", $"{{{GetPropertyInfo(partition).Name}}}|{keyMap}"));
         }
 
-        public static INeedsValidation<TKey, TValue> Map<TKey, TValue>(
+        public static IDataStoreDescription<TKey, TValue> Map<TKey, TValue>(
             this INeedsDocumentMap target,
             string keyMap)
             where TValue : IDocument
@@ -181,7 +153,7 @@ namespace Halforbit.DataStores
                 .Argument("keyMap", keyMap));
         }
 
-        public static INeedsValidation<TKey, TValue> Map<TKey, TValue>(
+        public static IDataStoreDescription<TKey, TValue> Map<TKey, TValue>(
             this INeedsMap target,
             string map)
         {
@@ -190,7 +162,7 @@ namespace Halforbit.DataStores
                 .Argument("keyMap", map));
         }
 
-        public static INeedsValidation<TValue> Map<TValue>(
+        public static IDataStoreDescription<TValue> Map<TValue>(
             this INeedsMap target,
             string map)
         {
@@ -201,40 +173,37 @@ namespace Halforbit.DataStores
 
         // Validation /////////////////////////////////////////////////////////
 
-        public static IDataStore<TKey, TValue> Validation<TKey, TValue, TValidator>(
-            this INeedsValidation<TKey, TValue> target,
+        public static IDataStoreDescription<TKey, TValue> Validation<TKey, TValue, TValidator>(
+            this IDataStoreDescription<TKey, TValue> target,
             TValidator validator)
             where TValidator : IValidator<TKey, TValue>
         {
-            return (IDataStore<TKey, TValue>)target.Root
-                .Argument("validator", validator)
-                .Construct();
+            return new Builder<TKey, TValue>(
+                target.Root.Argument("validator", validator));
         }
 
-        public static IDataStore<TKey, TValue> NoValidation<TKey, TValue>(
-            this INeedsValidation<TKey, TValue> target)
-        {
-            return (IDataStore<TKey, TValue>)target.Root
-                .ArgumentNull("validator")
-                .Construct();
-        }
-
-        public static IDataStore<TValue> Validation<TValue, TValidator>(
-            this INeedsValidation<TValue> target,
+        public static IDataStoreDescription<TValue> Validation<TValue, TValidator>(
+            this IDataStoreDescription<TValue> target,
             TValidator validator)
             where TValidator : IValidator<object, TValue>
         {
-            return new SingletonDataStore<TValue>((IDataStore<object, TValue>)target.Root
-                .Argument("validator", validator)
-                .Construct());
+            return new Builder<TValue>(
+                target.Root.Argument("validator", validator));
         }
 
-        public static IDataStore<TValue> NoValidation<TValue>(
-            this INeedsValidation<TValue> target)
+        // Construction ///////////////////////////////////////////////////////
+
+        public static IDataStore<TKey, TValue> Build<TKey, TValue>(
+            this IDataStoreDescription<TKey, TValue> description)
         {
-            return new SingletonDataStore<TValue>((IDataStore<object, TValue>)target.Root
-                .ArgumentNull("validator")
-                .Construct());
+            return (IDataStore<TKey, TValue>)description.Root.Construct();
+        }
+
+        public static IDataStore<TValue> Build<TValue>(
+            this IDataStoreDescription<TValue> description)
+        {
+            return new SingletonDataStore<TValue>(
+                (IDataStore<object, TValue>)description.Root.Construct());
         }
 
         static PropertyInfo GetPropertyInfo<TSource, TProperty>(
@@ -277,6 +246,17 @@ namespace Halforbit.DataStores
 
     public static class FileStoresBuilderExtensions
     {
+        public static INeedsCompression JsonSerialization(
+            this INeedsSerialization target)
+        {
+            return new Builder(
+                target.Root.Argument(
+                    "serializer",
+                    default(Constructable)
+                        .Type(typeof(JsonSerializer))
+                        .Argument("options", $"{JsonOptions.Default}")));
+        }
+
         public static INeedsCompression JsonSerialization(
             this INeedsSerialization target,
             JsonOptions options = JsonOptions.Default)

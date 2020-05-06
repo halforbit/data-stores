@@ -95,7 +95,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Tests
                 testValueB);
         }
 
-        [Fact, Trait("Type", "Integration")]
+        [Fact, Trait("Type", "Stress")]
         public async Task TestSftpFileStore_Concurrent()
         {
             int concurrentCount = 30;
@@ -144,7 +144,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Tests
             var dataStore = new ContextFactory().Create<ISftpDataContext>().Store;
 
             var tasks = Enumerable
-                .Range(0, 10)
+                .Range(0, 3)
                 .Select(i => Task.Run(() =>
                 {
                     var testKey = new TestValue.Key(accountId: Guid.NewGuid());

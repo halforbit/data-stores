@@ -29,11 +29,11 @@ namespace Halforbit.DataStores.Interface
         
         Task<bool> Update(TKey key, TValue value);
 
-        Task<bool> Upsert(TKey key, TValue value);
+        Task Upsert(TKey key, TValue value);
 
-        Task<bool> Upsert(TKey key, Func<TValue, TValue> mutator);
+        Task Upsert(TKey key, Func<TValue, TValue> mutator);
 
-        Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator);
+        Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator);
 
         IQuerySession<TKey, TValue> StartQuery();
 
@@ -56,11 +56,11 @@ namespace Halforbit.DataStores.Interface
 
         Task<bool> Update(TValue value);
 
-        Task<bool> Upsert(TValue value);
+        Task Upsert(TValue value);
 
-        Task<bool> Upsert(Func<TValue, TValue> mutator);
+        Task Upsert(Func<TValue, TValue> mutator);
 
-        Task<bool> Upsert(Func<TValue, Task<TValue>> mutator);
+        Task Upsert(Func<TValue, Task<TValue>> mutator);
 
         IStringMap<object> Map { get; }
     }

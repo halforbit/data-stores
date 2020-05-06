@@ -359,7 +359,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
-        public async Task<bool> Upsert(
+        public async Task Upsert(
             TKey key, 
             TValue value)
         {
@@ -372,18 +372,16 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             await Execute(() => _container.Value.UpsertItemAsync(
                 item: value,
                 partitionKey: default)).ConfigureAwait(false);
-
-            return true;
         }
 
-        public async Task<bool> Upsert(
+        public async Task Upsert(
             TKey key, 
             Func<TValue, TValue> mutator)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
+        public Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
             throw new NotImplementedException();
         }
