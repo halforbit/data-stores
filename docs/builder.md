@@ -53,7 +53,7 @@ The map string is a two-way template used to convert between the key type and a 
 
 For file stores like local storage and Azure Blob Storage, the map string (along with file extension)  determines the exact file name a key maps to in storage. For document stores like Cosmos DB and Postgres, the map string is used to determine the ID of the record.
 
-For simple key types like `string` or `Guid`, you can use `{this}` to inject the value of the key into the string map. You can also use classes as key types, and refer to properties with e.g. `{MyProperty}`.
+As shown here, you can use `{this}` to inject simple key types like `string` or `Guid` into the string map. You can also use a class as a key type, and refer to its properties with e.g. `{MyProperty}`.
 
 ## Shortcuts
 
@@ -150,6 +150,8 @@ var dataStore = DataStore
 ## Singletons
 
 ## Partial Keys and Predicates
+
+## Keying Strategies
 
 ## Optimistic Concurrency Pattern
 
