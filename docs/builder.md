@@ -150,3 +150,5 @@ var dataStore = DataStore
 ## Partial Keys and Predicates
 
 ## Optimistic Concurrency Pattern
+
+## Custom Serializers
