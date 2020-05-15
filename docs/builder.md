@@ -145,6 +145,8 @@ var dataStore = DataStore
 
 ## Validation
 
+## Observers and Mutators
+
 ## Singletons
 
 ## Partial Keys and Predicates
@@ -152,3 +154,5 @@ var dataStore = DataStore
 ## Optimistic Concurrency Pattern
 
 ## Custom Serializers
+
+## Sharding
