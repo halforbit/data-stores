@@ -262,7 +262,10 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
                     var k = ParseDocumentId(pk, id);
 
-                    results.Add(k);
+                    if (k != null)
+                    {
+                        results.Add(k);
+                    }
                 }
             }
 
@@ -312,9 +315,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
                     var key = ParseDocumentId(pk, id);
 
-                    results.Add(new KeyValuePair<TKey, TValue>( 
-                        key,
-                        item.ToObject<TValue>()));
+                    if (key != null)
+                    {
+                        results.Add(new KeyValuePair<TKey, TValue>( 
+                            key,
+                            item.ToObject<TValue>()));
+                    }
                 }
             }
 

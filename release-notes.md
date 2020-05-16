@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-05-15
+
+#### 2.1.15
+
+- Fixed a bug where key list operations on CosmosDb would return null keys when there are records in the container with the correct id format, but no partition key when one is expected.
+
 ### 2020-05-06
 
 #### 2.1.14
