@@ -23,7 +23,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 // TODO:
-// - Bulk transfer
+// x Bulk transfer (handled internally by Cosmos nuget package)
 // - Context SQL execution
 // - Remove IDocument requirement for POCOs
 // x Retry 429 and 503 with polly
@@ -69,12 +69,24 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         public IStringMap<TKey> KeyMap => _keyMap;
 
+        readonly IReadOnlyList<IObserver<TKey, TValue>> _typedObservers;
+
+        readonly IReadOnlyList<IObserver> _untypedObservers;
+
+        readonly IReadOnlyList<IMutator<TKey, TValue>> _typedMutators;
+
+        readonly IReadOnlyList<IMutator> _untypedMutators;
+
         public CosmosDbDataStore(
             string connectionString,
             string databaseId,
             string containerId,
             string keyMap,
-            [Optional]IValidator<TKey, TValue> validator = null)
+            [Optional]IValidator<TKey, TValue> validator = null,
+            [Optional]IReadOnlyList<IObserver<TKey, TValue>> typedObservers = null,
+            [Optional]IReadOnlyList<IObserver> untypedObservers = null,
+            [Optional]IReadOnlyList<IMutator<TKey, TValue>> typedMutators = null,
+            [Optional]IReadOnlyList<IMutator> untypedMutators = null)
         {
             _connectionString = connectionString;
             
@@ -132,17 +144,29 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
 
             _validator = validator;
+
+            _typedObservers = typedObservers ?? EmptyReadOnlyList<IObserver<TKey, TValue>>.Instance;
+
+            _untypedObservers = untypedObservers ?? EmptyReadOnlyList<IObserver>.Instance;
+
+            _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
+
+            _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
         }
 
         public async Task<bool> Create(
             TKey key, 
             TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value).ConfigureAwait(false);
 
             var (partitionKey, documentId) = GetDocumentId(key);
 
             SetDocumentId(value, documentId);
+
+            await ObserveBeforePut(key, value);
 
             try
             {
@@ -167,6 +191,10 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             await ValidateDelete(key).ConfigureAwait(false);
 
             var (partitionKey, documentId) = GetDocumentId(key);
+
+            foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
+
+            foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
 
             try
             {
@@ -340,9 +368,13 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var (partitionKey, documentId) = GetDocumentId(key);
+
+            await ObserveBeforePut(key, value);
 
             try
             {
@@ -369,11 +401,15 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var (partitionKey, documentId) = GetDocumentId(key);
 
             SetDocumentId(value, documentId);
+
+            await ObserveBeforePut(key, value);
 
             await Execute(() => _container.Value.UpsertItemAsync(
                 item: value,
@@ -545,6 +581,22 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             {
                 throw new ArgumentException($"TValue {typeof(TValue).Name} is neither {nameof(IDocument)} nor {nameof(JObject)}.");
             }
+        }
+
+        async Task<TValue> MutatePut(TKey key, TValue value)
+        {
+            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+
+            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+
+            return value;
+        }
+
+        async Task ObserveBeforePut(TKey key, TValue value)
+        {
+            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+
+            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
         }
 
         class QuerySession<TResultValue> : IQuerySession<TKey, TResultValue>

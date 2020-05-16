@@ -24,6 +24,7 @@ using Halforbit.DataStores.Validation.Interface;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 
@@ -722,6 +723,178 @@ namespace Halforbit.DataStores.IntegrationTests
             Assert.IsType<MyValidator>(dataStore.Field<IValidator<Guid, string>>("_validator"));
         }
 
+        // Observation ////////////////////////////////////////////////////////
+
+        [Fact, Trait("Type", "Unit")]
+        public void TypedObservers()
+        {
+            var dataStore = DataStore
+                .Describe()
+                .LocalStorage()
+                .RootPath("c:/data")
+                .JsonSerialization()
+                .NoCompression()
+                .FileExtension(".json")
+                .Map<Guid, string>("my-stuff/{this}")
+                .Observer(new MyTypedObserverA())
+                .Observer(new MyTypedObserverB())
+                .Build();
+
+            Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<LocalFileStore>(fileStore);
+
+            Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
+
+            var typedObservers = dataStore.Field<IReadOnlyList<IObserver<Guid, string>>>("_typedObservers");
+
+            Assert.NotNull(typedObservers);
+
+            Assert.Equal(2, typedObservers.Count);
+
+            Assert.IsType<MyTypedObserverA>(typedObservers[0]);
+
+            Assert.IsType<MyTypedObserverB>(typedObservers[1]);
+        }
+
+        [Fact, Trait("Type", "Unit")]
+        public void UntypedObservers()
+        {
+            var dataStore = DataStore
+                .Describe()
+                .LocalStorage()
+                .RootPath("c:/data")
+                .JsonSerialization()
+                .NoCompression()
+                .FileExtension(".json")
+                .Map<Guid, string>("my-stuff/{this}")
+                .Observer(new MyUntypedObserverA())
+                .Observer(new MyUntypedObserverB())
+                .Build();
+
+            Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<LocalFileStore>(fileStore);
+
+            Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
+
+            var untypedObservers = dataStore.Field<IReadOnlyList<IObserver>>("_untypedObservers");
+
+            Assert.NotNull(untypedObservers);
+
+            Assert.Equal(2, untypedObservers.Count);
+
+            Assert.IsType<MyUntypedObserverA>(untypedObservers[0]);
+
+            Assert.IsType<MyUntypedObserverB>(untypedObservers[1]);
+        }
+
+        // Mutation ///////////////////////////////////////////////////////////
+
+        [Fact, Trait("Type", "Unit")]
+        public void TypedMutators()
+        {
+            var dataStore = DataStore
+                .Describe()
+                .LocalStorage()
+                .RootPath("c:/data")
+                .JsonSerialization()
+                .NoCompression()
+                .FileExtension(".json")
+                .Map<Guid, string>("my-stuff/{this}")
+                .Mutator(new MyTypedMutatorA())
+                .Mutator(new MyTypedMutatorB())
+                .Build();
+
+            Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<LocalFileStore>(fileStore);
+
+            Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
+
+            var typedMutators = dataStore.Field<IReadOnlyList<IMutator<Guid, string>>>("_typedMutators");
+
+            Assert.NotNull(typedMutators);
+
+            Assert.Equal(2, typedMutators.Count);
+
+            Assert.IsType<MyTypedMutatorA>(typedMutators[0]);
+
+            Assert.IsType<MyTypedMutatorB>(typedMutators[1]);
+        }
+
+        [Fact, Trait("Type", "Unit")]
+        public void UntypedMutators()
+        {
+            var dataStore = DataStore
+                .Describe()
+                .LocalStorage()
+                .RootPath("c:/data")
+                .JsonSerialization()
+                .NoCompression()
+                .FileExtension(".json")
+                .Map<Guid, string>("my-stuff/{this}")
+                .Mutator(new MyUntypedMutatorA())
+                .Mutator(new MyUntypedMutatorB())
+                .Build();
+
+            Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<LocalFileStore>(fileStore);
+
+            Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
+
+            var untypedMutators = dataStore.Field<IReadOnlyList<IMutator>>("_untypedMutators");
+
+            Assert.NotNull(untypedMutators);
+
+            Assert.Equal(2, untypedMutators.Count);
+
+            Assert.IsType<MyUntypedMutatorA>(untypedMutators[0]);
+
+            Assert.IsType<MyUntypedMutatorB>(untypedMutators[1]);
+        }
+
         // Singleton //////////////////////////////////////////////////////////
 
         [Fact, Trait("Type", "Unit")]
@@ -1055,6 +1228,22 @@ namespace Halforbit.DataStores.IntegrationTests
     {
         public MySingletonValidator(params ValidatorBase<object, string>[] prerequisites) : base(prerequisites) { }
     }
+
+    public class MyTypedObserverA : Observer<Guid, string> { }
+
+    public class MyTypedObserverB : Observer<Guid, string> { }
+
+    public class MyUntypedObserverA : Observer { }
+
+    public class MyUntypedObserverB : Observer { }
+
+    public class MyTypedMutatorA : Mutator<Guid, string> { }
+
+    public class MyTypedMutatorB : Mutator<Guid, string> { }
+
+    public class MyUntypedMutatorA : Mutator { }
+
+    public class MyUntypedMutatorB : Mutator { }
 
     public interface IMyDataContext
     {

@@ -13,7 +13,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
     {
         protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.CosmosDb.Tests.Fixed.";
 
-        [Fact, Trait("Type", "Integration")]
+        [Obsolete("Non-partitioned containers have been deprecated.")]
+        //[Fact, Trait("Type", "Integration")]
         public void TestCosmosDbFixed()
         {
             var testKey = new FixedTestValue.Key(accountId: Guid.NewGuid());

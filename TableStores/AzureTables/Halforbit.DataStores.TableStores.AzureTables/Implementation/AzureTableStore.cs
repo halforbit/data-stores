@@ -33,6 +33,14 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         readonly IValidator<TKey, TValue> _validator;
 
+        readonly IReadOnlyList<IObserver<TKey, TValue>> _typedObservers;
+
+        readonly IReadOnlyList<IObserver> _untypedObservers;
+
+        readonly IReadOnlyList<IMutator<TKey, TValue>> _typedMutators;
+
+        readonly IReadOnlyList<IMutator> _untypedMutators;
+
         const char KeyMapDelimiter = '|';
 
         static readonly Regex InvalidCharactersRegex = 
@@ -42,7 +50,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             string connectionString,
             string tableName,
             string keyMap,
-            [Optional]IValidator<TKey, TValue> validator = null)
+            [Optional]IValidator<TKey, TValue> validator = null,
+            [Optional]IReadOnlyList<IObserver<TKey, TValue>> typedObservers = null,
+            [Optional]IReadOnlyList<IObserver> untypedObservers = null,
+            [Optional]IReadOnlyList<IMutator<TKey, TValue>> typedMutators = null,
+            [Optional]IReadOnlyList<IMutator> untypedMutators = null)
         {
             _connectionString = connectionString;
 
@@ -57,6 +69,14 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             _keyMap = keyMap;
 
             _validator = validator;
+
+            _typedObservers = typedObservers ?? EmptyReadOnlyList<IObserver<TKey, TValue>>.Instance;
+
+            _untypedObservers = untypedObservers ?? EmptyReadOnlyList<IObserver>.Instance;
+
+            _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
+
+            _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
         }
 
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();
@@ -95,7 +115,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
                 return false;
             }
 
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
+
+            await ObserveBeforePut(key, value);
 
             var tableEntity = ConvertToTableEntity(key, value);
 
@@ -114,6 +138,10 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             }
 
             await ValidateDelete(key);
+
+            foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
+
+            foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
 
             return await ExecuteTableOperationAsync(
                 TableOperation.Delete(existingTableEntity), 
@@ -163,7 +191,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
                 return false;
             }
 
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
+
+            await ObserveBeforePut(key, value);
 
             var updatedTableEntity = ConvertToTableEntity(key, value, existingTableEntity.ETag);
 
@@ -174,7 +206,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         public async Task Upsert(TKey key, TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
+
+            await ObserveBeforePut(key, value);
 
             var tableEntity = ConvertToTableEntity(key, value);
 
@@ -187,9 +223,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         {
             var existing = await Get(key).ConfigureAwait(false);
 
-            var mutation = mutator(existing);
+            var mutation = await MutatePut(key, mutator(existing));
 
             await ValidatePut(key, mutation);
+
+            await ObserveBeforePut(key, mutation);
 
             var tableEntity = ConvertToTableEntity(key, mutation);
 
@@ -205,7 +243,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         public Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null)
         {
-            throw new NotSupportedException("Postgres/Marten requires a querying session. Use StartQuery instead.");
+            throw new NotSupportedException();
         }
 
         public IQuerySession<TKey, TValue> StartQuery()
@@ -405,6 +443,22 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         public Task<bool> GetToStream(TKey key, Stream stream)
         {
             throw new NotImplementedException();
+        }
+
+        async Task<TValue> MutatePut(TKey key, TValue value)
+        {
+            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+
+            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+
+            return value;
+        }
+
+        async Task ObserveBeforePut(TKey key, TValue value)
+        {
+            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+
+            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
         }
     }
 }

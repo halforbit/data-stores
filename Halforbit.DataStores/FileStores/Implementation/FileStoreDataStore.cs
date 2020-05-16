@@ -37,6 +37,14 @@ namespace Halforbit.DataStores.FileStores.Implementation
         readonly IValidator<TKey, TValue> _validator;
 
         readonly string _fileExtension;
+        
+        readonly IReadOnlyList<IObserver<TKey, TValue>> _typedObservers;
+        
+        readonly IReadOnlyList<IObserver> _untypedObservers;
+
+        readonly IReadOnlyList<IMutator<TKey, TValue>> _typedMutators;
+
+        readonly IReadOnlyList<IMutator> _untypedMutators;
 
         readonly Lazy<IDataStoreContext<TKey>> _context;
 
@@ -51,7 +59,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
             [Optional]ICompressor compressor = null,
             [Optional]IValidator<TKey, TValue> validator = null,
             string keyMap = null,
-            [Optional]string fileExtension = null)
+            [Optional]string fileExtension = null,
+            [Optional]IReadOnlyList<IObserver<TKey, TValue>> typedObservers = null,
+            [Optional]IReadOnlyList<IObserver> untypedObservers = null,
+            [Optional]IReadOnlyList<IMutator<TKey, TValue>> typedMutators = null,
+            [Optional]IReadOnlyList<IMutator> untypedMutators = null)
         {
             _fileStore = fileStore ?? throw new ArgumentNullException(nameof(fileStore));
 
@@ -64,6 +76,14 @@ namespace Halforbit.DataStores.FileStores.Implementation
             _keyMap = keyMap ?? throw new ArgumentNullException(nameof(keyMap));
 
             _fileExtension = fileExtension ?? string.Empty;
+
+            _typedObservers = typedObservers ?? EmptyReadOnlyList<IObserver<TKey, TValue>>.Instance;
+            
+            _untypedObservers = untypedObservers ?? EmptyReadOnlyList<IObserver>.Instance;
+
+            _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
+
+            _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
 
             _context = new Lazy<IDataStoreContext<TKey>>(() => new DataStoreContext(
                 _fileStore.FileStoreContext,
@@ -82,6 +102,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var path = GetPath(key);
@@ -90,6 +112,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             {
                 return false;
             }
+
+            await ObserveBeforePut(key, value);
 
             if (_valueIsStream)
             {
@@ -115,6 +139,10 @@ namespace Halforbit.DataStores.FileStores.Implementation
             {
                 return false;
             }
+
+            foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
+
+            foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
 
             await _fileStore.Delete(path).ConfigureAwait(false);
 
@@ -202,6 +230,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var path = GetPath(key);
@@ -210,6 +240,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             {
                 return false;
             }
+
+            await ObserveBeforePut(key, value);
 
             if (_valueIsStream)
             {
@@ -229,9 +261,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var path = GetPath(key);
+
+            await ObserveBeforePut(key, value);
 
             if (_valueIsStream)
             {
@@ -257,9 +293,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
             {
                 var current = await GetValueWithETag(path).ConfigureAwait(false);
 
-                var mutation = mutator(current.Item1);
+                var mutation = await MutatePut(key, mutator(current.Item1));
 
                 await ValidatePut(key, mutation);
+
+                await ObserveBeforePut(key, mutation);
 
                 var success = default(bool);
 
@@ -305,9 +343,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
             {
                 var current = await GetValueWithETag(path).ConfigureAwait(false);
 
-                var mutation = await mutator(current.Item1);
+                var mutation = await MutatePut(key, await mutator(current.Item1));
 
                 await ValidatePut(key, mutation);
+
+                await ObserveBeforePut(key, mutation);
 
                 var success = default(bool);
 
@@ -511,6 +551,22 @@ namespace Halforbit.DataStores.FileStores.Implementation
                     throw new ValidationException(validationErrors);
                 }
             }
+        }
+
+        async Task<TValue> MutatePut(TKey key, TValue value)
+        {
+            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+
+            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+
+            return value;
+        }
+
+        async Task ObserveBeforePut(TKey key, TValue value)
+        {
+            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+
+            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
         }
 
         public async Task<bool> GetToStream(TKey key, Stream stream)

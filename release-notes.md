@@ -6,9 +6,11 @@
 
 #### 2.2.0
 
-- Added a new `Query` method to `IDataStore<,>` to perform queries more simply and directly than with the existing `using`/`StartQuery` method. Note that the Postgres/Marten integration does not support this new method, as it requires a disposable query session to be used, so the existing `StartQuery` method must still be used within a `using` block for that integration.
+- Added **observers** and **mutators**, which allow observation of data before puts and deletes, and mutation against put data, respectively. Observers can inherit from `Observer` or `Observer<TKey, TValue>`, and are specified with a new `Observer` method on the builder. Mutators can inherit from `Mutator` or `Mutator<TKey, TValue>`, and are specified with a new `Mutator` method on the builder. Any number of observers and mutators can be specified in a data store description.
+- Added a new `Query` method to `IDataStore<,>` to perform queries more simply and directly than with the existing `using`/`StartQuery` method. Note that the Postgres/Marten integration does not support this new method, as it requires a disposable query session to be used, so the existing `StartQuery` method must still be used within a `using` block for that integration only.
 - Deleted the DocumentDb integration, as it is obsoleted by the CosmosDb integration, and its API is deprecated.
 - Fixed a bug where key list operations on CosmosDb would return null keys when there are records in the container with the correct id format, but no partition key when one is expected.
+- Updated to **Halforbit.ObjectTools** 1.1.10
 
 ### 2020-05-06
 

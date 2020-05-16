@@ -30,13 +30,25 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         readonly StringMap<TKey> _keyMap;
 
         readonly IValidator<TKey, TValue> _validator;
-        
+
+        readonly IReadOnlyList<IObserver<TKey, TValue>> _typedObservers;
+
+        readonly IReadOnlyList<IObserver> _untypedObservers;
+
+        readonly IReadOnlyList<IMutator<TKey, TValue>> _typedMutators;
+
+        readonly IReadOnlyList<IMutator> _untypedMutators;
+
         readonly DocumentStore _documentStore;
 
         public PostgresMartenDataStore(
             string connectionString,
             string keyMap,
-            [Optional]IValidator<TKey, TValue> validator = null)
+            [Optional]IValidator<TKey, TValue> validator = null,
+            [Optional]IReadOnlyList<IObserver<TKey, TValue>> typedObservers = null,
+            [Optional]IReadOnlyList<IObserver> untypedObservers = null,
+            [Optional]IReadOnlyList<IMutator<TKey, TValue>> typedMutators = null,
+            [Optional]IReadOnlyList<IMutator> untypedMutators = null)
         {
             _connectionString = connectionString;
 
@@ -55,9 +67,18 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 c.Serializer(serializer);
             });
+
             _keyMap = keyMap;
 
             _validator = validator;
+
+            _typedObservers = typedObservers ?? EmptyReadOnlyList<IObserver<TKey, TValue>>.Instance;
+
+            _untypedObservers = untypedObservers ?? EmptyReadOnlyList<IObserver>.Instance;
+
+            _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
+
+            _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
         }
 
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();
@@ -66,6 +87,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Create(TKey key, TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var id = value.Id = GetDocumentId(key);
@@ -78,6 +101,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                 {
                     return false;
                 }
+
+                await ObserveBeforePut(key, value);
 
                 session.Insert(value);
 
@@ -101,6 +126,10 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                 {
                     return false;
                 }
+
+                foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
+
+                foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
 
                 session.Delete<TValue>(id);
 
@@ -184,6 +213,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Update(TKey key, TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var id = value.Id = GetDocumentId(key);
@@ -197,6 +228,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                     return false;
                 }
 
+                await ObserveBeforePut(key, value);
+
                 session.Update(value);
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
@@ -207,9 +240,13 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task Upsert(TKey key, TValue value)
         {
+            value = await MutatePut(key, value);
+
             await ValidatePut(key, value);
 
             var id = value.Id = GetDocumentId(key);
+
+            await ObserveBeforePut(key, value);
 
             using (var session = _documentStore.LightweightSession())
             {
@@ -276,6 +313,22 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public Task<bool> GetToStream(TKey key, Stream stream)
         {
             throw new NotImplementedException();
+        }
+
+        async Task<TValue> MutatePut(TKey key, TValue value)
+        {
+            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+
+            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+
+            return value;
+        }
+
+        async Task ObserveBeforePut(TKey key, TValue value)
+        {
+            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+
+            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
         }
 
         class QuerySession : IQuerySession<TKey, TValue>

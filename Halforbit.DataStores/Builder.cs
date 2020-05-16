@@ -191,6 +191,42 @@ namespace Halforbit.DataStores
                 target.Root.Argument("validator", validator));
         }
 
+        // Observation ////////////////////////////////////////////////////////
+
+        public static IDataStoreDescription<TKey, TValue> Observer<TKey, TValue>(
+            this IDataStoreDescription<TKey, TValue> target,
+            IObserver<TKey, TValue> observer)
+        {
+            return new Builder<TKey, TValue>(
+                target.Root.ArgumentItem("typedObservers", observer));
+        }
+
+        public static IDataStoreDescription<TKey, TValue> Observer<TKey, TValue>(
+            this IDataStoreDescription<TKey, TValue> target,
+            IObserver observer)
+        {
+            return new Builder<TKey, TValue>(
+                target.Root.ArgumentItem("untypedObservers", observer));
+        }
+
+        // Mutation ///////////////////////////////////////////////////////////
+
+        public static IDataStoreDescription<TKey, TValue> Mutator<TKey, TValue>(
+            this IDataStoreDescription<TKey, TValue> target,
+            IMutator<TKey, TValue> mutator)
+        {
+            return new Builder<TKey, TValue>(
+                target.Root.ArgumentItem("typedMutators", mutator));
+        }
+
+        public static IDataStoreDescription<TKey, TValue> Mutator<TKey, TValue>(
+            this IDataStoreDescription<TKey, TValue> target,
+            IMutator mutator)
+        {
+            return new Builder<TKey, TValue>(
+                target.Root.ArgumentItem("untypedMutators", mutator));
+        }
+
         // Construction ///////////////////////////////////////////////////////
 
         public static IDataStore<TKey, TValue> Build<TKey, TValue>(
