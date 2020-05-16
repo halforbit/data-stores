@@ -4,8 +4,10 @@
 
 ### 2020-05-15
 
-#### 2.1.15
+#### 2.2.0
 
+- Added a new `Query` method to `IDataStore<,>` to perform queries more simply and directly than with the existing `using`/`StartQuery` method. Note that the Postgres/Marten integration does not support this new method, as it requires a disposable query session to be used, so the existing `StartQuery` method must still be used within a `using` block for that integration.
+- Deleted the DocumentDb integration, as it is obsoleted by the CosmosDb integration, and its API is deprecated.
 - Fixed a bug where key list operations on CosmosDb would return null keys when there are records in the container with the correct id format, but no partition key when one is expected.
 
 ### 2020-05-06

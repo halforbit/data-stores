@@ -392,6 +392,11 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             throw new NotImplementedException();
         }
 
+        public Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null)
+        {
+            return Task.FromResult(StartQuery().Query(predicate));
+        }
+
         public IQuerySession<TKey, TValue> StartQuery()
         {
             if (!typeof(IDocument).IsAssignableFrom(typeof(TValue)))

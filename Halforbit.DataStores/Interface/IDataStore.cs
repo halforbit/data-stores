@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -34,6 +35,8 @@ namespace Halforbit.DataStores.Interface
         Task Upsert(TKey key, Func<TValue, TValue> mutator);
 
         Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator);
+
+        Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null);
 
         IQuerySession<TKey, TValue> StartQuery();
 

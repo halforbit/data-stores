@@ -158,3 +158,5 @@ var dataStore = DataStore
 ## Custom Serializers
 
 ## Sharding
+
+## Querying

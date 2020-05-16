@@ -203,6 +203,11 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             throw new NotImplementedException();
         }
 
+        public Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null)
+        {
+            throw new NotSupportedException("Postgres/Marten requires a querying session. Use StartQuery instead.");
+        }
+
         public IQuerySession<TKey, TValue> StartQuery()
         {
             throw new NotSupportedException();
