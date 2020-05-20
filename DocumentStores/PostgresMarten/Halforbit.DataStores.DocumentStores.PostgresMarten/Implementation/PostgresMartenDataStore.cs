@@ -331,6 +331,15 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
         }
 
+        public Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(
+            IEnumerable<TItem> items, 
+            Func<IEnumerable<TItem>, IQueryable<TValue>, IQueryable<TResult>> query,
+            Expression<Func<TKey, bool>> predicate = null,
+            int batchSize = 500)
+        {
+            throw new NotImplementedException();
+        }
+
         class QuerySession : IQuerySession<TKey, TValue>
         {
             readonly PostgresMartenDataStore<TKey, TValue> _dataStore;

@@ -1,4 +1,5 @@
-﻿using Halforbit.DataStores.FileStores.Exceptions;
+﻿using Halforbit.DataStores.Extensions;
+using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.FileStores.Interface;
 using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Model;
@@ -574,6 +575,15 @@ namespace Halforbit.DataStores.FileStores.Implementation
             var path = GetPath(key);
 
             return await _fileStore.ReadStream(path, stream);
+        }
+
+        public async Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(
+            IEnumerable<TItem> items,
+            Func<IEnumerable<TItem>, IQueryable<TValue>, IQueryable<TResult>> query,
+            Expression<Func<TKey, bool>> predicate = null,
+            int batchSize = 500)
+        {
+            throw new NotImplementedException();
         }
 
         class QuerySession : IQuerySession<TKey, TValue>

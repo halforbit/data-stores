@@ -40,6 +40,12 @@ namespace Halforbit.DataStores.Interface
 
         IQuerySession<TKey, TValue> StartQuery();
 
+        Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(
+            IEnumerable<TItem> items,
+            Func<IEnumerable<TItem>, IQueryable<TValue>, IQueryable<TResult>> query,
+            Expression<Func<TKey, bool>> predicate = null,
+            int batchSize = 500);
+
         IStringMap<TKey> KeyMap { get; }
     }
 

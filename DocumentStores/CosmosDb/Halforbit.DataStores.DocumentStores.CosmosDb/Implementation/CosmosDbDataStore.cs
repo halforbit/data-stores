@@ -1,4 +1,5 @@
 ﻿using Halforbit.DataStores.DocumentStores.Interface;
+using Halforbit.DataStores.Extensions;
 using Halforbit.DataStores.FileStores.Exceptions;
 using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Validation.Exceptions;
@@ -597,6 +598,22 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
 
             foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
+        }
+
+        public async Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(
+            IEnumerable<TItem> items, 
+            Func<IEnumerable<TItem>, IQueryable<TValue>, IQueryable<TResult>> query,
+            Expression<Func<TKey, bool>> predicate = null,
+            int batchSize = 500)
+        {
+            var tasks = items
+                .Batch(batchSize)
+                .Select(async batch => query(items, await Query(predicate)).AsEnumerable())
+                .ToList();
+
+            await Task.WhenAll(tasks);
+
+            return tasks.SelectMany(t => t.Result);
         }
 
         class QuerySession<TResultValue> : IQuerySession<TKey, TResultValue>

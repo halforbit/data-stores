@@ -5,6 +5,7 @@ using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
@@ -14,7 +15,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.CosmosDb.Tests.Partitioned.";
 
         [Fact, Trait("Type", "Integration")]
-        public void TestCosmosDbPartitioned()
+        public async Task TestCosmosDbPartitioned()
         {
             var testKey = new PartitionedTestValue.Key(
                 partitionId: Guid.NewGuid(),
@@ -38,13 +39,17 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
 
             ClearDataStore(dataStore);
                 
-            TestDataStore(
-                dataStore,
-                testKey,
-                testValueA,
-                testValueB);
+            //TestDataStore(
+            //    dataStore,
+            //    testKey,
+            //    testValueA,
+            //    testValueB);
 
-            TestQuery(dataStore);
+            //TestQuery(dataStore);
+
+            //ClearDataStore(dataStore);
+
+            await TestBatch(dataStore);
         }
 
         static void TestQuery(IDataStore<PartitionedTestValue.Key, PartitionedTestValue> dataStore)
@@ -79,6 +84,19 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
             }
 
             ClearDataStore(dataStore);
+        }
+
+        static async Task TestBatch(
+            IDataStore<PartitionedTestValue.Key, PartitionedTestValue> dataStore)
+        {
+            var allIds = Enumerable
+                .Range(0, 1000)
+                .Select(i => Guid.NewGuid())
+                .ToList();
+
+            var results = (await dataStore
+                .BatchQuery(allIds, (b, q) => q.Where(r => b.Contains(r.AccountId))))
+                .ToList();
         }
     }
 
