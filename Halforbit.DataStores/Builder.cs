@@ -10,6 +10,7 @@ using Halforbit.DataStores.Implementation;
 using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.LocalStorage;
 using Halforbit.DataStores.Validation.Interface;
+using Halforbit.DataStores.WebStorage;
 using Halforbit.ObjectTools.DeferredConstruction;
 using System;
 using System.Linq.Expressions;
@@ -21,6 +22,7 @@ namespace Halforbit.DataStores
         IConstructionNode,
         INeedsIntegration,
         INeedsRootPath,
+        INeedsRootUrl,
         INeedsContentType,
         INeedsContentEncoding,
         INeedsSerialization,
@@ -74,6 +76,11 @@ namespace Halforbit.DataStores
     namespace LocalStorage
     {
         public interface INeedsRootPath : IConstructionNode { }
+    }
+
+    namespace WebStorage
+    {
+        public interface INeedsRootUrl : IConstructionNode { }
     }
 
     namespace FileStores
@@ -351,6 +358,26 @@ namespace Halforbit.DataStores
             return new Builder(target.Root.Argument(
                 "fileStore", 
                 c => c.Argument("rootPath", rootPath)));
+        }
+    }
+
+    public static class WebFileStoreBuilderExtensions
+    { 
+        public static INeedsRootUrl WebStorage(
+            this INeedsIntegration target)
+        {
+            return new Builder(target.Root
+                .Type(typeof(FileStoreDataStore<,>))
+                .Argument("fileStore", default(Constructable).Type(typeof(FileStores.Web.Implementation.WebFileStore))));
+        }
+
+        public static INeedsSerialization RootUrl(
+            this INeedsRootUrl target,
+            string rootUrl)
+        {
+            return new Builder(target.Root.Argument(
+                "fileStore",
+                c => c.Argument("rootUrl", rootUrl)));
         }
     }
 }

@@ -15,6 +15,7 @@ using Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implementa
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
 using Halforbit.DataStores.FileStores.Sftp.Implementation;
+using Halforbit.DataStores.FileStores.Web.Implementation;
 using Halforbit.DataStores.Implementation;
 using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Serialization.Protobuf.Implementation;
@@ -54,6 +55,38 @@ namespace Halforbit.DataStores.IntegrationTests
             Assert.IsType<LocalFileStore>(fileStore);
 
             Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
+
+            Assert.Null(dataStore.Field<IValidator<Guid, string>>("_validator"));
+        }
+
+        [Fact, Trait("Type", "Unit")]
+        public void WebStorage()
+        {
+            var dataStore = DataStore
+                .Describe()
+                .WebStorage()
+                .RootUrl("https://cool.stuff")
+                .JsonSerialization()
+                .NoCompression()
+                .FileExtension(".json")
+                .Map<Guid, string>("my-stuff/{this}")
+                .Build();
+
+            Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<WebFileStore>(fileStore);
+
+            Assert.Equal("https://cool.stuff", fileStore.Field<string>("_rootUrl"));
 
             Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
 

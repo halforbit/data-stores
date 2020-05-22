@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-05-21
+
+#### 2.2.1
+
+- Added `WebStorage` integration methods to the builder.
+
 ### 2020-05-19
 
 #### 2.2.0
