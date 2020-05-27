@@ -6,7 +6,7 @@
 
 #### 2.2.2
 
-- Added support for **delimited** data value types like **TSV** and **CSV**. Added the `DelimitedSerialization` method to the builder for specifying this. Data stores with delimited value types should have a `TValue` of `IReadOnlyList<TRecord>` or `IEnumerable<TRecord>`, where `TRecord` is a type that can be successfully processed by the **CsvHelper** library. The default delimiter (which can be overridden) is **tab**, and by default a header row is expected/written (which can be overriden).
+- Added support for **delimited** data value types like **TSV** and **CSV**. Added the `DelimitedSerialization` method to the builder for specifying this. Data stores with delimited value types should have a `TValue` of `IReadOnlyList<TRecord>` or `IEnumerable<TRecord>`, where `TRecord` is a type that can be successfully processed by the **CsvHelper** library. The default delimiter (which can be overridden) is **tab**, and by default a header row is expected/written (which can be overridden).
 - Added a reference to **CsvHelper** 15.0.5
 
 ### 2020-05-21
