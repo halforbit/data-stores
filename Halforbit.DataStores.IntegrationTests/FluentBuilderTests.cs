@@ -12,6 +12,7 @@ using Halforbit.DataStores.FileStores.Interface;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Bond.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implementation;
+using Halforbit.DataStores.FileStores.Serialization.Delimited;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
 using Halforbit.DataStores.FileStores.Sftp.Implementation;
@@ -568,7 +569,7 @@ namespace Halforbit.DataStores.IntegrationTests
                 .RootPath("c:/data")
                 .ByteSerialization()
                 .NoCompression()
-                .FileExtension(".json")
+                .FileExtension(".raw")
                 .Map<Guid, string>("my-stuff/{this}")
                 .Build();
 
@@ -584,7 +585,45 @@ namespace Halforbit.DataStores.IntegrationTests
 
             Assert.Null(dataStore.Field<ICompressor>("_compressor"));
 
-            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+            Assert.Equal(".raw", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
+
+            Assert.Null(dataStore.Field<IValidator<Guid, string>>("_validator"));
+        }
+
+        [Fact, Trait("Type", "Unit")]
+        public void DelimitedSerialization()
+        {
+            var dataStore = DataStore
+                .Describe()
+                .LocalStorage()
+                .RootPath("c:/data")
+                .DelimitedSerialization()
+                .NoCompression()
+                .FileExtension(".tsv")
+                .Map<Guid, string>("my-stuff/{this}")
+                .Build();
+
+            Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<LocalFileStore>(fileStore);
+
+            Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            var serializer = dataStore.Field<ISerializer>("_serializer");
+
+            Assert.IsType<DelimitedSerializer>(serializer);
+
+            Assert.Equal("\t", serializer.Field<string>("_delimiter"));
+
+            Assert.True(serializer.Field<bool>("_hasHeader"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".tsv", dataStore.Field<string>("_fileExtension"));
 
             Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
 
