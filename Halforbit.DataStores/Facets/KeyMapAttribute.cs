@@ -1,5 +1,4 @@
-﻿using Halforbit.DataStores.Interface;
-using Halforbit.Facets.Attributes;
+﻿using Halforbit.Facets.Attributes;
 using System;
 
 namespace Halforbit.DataStores.Facets

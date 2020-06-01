@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Halforbit.DataStores.Model
+namespace Halforbit.DataStores
 {
     [Flags]
     public enum Access

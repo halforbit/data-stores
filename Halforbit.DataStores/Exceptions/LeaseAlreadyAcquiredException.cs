@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Halforbit.DataStores.Exceptions
+namespace Halforbit.DataStores
 {
     public class LeaseAlreadyAcquiredException : Exception
     {

@@ -1,10 +1,9 @@
-﻿using Halforbit.DataStores.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.Interface
+namespace Halforbit.DataStores
 {
     public interface IDataStoreContext<TKey>
     {

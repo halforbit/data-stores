@@ -1,8 +1,4 @@
-﻿using Halforbit.DataStores.Exceptions;
-using Halforbit.DataStores.FileStores.Interface;
-using Halforbit.DataStores.FileStores.Model;
-using Halforbit.DataStores.Model;
-using Halforbit.Facets.Attributes;
+﻿using Halforbit.Facets.Attributes;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
@@ -401,23 +397,23 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 ConvertLeaseState(cloudBlockBlob.Properties.LeaseState),
                 cloudBlockBlob.Properties.LeaseStatus == LeaseStatus.Locked);
 
-            static Halforbit.DataStores.Model.LeaseState ConvertLeaseState(
+            static LeaseState ConvertLeaseState(
                 Microsoft.WindowsAzure.Storage.Blob.LeaseState s)
             {
                 switch(s)
                 {
                     case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Available:
-                        return DataStores.Model.LeaseState.Available;
+                        return LeaseState.Available;
                     case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Breaking:
-                        return DataStores.Model.LeaseState.Breaking;
+                        return LeaseState.Breaking;
                     case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Broken:
-                        return DataStores.Model.LeaseState.Broken;
+                        return LeaseState.Broken;
                     case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Expired:
-                        return DataStores.Model.LeaseState.Expired;
+                        return LeaseState.Expired;
                     case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Leased:
-                        return DataStores.Model.LeaseState.Leased;
+                        return LeaseState.Leased;
                     case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Unspecified:
-                        return DataStores.Model.LeaseState.Unspecified;
+                        return LeaseState.Unspecified;
                     default: throw new Exception($"Unhandled LeaseState of '{s}'.");
                 }
             }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Halforbit.DataStores.Extensions
+namespace Halforbit.DataStores
 {
     public static class EnumerableExtensions
     {

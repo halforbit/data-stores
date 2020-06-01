@@ -1,8 +1,6 @@
 ﻿using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Halforbit.DataStores.FileStores.Interface;
-using Halforbit.DataStores.FileStores.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;

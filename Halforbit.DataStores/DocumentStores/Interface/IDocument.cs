@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Halforbit.DataStores.DocumentStores.Interface
+namespace Halforbit.DataStores
 {
     public interface IDocument
     {

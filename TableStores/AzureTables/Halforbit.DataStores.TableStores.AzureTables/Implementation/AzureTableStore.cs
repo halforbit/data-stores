@@ -1,8 +1,5 @@
 ﻿using Halforbit.DataStores.FileStores.Exceptions;
-using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.TableStores.AzureTables.Exceptions;
-using Halforbit.DataStores.Validation.Exceptions;
-using Halforbit.DataStores.Validation.Interface;
 using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;

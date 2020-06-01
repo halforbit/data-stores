@@ -1,7 +1,6 @@
-﻿using Halforbit.DataStores.DocumentStores.Interface;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-namespace Halforbit.DataStores.DocumentStores.Model
+namespace Halforbit.DataStores
 {
     public abstract class Document : IDocument
     {

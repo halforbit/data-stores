@@ -1,6 +1,4 @@
 using Halforbit.DataStores.DocumentStores.CosmosDb.Implementation;
-using Halforbit.DataStores.DocumentStores.Model;
-using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;

@@ -1,8 +1,7 @@
-﻿using Halforbit.DataStores.Validation.Model;
-using Halforbit.ObjectTools.ObjectStringMap.Interface;
+﻿using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.Validation.Interface
+namespace Halforbit.DataStores
 {
     public interface IValidator { }
 

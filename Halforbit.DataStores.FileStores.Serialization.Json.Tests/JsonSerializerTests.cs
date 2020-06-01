@@ -7,7 +7,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using static Halforbit.DataStores.FileStores.Serialization.Json.Model.JsonOptions;
+using static Halforbit.DataStores.JsonOptions;
 using HalforbitJsonSerializer = Halforbit.DataStores.FileStores.Serialization.Json.Implementation.JsonSerializer;
 
 namespace Halforbit.DataStores.FileStores.Serialization.Json.Tests

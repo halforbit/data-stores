@@ -12,7 +12,6 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
-using ISerializer = Halforbit.DataStores.FileStores.Interface.ISerializer;
 
 namespace Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation
 {

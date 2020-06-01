@@ -1,12 +1,10 @@
-﻿using Halforbit.DataStores.Validation.Interface;
-using Halforbit.DataStores.Validation.Model;
-using Halforbit.ObjectTools.ObjectStringMap.Interface;
+﻿using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.Validation.Implementation
+namespace Halforbit.DataStores
 {
     public abstract class ValidatorBase<TKey, TValue> :
         IValidator<TKey, TValue>

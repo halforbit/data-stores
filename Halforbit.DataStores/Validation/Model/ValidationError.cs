@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Halforbit.DataStores.Validation.Model
+namespace Halforbit.DataStores
 {
     public class ValidationError
     {

@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using ISerializer = Halforbit.DataStores.FileStores.Interface.ISerializer;
 
 namespace Halforbit.DataStores.FileStores.Serialization.Delimited
 {

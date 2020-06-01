@@ -1,5 +1,4 @@
-﻿using Halforbit.DataStores.FileStores.Interface;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.FileStores.Serialization
 {

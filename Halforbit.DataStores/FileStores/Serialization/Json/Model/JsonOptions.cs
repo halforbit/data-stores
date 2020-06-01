@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Halforbit.DataStores.FileStores.Serialization.Json.Model
+namespace Halforbit.DataStores
 {
     [Flags]
     public enum JsonOptions

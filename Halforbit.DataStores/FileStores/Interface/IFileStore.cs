@@ -1,10 +1,8 @@
-﻿using Halforbit.DataStores.FileStores.Model;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.FileStores.Interface
+namespace Halforbit.DataStores
 {
     public interface IFileStore
     {

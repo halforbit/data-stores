@@ -3,8 +3,6 @@ using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
-using Halforbit.DataStores.FileStores.Interface;
-using Halforbit.DataStores.FileStores.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Halforbit.DataStores.Validation.Model
+namespace Halforbit.DataStores
 {
     public class ValidationErrors : IReadOnlyList<ValidationError>
     {

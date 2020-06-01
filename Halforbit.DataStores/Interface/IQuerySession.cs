@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Halforbit.DataStores.Interface
+namespace Halforbit.DataStores
 {
     public interface IQuerySession<TKey, TValue> : IDisposable
     {

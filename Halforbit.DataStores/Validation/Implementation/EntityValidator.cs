@@ -1,10 +1,9 @@
-﻿using Halforbit.DataStores.Validation.Model;
-using Halforbit.ObjectTools.Extensions;
+﻿using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using System;
 using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.Validation.Implementation
+namespace Halforbit.DataStores
 {
     public class EntityValidator<TKey, TValue> : ValidatorBase<TKey, TValue>
     {

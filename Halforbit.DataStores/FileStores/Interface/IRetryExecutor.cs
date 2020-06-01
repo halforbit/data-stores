@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.FileStores.Interface
+namespace Halforbit.DataStores
 {
     public interface IRetryExecutor
     {

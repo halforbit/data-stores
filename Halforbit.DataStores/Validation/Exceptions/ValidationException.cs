@@ -1,7 +1,6 @@
-﻿using Halforbit.DataStores.Validation.Model;
-using System;
+﻿using System;
 
-namespace Halforbit.DataStores.Validation.Exceptions
+namespace Halforbit.DataStores
 {
     public class ValidationException : Exception
     {

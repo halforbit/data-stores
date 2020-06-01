@@ -6,7 +6,8 @@
 
 #### 2.3.0
 
-- Moved delimited serialization to a new library, `Halforbit.DataStores.FileStores.Serialization.Delimited`, to better encapsulate the dependency on **CsvHelper**.
+- Changed the namespace of most public types to simply `Halforbit.DataStores`.
+- Moved delimited serialization to a new nuget package, `Halforbit.DataStores.FileStores.Serialization.Delimited`, to better encapsulate the dependency on **CsvHelper**.
 
 ### 2020-05-27
 

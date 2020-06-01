@@ -1,5 +1,4 @@
-﻿using Halforbit.DataStores.FileStores.Interface;
-using SevenZip.Compression.LZMA;
+﻿using SevenZip.Compression.LZMA;
 using System;
 using System.IO;
 using System.Threading.Tasks;

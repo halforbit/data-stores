@@ -2,7 +2,6 @@ using Halforbit.DataStores.FileStores.Compression.GZip.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Json.Model;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;

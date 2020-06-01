@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.FileStores.Interface
+namespace Halforbit.DataStores
 {
     public interface ISerializer
     {

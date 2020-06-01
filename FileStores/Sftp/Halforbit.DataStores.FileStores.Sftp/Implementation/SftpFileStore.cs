@@ -1,6 +1,4 @@
-﻿using Halforbit.DataStores.FileStores.Interface;
-using Halforbit.DataStores.FileStores.Model;
-using Halforbit.DataStores.FileStores.Sftp.Exceptions;
+﻿using Halforbit.DataStores.FileStores.Sftp.Exceptions;
 using Halforbit.Facets.Attributes;
 using Polly;
 using Polly.Retry;

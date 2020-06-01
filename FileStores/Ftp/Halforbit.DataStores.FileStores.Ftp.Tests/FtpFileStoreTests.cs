@@ -1,12 +1,10 @@
 using Halforbit.DataStores.Facets;
 using Halforbit.DataStores.FileStores.Facets;
+using Halforbit.DataStores.FileStores.Ftp.Facets;
+using Halforbit.DataStores.FileStores.Ftp.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Facets;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Json.Model;
-using Halforbit.DataStores.FileStores.Ftp.Facets;
-using Halforbit.DataStores.FileStores.Ftp.Implementation;
-using Halforbit.DataStores.Interface;
 using Halforbit.DataStores.Tests;
 using Halforbit.Facets.Implementation;
 using Halforbit.Facets.Interface;

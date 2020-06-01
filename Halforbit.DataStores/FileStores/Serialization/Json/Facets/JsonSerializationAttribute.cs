@@ -1,5 +1,4 @@
 ﻿using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Json.Model;
 using Halforbit.Facets.Attributes;
 using System;
 

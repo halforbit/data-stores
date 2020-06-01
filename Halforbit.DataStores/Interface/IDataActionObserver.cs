@@ -1,5 +1,5 @@
 ﻿
-namespace Halforbit.DataStores.Interface
+namespace Halforbit.DataStores
 {
     public interface IDataActionObserver
     {

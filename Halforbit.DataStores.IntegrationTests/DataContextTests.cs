@@ -1,6 +1,4 @@
-﻿using Halforbit.DataStores.Implementation;
-using Halforbit.DataStores.Interface;
-using Xunit;
+﻿using Xunit;
 
 namespace Halforbit.DataStores.IntegrationTests
 {

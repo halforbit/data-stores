@@ -1,5 +1,5 @@
 ﻿
-namespace Halforbit.DataStores.FileStores.Model
+namespace Halforbit.DataStores
 {
     public class FileStoreReadAllBytesResult
     {

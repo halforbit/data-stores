@@ -1,5 +1,5 @@
 ﻿
-namespace Halforbit.DataStores.Model
+namespace Halforbit.DataStores
 {
     public enum LeaseState
     {

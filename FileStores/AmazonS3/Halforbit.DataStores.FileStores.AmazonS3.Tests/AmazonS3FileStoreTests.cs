@@ -1,10 +1,8 @@
 using Halforbit.DataStores.FileStores.AmazonS3.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Json.Model;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
-using Microsoft.Extensions.Configuration;
 using System;
 using Xunit;
 
