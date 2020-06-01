@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
+    <Authors>Halforbit</Authors>
+    <Company>Halforbit</Company>
+    <Description>A DataStore Serialization implementation over delimited data like TSV and CSV.</Description>
+    <PackageProjectUrl>http://github.com/halforbit/data-stores</PackageProjectUrl>
+    <RepositoryUrl>http://github.com/halforbit/data-stores</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="15.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Halforbit.DataStores\Halforbit.DataStores.csproj" />
+  </ItemGroup>
+
+</Project>

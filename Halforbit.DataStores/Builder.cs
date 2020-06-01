@@ -1,11 +1,9 @@
-﻿using Castle.DynamicProxy.Contributors;
-using Halforbit.DataStores.DocumentStores.Interface;
+﻿using Halforbit.DataStores.DocumentStores.Interface;
 using Halforbit.DataStores.FileStores;
 using Halforbit.DataStores.FileStores.Compression.GZip.Implementation;
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Delimited;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Model;
 using Halforbit.DataStores.Implementation;
@@ -320,19 +318,6 @@ namespace Halforbit.DataStores
             return new Builder(target.Root.Argument(
                 "serializer",
                 default(Constructable).Type(typeof(ByteSerializer))));
-        }
-
-        public static INeedsCompression DelimitedSerialization(
-            this INeedsSerialization target,
-            string delimiter = Delimiter.Tab,
-            bool hasHeader = true)
-        {
-            return new Builder(target.Root.Argument(
-                "serializer",
-                default(Constructable)
-                    .Type(typeof(DelimitedSerializer))
-                    .Argument(nameof(delimiter), delimiter)
-                    .Argument(nameof(hasHeader), hasHeader)));
         }
 
         public static INeedsFileExtension NoCompression(this INeedsCompression target)

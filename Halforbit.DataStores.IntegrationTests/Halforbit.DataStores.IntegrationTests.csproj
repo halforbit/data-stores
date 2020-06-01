@@ -22,6 +22,7 @@
     <ProjectReference Include="..\FileStores\Ftp\Halforbit.DataStores.FileStores.Ftp\Halforbit.DataStores.FileStores.Ftp.csproj" />
     <ProjectReference Include="..\FileStores\GoogleDrive\Halforbit.DataStores.FileStores.GoogleDrive\Halforbit.DataStores.FileStores.GoogleDrive.csproj" />
     <ProjectReference Include="..\FileStores\Serialization\Bond\Halforbit.DataStores.FileStores.Serialization.Bond\Halforbit.DataStores.FileStores.Serialization.Bond.csproj" />
+    <ProjectReference Include="..\FileStores\Serialization\Delimited\Halforbit.DataStores.FilerStores.Serialization.Delimited\Halforbit.DataStores.FileStores.Serialization.Delimited.csproj" />
     <ProjectReference Include="..\FileStores\Serialization\Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf\Halforbit.DataStores.FileStores.Serialization.Protobuf.csproj" />
     <ProjectReference Include="..\FileStores\Serialization\Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml\Halforbit.DataStores.FileStores.Serialization.Yaml.csproj" />
     <ProjectReference Include="..\FileStores\Sftp\Halforbit.DataStores.FileStores.Sftp\Halforbit.DataStores.FileStores.Sftp.csproj" />
