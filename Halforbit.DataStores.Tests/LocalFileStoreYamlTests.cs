@@ -1,7 +1,6 @@
 using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Yaml.Model;
 using Halforbit.DataStores.Tests;
 using System;
 using System.IO;

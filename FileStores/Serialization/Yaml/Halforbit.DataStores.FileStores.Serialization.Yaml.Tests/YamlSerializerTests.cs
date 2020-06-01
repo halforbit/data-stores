@@ -8,7 +8,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using static Halforbit.DataStores.FileStores.Serialization.Yaml.Model.YamlOptions;
+using static Halforbit.DataStores.YamlOptions;
 
 namespace Halforbit.DataStores.FileStores.Serialization.Yaml.Tests
 {

@@ -1,6 +1,5 @@
 ﻿using Halforbit.DataStores.FileStores;
 using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Yaml.Model;
 using Halforbit.ObjectTools.DeferredConstruction;
 
 namespace Halforbit.DataStores

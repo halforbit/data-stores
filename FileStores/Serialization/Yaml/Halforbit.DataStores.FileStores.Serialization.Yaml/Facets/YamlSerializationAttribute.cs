@@ -1,5 +1,4 @@
 ﻿using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Yaml.Model;
 using Halforbit.Facets.Attributes;
 using System;
 

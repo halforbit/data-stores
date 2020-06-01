@@ -4,6 +4,10 @@
 
 ### 2020-06-01
 
+#### 2.3.2
+
+- Changed the namespace of `YamlOptions` to `Halforbit.DataStores`.
+
 #### 2.3.0
 
 - Changed the namespace of most public types to simply `Halforbit.DataStores`.

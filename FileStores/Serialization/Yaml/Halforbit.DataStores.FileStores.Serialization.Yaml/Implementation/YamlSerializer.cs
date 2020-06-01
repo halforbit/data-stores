@@ -1,5 +1,4 @@
 ﻿using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Yaml.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
