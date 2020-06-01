@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Halforbit.DataStores.FileStores.Serialization.Yaml.Model
+namespace Halforbit.DataStores
 {
     [Flags]
     public enum YamlOptions
