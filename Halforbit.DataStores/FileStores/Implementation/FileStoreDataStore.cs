@@ -378,9 +378,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
             throw new Exception("Failed after all attempts to conditionally upsert.");
         }
 
-        public Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null)
+        public IQueryable<TValue> Query(Expression<Func<TKey, bool>> predicate = null)
         {
-            return Task.FromResult(StartQuery().Query(predicate));
+            return StartQuery().Query(predicate);
         }
 
         public IQuerySession<TKey, TValue> StartQuery()

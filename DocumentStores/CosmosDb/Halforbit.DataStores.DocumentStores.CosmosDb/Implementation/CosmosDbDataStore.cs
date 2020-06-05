@@ -424,9 +424,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null)
+        public IQueryable<TValue> Query(Expression<Func<TKey, bool>> predicate = null)
         {
-            return Task.FromResult(StartQuery().Query(predicate));
+            return StartQuery().Query(predicate);
         }
 
         public IQuerySession<TKey, TValue> StartQuery()
@@ -603,7 +603,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         {
             var tasks = items
                 .Batch(batchSize)
-                .Select(async batch => query(items, await Query(predicate)).AsEnumerable())
+                .Select(batch => Task.Run(() => query(batch, Query(predicate)).AsEnumerable()))
                 .ToList();
 
             await Task.WhenAll(tasks);

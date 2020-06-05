@@ -2,6 +2,13 @@
 
 ## Release Notes
 
+### 2020-06-05
+
+#### 3.0.0
+
+- Changed the `IDataStore<,>.Query()` method from `async` to synchronous, as the `IQueryable` pattern is inherently synchronous, no underlying implementation was actually using `async`, and it complicated the end developer query experience.
+- Fixed a defect in the cosmos implementation of `IDataStore<,>.BatchQuery()` where the full item collection was being used with each batch step instead of just the batch items.
+
 ### 2020-06-01
 
 #### 2.3.2

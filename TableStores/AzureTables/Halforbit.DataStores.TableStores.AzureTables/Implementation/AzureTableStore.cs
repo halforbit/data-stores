@@ -238,7 +238,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null)
+        public IQueryable<TValue> Query(Expression<Func<TKey, bool>> predicate = null)
         {
             throw new NotSupportedException();
         }

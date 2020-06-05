@@ -36,7 +36,7 @@ namespace Halforbit.DataStores
 
         Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator);
 
-        Task<IQueryable<TValue>> Query(Expression<Func<TKey, bool>> predicate = null);
+        IQueryable<TValue> Query(Expression<Func<TKey, bool>> predicate = null);
 
         IQuerySession<TKey, TValue> StartQuery();
 
