@@ -4,6 +4,11 @@
 
 ### 2020-06-10
 
+#### 3.2.0
+
+- Renamed `ExecuteAsync<>()` to `FetchListAsync<>()`
+- Added `FetchFirstOrDefaultAsync<>()`
+
 #### 3.1.0
 
 - Added an `ExecuteAsync<>()` extension method against `IQueryable<>` in the CosmosDb integration, allowing asynchronous materialization of a query into a list.
