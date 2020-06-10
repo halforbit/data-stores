@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-06-10
+
+#### 3.1.0
+
+- Added an `ExecuteAsync<>()` extension method against `IQueryable<>` in the CosmosDb integration, allowing asynchronous materialization of a query into a list.
+
 ### 2020-06-05
 
 #### 3.0.0
