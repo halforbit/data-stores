@@ -4,6 +4,10 @@
 
 ### 2020-06-10
 
+#### 3.2.1
+
+- Added `Serialization<>()` and `Compression<>()` methods to the builder to allow custom `ISerializer` and `ICompressor` implementations to be provided when describing a data store, such as subclasses of `DataSerializer<>`.
+
 #### 3.2.0
 
 - Renamed `ExecuteAsync<>()` to `FetchListAsync<>()`

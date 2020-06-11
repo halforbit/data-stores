@@ -285,6 +285,16 @@ namespace Halforbit.DataStores
 
     public static class FileStoresBuilderExtensions
     {
+        public static INeedsCompression Serialization<TSerializer>(
+            this INeedsSerialization target, 
+            TSerializer serializer) 
+            where TSerializer : ISerializer
+        {
+            return new Builder(target.Root.Argument(
+                "serializer",
+                serializer));
+        }
+
         public static INeedsCompression JsonSerialization(
             this INeedsSerialization target)
         {
@@ -319,6 +329,16 @@ namespace Halforbit.DataStores
         public static INeedsFileExtension NoCompression(this INeedsCompression target)
         {
             return new Builder(target.Root.ArgumentNull("compressor"));
+        }
+
+        public static INeedsFileExtension Compression<TCompressor>(
+            this INeedsCompression target,
+            TCompressor compressor)
+            where TCompressor : ICompressor
+        {
+            return new Builder(target.Root.Argument(
+                "compressor",
+                compressor));
         }
 
         public static INeedsFileExtension GZipCompression(
