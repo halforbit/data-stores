@@ -19,7 +19,7 @@ namespace Halforbit.DataStores.FileStores.Sftp.Implementation
     {
         const int DefaultMaxConcurrentConnections = 10;
 
-        static readonly RetryPolicy _retryPolicy = Policy
+        static readonly AsyncRetryPolicy _retryPolicy = Policy
             .Handle<SftpException>(ex => ex.IsRetryable)
             .WaitAndRetryAsync(
                 retryCount: 5,

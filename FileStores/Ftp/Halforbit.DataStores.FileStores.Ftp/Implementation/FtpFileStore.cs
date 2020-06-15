@@ -18,7 +18,7 @@ namespace Halforbit.DataStores.FileStores.Ftp.Implementation
     {
         const int DefaultMaxConcurrentConnections = 10;
 
-        static readonly RetryPolicy _retryPolicy = Policy
+        static readonly AsyncRetryPolicy _retryPolicy = Policy
             .Handle<FtpException>(ex => ex.IsRetryable)
             .WaitAndRetryAsync(
                 retryCount: 5,
