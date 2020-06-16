@@ -79,10 +79,15 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             do
             {
                 var resultSegment = await _cloudBlobContainer.Value.ListBlobsSegmentedAsync(
-                    pathPrefix,
-                    blobContinuationToken);
+                    prefix: pathPrefix,
+                    useFlatBlobListing: true,
+                    blobListingDetails: BlobListingDetails.None,
+                    maxResults: null,
+                    currentToken: blobContinuationToken,
+                    options: null,
+                    operationContext: null);
 
-                foreach(var item in resultSegment.Results)
+                foreach (var item in resultSegment.Results)
                 {
                     if (item is CloudBlobDirectory cloudBlockDirectory)
                     {

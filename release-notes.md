@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-06-16
+
+### 3.4.0
+
+- Changed the blob file store integration to use a flat listing when listing keys. This results in a substantial performance increase when listing keys of a large and/or highly  hierarchical store.
+
 ### 2020-06-15
 
 ### 3.3.0
