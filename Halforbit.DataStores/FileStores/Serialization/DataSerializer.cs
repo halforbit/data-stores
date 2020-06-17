@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.FileStores.Serialization
+namespace Halforbit.DataStores
 {
     public abstract class DataSerializer<TDataValue> : ISerializer
     {
