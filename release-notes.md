@@ -4,7 +4,7 @@
 
 ### 2020-07-07
 
-### 3.5.2
+### 3.5.3
 
 - Simplified the namespace of `DelmitedSerializer` and `DelimitedBuilderExtensions`
 

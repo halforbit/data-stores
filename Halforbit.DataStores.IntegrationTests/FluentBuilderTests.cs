@@ -10,7 +10,6 @@ using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Bond.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implementation;
-using Halforbit.DataStores.FileStores.Serialization.Delimited;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Yaml.Implementation;
 using Halforbit.DataStores.FileStores.Sftp.Implementation;
