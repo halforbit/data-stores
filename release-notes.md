@@ -2,19 +2,25 @@
 
 ## Release Notes
 
+### 2020-07-07
+
+### 3.5.2
+
+- Simplified the namespace of `DelmitedSerializer` and `DelimitedBuilderExtensions`
+
 ### 2020-06-16
 
-### 3.5.0
+#### 3.5.0
 
 - Simplified the namespace of `DataSerializer<>` to `Halforbit.DataStores`.
 
-### 3.4.0
+#### 3.4.0
 
 - Changed the blob file store integration to use a flat listing when listing keys. This results in a substantial performance increase when listing keys of a large and/or highly hierarchical store.
 
 ### 2020-06-15
 
-### 3.3.0
+#### 3.3.0
 
 - Updated to Polly 7.2.1
 

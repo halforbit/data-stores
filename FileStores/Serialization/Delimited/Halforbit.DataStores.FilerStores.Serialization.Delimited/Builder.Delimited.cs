@@ -1,6 +1,7 @@
-﻿using Halforbit.ObjectTools.DeferredConstruction;
+﻿using Halforbit.DataStores.FileStores;
+using Halforbit.ObjectTools.DeferredConstruction;
 
-namespace Halforbit.DataStores.FileStores.Serialization.Delimited
+namespace Halforbit.DataStores
 {
     public static class DelimitedBuilderExtensions
     {
