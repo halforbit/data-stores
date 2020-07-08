@@ -2,11 +2,17 @@
 
 ## Release Notes
 
+### 2020-07-08
+
+#### 3.5.4
+
+- Fixed a bug where delimited serialization might get a stack overflow exception.
+
 ### 2020-07-07
 
-### 3.5.3
+#### 3.5.3
 
-- Simplified the namespace of `DelmitedSerializer` and `DelimitedBuilderExtensions`
+- Simplified the namespace of `DelmitedSerializer` and `DelimitedBuilderExtensions`.
 
 ### 2020-06-16
 

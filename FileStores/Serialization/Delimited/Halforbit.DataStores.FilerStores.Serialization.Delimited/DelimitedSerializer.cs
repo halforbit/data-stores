@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Halforbit.DataStores
@@ -44,9 +45,12 @@ namespace Halforbit.DataStores
 
                     var castMethod = typeof(Enumerable).GetMethod(nameof(Enumerable.Cast)).MakeGenericMethod(recordType);
 
-                    var records = reader.GetRecords(recordType);
-
-                    var castResult = castMethod.Invoke(null, new[] { records.ToList() });
+                    var castResult = castMethod.Invoke(
+                        null, 
+                        new[] 
+                        { 
+                            reader.GetRecords(recordType).ToList() 
+                        });
 
                     if (genericType.Equals(typeof(IEnumerable<>)))
                     {
