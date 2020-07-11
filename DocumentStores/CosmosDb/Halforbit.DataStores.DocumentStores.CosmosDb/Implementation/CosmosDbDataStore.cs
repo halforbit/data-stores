@@ -95,7 +95,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                     connectionString: connectionString,
                     clientOptions: new CosmosClientOptions
                     {
-                        AllowBulkExecution = true
+                        AllowBulkExecution = false
                     })
                 .GetContainer(
                     databaseId: databaseId,

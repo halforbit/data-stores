@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-07-11
+
+#### 3.6.0
+
+- Disabled always-on bulk execution for the CosmosDb integration. Bulk execution will be reintroduced later using overloads of relevant `IDataStore<,>` methods to receive collections of values.
+
 ### 2020-07-08
 
 #### 3.5.4
