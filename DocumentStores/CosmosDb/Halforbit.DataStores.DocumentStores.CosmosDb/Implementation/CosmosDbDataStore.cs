@@ -167,7 +167,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             try
             {
                 await Execute(() => _container.Value.CreateItemAsync(
-                    item: value)).ConfigureAwait(false);
+                    item: value,
+                    partitionKey: GetCosmosPartitionKey(partitionKey))).ConfigureAwait(false);
 
                 return true;
             }
@@ -191,15 +192,13 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
 
             foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
-
+            
             try
             {
                 await Execute(() => _container.Value
-                    .DeleteItemAsync<TValue>(
-                        id: documentId,
-                        partitionKey: partitionKey != null ? 
-                            new PartitionKey(partitionKey) : 
-                            PartitionKey.None))
+                        .DeleteItemAsync<TValue>(
+                            id: documentId,
+                            partitionKey: GetCosmosPartitionKey(partitionKey) ?? PartitionKey.None))
                     .ConfigureAwait(false);
 
                 return true;
@@ -229,9 +228,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 var item = await Execute(
                     () => _container.Value.ReadItemAsync<TValue>(
                         id: documentId,
-                        partitionKey: partitionKey != null ? 
-                            new PartitionKey(partitionKey) : 
-                            PartitionKey.None))
+                        partitionKey: GetCosmosPartitionKey(partitionKey) ?? PartitionKey.None))
                     .ConfigureAwait(false);
 
                 return item;
@@ -267,10 +264,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 queryDefinition: new QueryDefinition(query),
                 requestOptions: new QueryRequestOptions
                 {
-                    PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
-                        new PartitionKey(partitionKey) :
-                        null as PartitionKey?,
-
+                    PartitionKey = GetCosmosPartitionKey(partitionKey),
                     MaxItemCount = -1
                 });
 
@@ -320,10 +314,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 queryDefinition: new QueryDefinition(query),
                 requestOptions: new QueryRequestOptions
                 {
-                    PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
-                        new PartitionKey(partitionKey) :
-                        null as PartitionKey?,
-
+                    PartitionKey = GetCosmosPartitionKey(partitionKey),
                     MaxItemCount = -1
                 });
 
@@ -378,7 +369,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
                 await Execute(() => _container.Value.ReplaceItemAsync(
                     item: value,
-                    id: documentId)).ConfigureAwait(false);
+                    id: documentId,
+                    partitionKey: GetCosmosPartitionKey(partitionKey)))
+                    .ConfigureAwait(false);
 
                 return true;
             }
@@ -409,7 +402,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             await Execute(() => _container.Value.UpsertItemAsync(
                 item: value,
-                partitionKey: default)).ConfigureAwait(false);
+                partitionKey: GetCosmosPartitionKey(partitionKey))).ConfigureAwait(false);
         }
 
         public async Task Upsert(
@@ -578,6 +571,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 throw new ArgumentException($"TValue {typeof(TValue).Name} is neither {nameof(IDocument)} nor {nameof(JObject)}.");
             }
         }
+
+        static PartitionKey? GetCosmosPartitionKey(
+            string partitionKey) => !string.IsNullOrWhiteSpace(partitionKey) ? new PartitionKey(partitionKey) : (PartitionKey?) null;
 
         async Task<TValue> MutatePut(TKey key, TValue value)
         {
