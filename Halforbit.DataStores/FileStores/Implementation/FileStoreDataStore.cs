@@ -124,6 +124,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
             return true;
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkCreate(values);
+        }
+
         public async Task<bool> Delete(TKey key)
         {
             await ValidateDelete(key);
@@ -142,6 +148,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
             await _fileStore.Delete(path).ConfigureAwait(false);
 
             return true;
+        }
+
+        public Task<IReadOnlyList<KeyValuePair<TKey,bool>>> Delete(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkDelete(keys);
         }
 
         public async Task<bool> Exists(TKey key)
@@ -165,6 +177,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey,TValue>>> Get(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkGet(keys);
+        }
+
         public async Task<IEnumerable<TKey>> ListKeys(
             Expression<Func<TKey, bool>> predicate = null)
         {
@@ -174,51 +192,35 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public async Task<IEnumerable<TValue>> ListValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
+            if (_valueIsStream)
+            {
+                throw new NotSupportedException();
+            }
+            
             var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
-            var tasks = keys
-                .Select(async keyPath =>
-                {
-                    if (_valueIsStream)
-                    {
-                        throw new NotSupportedException();
-                    }
-                    else
-                    {
-                        return await GetValue($"{keyPath.Value}{_fileExtension}").ConfigureAwait(false);
-                    }
-                })
-                .ToArray();
+            var values = await keys.ParallelSelectAsync(keyPath =>
+                GetValue($"{keyPath.Value}{_fileExtension}"),
+                maxPending: DataStoresConcurrency.MaxOperations).ConfigureAwait(false);
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            return tasks
-                .Select(t => t.Result)
-                .Where(e => !e.IsDefaultValue());
+            return values.Where(e => !e.IsDefaultValue());
         }
 
         public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
             Expression<Func<TKey, bool>> predicate)
         {
-            var tasks = (await ResolveKeyPaths(predicate).ConfigureAwait(false))
-                .Select(async kv =>
-                {
-                    if (_valueIsStream)
-                    {
-                        throw new NotSupportedException();
-                    }
-                    else
-                    {
-                        return new KeyValuePair<TKey, TValue>(
-                            kv.Key,
-                            await GetValue($"{kv.Value}{_fileExtension}"));
-                    }
-                })
-                .ToArray();
+            if (_valueIsStream)
+            {
+                throw new NotSupportedException();
+            }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
-            return tasks.Select(t => t.Result);
+            var values = await keys.ParallelSelectAsync(async kv =>
+                    new KeyValuePair<TKey, TValue>(kv.Key, await GetValue($"{kv.Value}{_fileExtension}")),
+                maxPending: DataStoresConcurrency.MaxOperations).ConfigureAwait(false);
+
+            return values;
         }
 
         public async Task<bool> Update(
@@ -252,6 +254,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
             return true;
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey,bool>>> Update(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpdate(values);
+        }
+
         public async Task Upsert(
             TKey key,
             TValue value)
@@ -274,6 +282,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
             }
+        }
+
+        public Task Upsert(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpsert(values);
         }
 
         public async Task Upsert(

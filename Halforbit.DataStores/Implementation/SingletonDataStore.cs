@@ -20,11 +20,11 @@ namespace Halforbit.DataStores.Implementation
 
         public Task<bool> Create(TValue value) => _source.Create(null, value);
 
-        public Task<bool> Delete() => _source.Delete(null);
+        public Task<bool> Delete() => _source.Delete((object)null);
 
         public Task<bool> Exists() => _source.Exists(null);
 
-        public Task<TValue> Get() => _source.Get(null);
+        public Task<TValue> Get() => _source.Get((object)null);
 
         public Task<bool> GetToStream(Stream stream) => _source.GetToStream(null, stream);
 

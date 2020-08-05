@@ -108,6 +108,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             return true;
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkCreate(values);
+        }
+
         public async Task<bool> Delete(TKey key)
         {
             await ValidateDelete(key);
@@ -135,6 +141,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             return true;
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkDelete(keys);
+        }
+
         public async Task<bool> Exists(TKey key)
         {
             var id = GetDocumentId(key);
@@ -155,6 +167,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             {
                 return session.Load<TValue>(id);
             }
+        }
+
+        public Task<IReadOnlyList<KeyValuePair<TKey, TValue>>> Get(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkGet(keys);
         }
 
         public async Task<IEnumerable<TKey>> ListKeys(
@@ -234,6 +252,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             return true;
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpdate(values);
+        }
+
         public async Task Upsert(TKey key, TValue value)
         {
             value = await MutatePut(key, value);
@@ -250,6 +274,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
+        }
+
+        public Task Upsert(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpsert(values);
         }
 
         public Task Upsert(TKey key, Func<TValue, TValue> mutator)

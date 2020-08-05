@@ -125,6 +125,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
                 HttpStatusCode.NoContent);
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkCreate(values);
+        }
+
         public async Task<bool> Delete(TKey key)
         {
             var existingTableEntity = await GetTableEntity(key);
@@ -145,6 +151,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
                 HttpStatusCode.NoContent);
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkDelete(keys);
+        }
+
         public async Task<bool> Exists(TKey key)
         {
             return await Get(key) != null;
@@ -157,6 +169,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             return tableEntity == null
                 ? default(TValue)
                 : tableEntity.OriginalEntity;
+        }
+
+        public Task<IReadOnlyList<KeyValuePair<TKey, TValue>>> Get(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkGet(keys);
         }
 
         public async Task<IEnumerable<TKey>> ListKeys(Expression<Func<TKey, bool>> predicate = null)
@@ -201,6 +219,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
                 HttpStatusCode.NoContent);
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpdate(values);
+        }
+
         public async Task Upsert(TKey key, TValue value)
         {
             value = await MutatePut(key, value);
@@ -214,6 +238,12 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             await ExecuteTableOperationAsync(
                 TableOperation.InsertOrReplace(tableEntity), 
                 HttpStatusCode.NoContent);
+        }
+
+        public Task Upsert(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpsert(values);
         }
 
         public async Task Upsert(TKey key, Func<TValue, TValue> mutator)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Halforbit.DataStores
 {
@@ -90,6 +92,57 @@ namespace Halforbit.DataStores
                     }
                 }
             }
+        }
+    
+        
+        internal static async Task<IReadOnlyList<TOut>> ParallelSelectAsync<TIn, TOut>(this IEnumerable<TIn> inputs, Func<TIn, Task<TOut>> mutator, CancellationTokenSource cancellationTokenSource = null, int maxPending = int.MinValue)
+        {
+            var maxParallel = maxPending > 0 ? maxPending : 64;
+            var semaphore = new SemaphoreSlim(maxParallel);
+
+            var cts = cancellationTokenSource ?? new CancellationTokenSource();
+
+            async Task<TOut> Wrapper(TIn input, Func<TIn, Task<TOut>> asyncMutator, CancellationToken token)
+            {
+                await semaphore.WaitAsync(token).ConfigureAwait(false);
+                try
+                {
+                    return await asyncMutator(input).ConfigureAwait(false);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }
+
+            var tasks = inputs.Select(i => Wrapper(i, mutator, cts.Token)).ToList();
+
+            return await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+        
+        internal static async Task ParallelForEachAsync<TIn>(this IEnumerable<TIn> inputs, Func<TIn, Task> asyncFunc, CancellationTokenSource cancellationTokenSource = null, int maxPending = int.MinValue)
+        {
+            var maxParallel = maxPending > 0 ? maxPending : 64;
+            var semaphore = new SemaphoreSlim(maxParallel);
+
+            var cts = cancellationTokenSource ?? new CancellationTokenSource();
+
+            async Task Wrapper(TIn input, Func<TIn, Task> asyncMutator, CancellationToken token)
+            {
+                await semaphore.WaitAsync(token);
+                try
+                {
+                    await asyncMutator(input);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }
+
+            var tasks = inputs.Select(i => Wrapper(i, asyncFunc, cts.Token)).ToList();
+
+            await Task.WhenAll(tasks);
         }
     }
 }
