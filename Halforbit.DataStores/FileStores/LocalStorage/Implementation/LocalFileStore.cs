@@ -184,7 +184,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Implementation
             }
         }
 
-        string LocalizePath(string path) => Path.Combine(_rootPath, path.Replace("/", "\\"));
+        string LocalizePath(string path) => Path.Combine(_rootPath, path.Replace("\\", "/"));
 
         string PathToKeyString(string f)
         {

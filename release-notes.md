@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-08-05
+
+#### 3.7.0
+
+- Changed local storage to use forward slashes instead of backslash to work properly under both Linux and Windows.
+
 ### 2020-07-11
 
 #### 3.6.0
