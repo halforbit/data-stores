@@ -7,6 +7,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
@@ -145,6 +146,30 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
                     return testValueA;
                 })
                 .Wait();
+        }
+        
+        [Fact, Trait("Type", "Integration")]
+        public async Task RunBulkApiTests()
+        {
+            var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
+                fileStore: new BlobFileStore(
+                    GetConfig("ConnectionString"),
+                    "test-kvs",
+                    "application/json"),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
+                keyMap: "test-values/{AccountId}",
+                fileExtension: ".json");
+
+            ClearDataStore(dataStore);
+     
+            await TestBulkApi(dataStore,
+                (keyGen, dataGen) =>
+                {
+                    var accountId = keyGen.ToGuid();
+
+                    return new KeyValuePair<TestValue.Key, TestValue>(new TestValue.Key(accountId),
+                        new TestValue(accountId, $"Test: {dataGen}"));
+                });
         }
     }
 

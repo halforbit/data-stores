@@ -1,7 +1,9 @@
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Halforbit.DataStores.DocumentStores.PostgresMarten.Tests
@@ -43,6 +45,24 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten.Tests
             {
                 throw;
             }
+        }
+        
+        [Fact, Trait("Type", "Integration")]
+        public async Task RunBulkApiTests()
+        {
+            var dataStore = new PostgresMartenDataStore<TestValue.Key, TestValue>(
+                connectionString: "User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=postgres",
+                keyMap: "test-values/{AccountId}");
+            
+            ClearDataStore(dataStore);
+         
+            await TestBulkApi(dataStore,
+                (keyGen, dataGen) =>
+                {
+                    var accountId = keyGen.ToGuid();
+                    return new KeyValuePair<TestValue.Key, TestValue>(new TestValue.Key(accountId),
+                        new TestValue(accountId, $"Test: {dataGen}"));
+                });
         }
 
         static void TestQuery(IDataStore<TestValue.Key, TestValue> dataStore)

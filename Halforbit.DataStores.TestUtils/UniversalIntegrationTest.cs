@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Halforbit.DataStores.Tests
@@ -131,16 +132,73 @@ namespace Halforbit.DataStores.Tests
             Assert.False(secondDeleteResult);
         }
 
+        protected static async Task TestBulkApi<TKey, TValue>(
+            IDataStore<TKey, TValue> dataStore,
+            Func<int, int, KeyValuePair<TKey, TValue>> dataGenerator)
+            where TKey : IEquatable<TKey>
+            where TValue : IEquatable<TValue>
+        {
+            IReadOnlyList<KeyValuePair<TKey, TValue>> GenerateDataWithMod(
+                int count,
+                int mod)
+            {
+                var d =  new List<KeyValuePair<TKey, TValue>>();
+                for (var i = 0; i < count; i++)
+                {
+                    d.Add(dataGenerator(i, i * mod));
+                }
+
+                return d;
+            }
+
+            var bulkData = GenerateDataWithMod(150, 1);
+            
+            void AssertSequenceEqual<T>(
+                IEnumerable<T> expected,
+                IEnumerable<T> actual)
+            {
+                //Sort the collections by hash code before checking for sequence equality.
+                Assert.Equal(expected.OrderBy(x => x.GetHashCode()),
+                    actual.OrderBy(x => x.GetHashCode()));
+            }
+            
+            var createResult = await dataStore.Create(bulkData);
+            Assert.True(createResult.All(kvp => kvp.Value));
+
+            var listKeysResult = await dataStore.ListKeys();
+            AssertSequenceEqual(bulkData.Select(x => x.Key), listKeysResult);
+
+            var listKeyValuesResult = await dataStore.ListKeyValues();
+            AssertSequenceEqual(bulkData, listKeyValuesResult);
+
+            var updatedData = GenerateDataWithMod(150, 5);
+            
+            var updateResult = await dataStore.Update(updatedData);
+            Assert.True(updateResult.All(kvp => kvp.Value));
+
+            var updatedValuesResult = await dataStore.ListKeyValues();
+            AssertSequenceEqual(updatedData, updatedValuesResult);
+
+            var upsertData = GenerateDataWithMod(200, 10);
+            await dataStore.Upsert(upsertData);
+
+            var upsertValuesResult = await dataStore.ListKeyValues();
+            AssertSequenceEqual(upsertData, upsertValuesResult);
+
+            var deleteResult = await dataStore.Delete(upsertData.Select(k => k.Key));
+            Assert.True(deleteResult.All(r => r.Value));
+
+            Assert.Empty(await dataStore.ListKeys());
+        }
+
         protected static void ClearDataStore<TKey, TValue>(IDataStore<TKey, TValue> dataStore)
         {
-            foreach (var k in dataStore.ListKeys().Result)
-            {
-                var deleted = dataStore.Delete(k).Result;
+            var keys = dataStore.ListKeys().Result;
 
-                if (!deleted)
-                {
-                    throw new Exception("Failed to clear data store");
-                }
+            var deleted = dataStore.Delete(keys).Result;
+            if (deleted.Any(kvp => !kvp.Value))
+            {
+                throw new Exception("Failed to clear data store");
             }
         }
 
@@ -164,7 +222,7 @@ namespace Halforbit.DataStores.Tests
             Guid? AccountId { get; }
         }
 
-        public class TestValue : Document
+        public class TestValue : Document, IEquatable<TestValue>
         {
             public TestValue(
                 Guid accountId = default(Guid),
@@ -179,7 +237,66 @@ namespace Halforbit.DataStores.Tests
 
             public string Message { get; }
 
-            public class Key : UniversalIntegrationTest.ITestKey
+            public bool Equals(
+                TestValue other)
+            {
+                if (ReferenceEquals(null, other))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
+                return AccountId.Equals(other.AccountId) && Message == other.Message;
+            }
+
+            public override bool Equals(
+                object obj)
+            {
+                if (ReferenceEquals(null, obj))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                if (obj.GetType() != this.GetType())
+                {
+                    return false;
+                }
+
+                return Equals((TestValue) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (AccountId.GetHashCode() * 397) ^ (Message != null ? Message.GetHashCode() : 0);
+                }
+            }
+
+            public static bool operator ==(
+                TestValue left,
+                TestValue right)
+            {
+                return Equals(left, right);
+            }
+
+            public static bool operator !=(
+                TestValue left,
+                TestValue right)
+            {
+                return !Equals(left, right);
+            }
+            
+            public class Key : UniversalIntegrationTest.ITestKey, IEquatable<Key>
             {
                 public Key(Guid? accountId)
                 {
@@ -187,7 +304,64 @@ namespace Halforbit.DataStores.Tests
                 }
 
                 public Guid? AccountId { get; }
+
+                public bool Equals(
+                    Key other)
+                {
+                    if (ReferenceEquals(null, other))
+                    {
+                        return false;
+                    }
+
+                    if (ReferenceEquals(this, other))
+                    {
+                        return true;
+                    }
+
+                    return Nullable.Equals(AccountId, other.AccountId);
+                }
+
+                public override bool Equals(
+                    object obj)
+                {
+                    if (ReferenceEquals(null, obj))
+                    {
+                        return false;
+                    }
+
+                    if (ReferenceEquals(this, obj))
+                    {
+                        return true;
+                    }
+
+                    if (obj.GetType() != this.GetType())
+                    {
+                        return false;
+                    }
+
+                    return Equals((Key) obj);
+                }
+
+                public override int GetHashCode()
+                {
+                    return AccountId.GetHashCode();
+                }
+
+                public static bool operator ==(
+                    Key left,
+                    Key right)
+                {
+                    return Equals(left, right);
+                }
+
+                public static bool operator !=(
+                    Key left,
+                    Key right)
+                {
+                    return !Equals(left, right);
+                }
             }
+
         }
     }
 }
