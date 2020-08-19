@@ -53,6 +53,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         
         readonly Lazy<Container> _bulkContainer;
         
+        readonly string _connectionString;
+
+        readonly string _databaseId;	
+
+        readonly string _containerId;
+        
         readonly StringMap<TKey> _keyMap;
 
         readonly StringMap<TKey> _keyMapWithoutPartitionKey;
@@ -84,6 +90,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             [Optional]IReadOnlyList<IMutator<TKey, TValue>> typedMutators = null,
             [Optional]IReadOnlyList<IMutator> untypedMutators = null)
         {
+            _connectionString = connectionString;
+            
+            _databaseId = databaseId;
+            
+            _containerId = containerId;
+            
             _container = new Lazy<Container>(() =>
                 new CosmosClient(
                         connectionString: connectionString,
