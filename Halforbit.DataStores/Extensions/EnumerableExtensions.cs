@@ -129,10 +129,10 @@ namespace Halforbit.DataStores
 
             async Task Wrapper(TIn input, Func<TIn, Task> asyncMutator, CancellationToken token)
             {
-                await semaphore.WaitAsync(token);
+                await semaphore.WaitAsync(token).ConfigureAwait(false);
                 try
                 {
-                    await asyncMutator(input);
+                    await asyncMutator(input).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -142,7 +142,7 @@ namespace Halforbit.DataStores
 
             var tasks = inputs.Select(i => Wrapper(i, asyncFunc, cts.Token)).ToList();
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }

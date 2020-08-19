@@ -233,7 +233,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Implementation
             {
                 using (var file = File.Create(localPath))
                 {
-                    await contents.CopyToAsync(file);
+                    await contents.CopyToAsync(file).ConfigureAwait(false);
                 }
 
                 return true;
@@ -257,7 +257,7 @@ namespace Halforbit.DataStores.FileStores.LocalStorage.Implementation
 
             using (var file = File.OpenRead(path))
             {
-                await file.CopyToAsync(contents);
+                await file.CopyToAsync(contents).ConfigureAwait(false);
             }
 
             return true;

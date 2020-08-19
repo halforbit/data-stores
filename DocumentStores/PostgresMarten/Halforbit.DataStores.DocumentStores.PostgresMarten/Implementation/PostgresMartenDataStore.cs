@@ -83,9 +83,9 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Create(TKey key, TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
             var id = value.Id = GetDocumentId(key);
 
@@ -98,7 +98,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                     return false;
                 }
 
-                await ObserveBeforePut(key, value);
+                await ObserveBeforePut(key, value).ConfigureAwait(false);
 
                 session.Insert(value);
 
@@ -116,7 +116,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Delete(TKey key)
         {
-            await ValidateDelete(key);
+            await ValidateDelete(key).ConfigureAwait(false);
 
             var id = GetDocumentId(key);
 
@@ -129,9 +129,11 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                     return false;
                 }
 
-                foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
+                foreach (var observer in _typedObservers)
+                    await observer.BeforeDelete(key).ConfigureAwait(false);
 
-                foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
+                foreach (var observer in _untypedObservers)
+                    await observer.BeforeDelete(key).ConfigureAwait(false);
 
                 session.Delete<TValue>(id);
 
@@ -227,9 +229,9 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Update(TKey key, TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
             var id = value.Id = GetDocumentId(key);
 
@@ -242,7 +244,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                     return false;
                 }
 
-                await ObserveBeforePut(key, value);
+                await ObserveBeforePut(key, value).ConfigureAwait(false);
 
                 session.Update(value);
 
@@ -260,13 +262,13 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task Upsert(TKey key, TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
             var id = value.Id = GetDocumentId(key);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             using (var session = _documentStore.LightweightSession())
             {
@@ -298,7 +300,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         {
             if (_validator != null)
             {
-                var validationErrors = await _validator.ValidatePut(key, value, _keyMap);
+                var validationErrors = await _validator.ValidatePut(key, value, _keyMap).ConfigureAwait(false);
 
                 if (validationErrors?.Any() ?? false)
                 {
@@ -311,7 +313,7 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         {
             if (_validator != null)
             {
-                var validationErrors = await _validator.ValidateDelete(key, _keyMap);
+                var validationErrors = await _validator.ValidateDelete(key, _keyMap).ConfigureAwait(false);
 
                 if (validationErrors?.Any() ?? false)
                 {
@@ -343,18 +345,22 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         async Task<TValue> MutatePut(TKey key, TValue value)
         {
-            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+            foreach (var mutator in _typedMutators)
+                value = await mutator.MutatePut(key, value).ConfigureAwait(false);
 
-            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+            foreach (var mutator in _untypedMutators) 
+                value = (TValue)await mutator.MutatePut(key, value).ConfigureAwait(false);
 
             return value;
         }
 
         async Task ObserveBeforePut(TKey key, TValue value)
         {
-            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _typedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
 
-            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _untypedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
         }
 
         public Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(

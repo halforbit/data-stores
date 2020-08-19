@@ -32,7 +32,7 @@ namespace Halforbit.DataStores.FileStores.Web.Implementation
 
             try
             {
-                var response = await request.GetResponseAsync();
+                var response = await request.GetResponseAsync().ConfigureAwait(false);
 
                 return true;
             }
@@ -61,7 +61,7 @@ namespace Halforbit.DataStores.FileStores.Web.Implementation
 
             try
             {
-                var response = await request.GetResponseAsync();
+                var response = await request.GetResponseAsync().ConfigureAwait(false);
 
                 return new FileStoreReadAllBytesResult(
                     bytes: ReadFully(response.GetResponseStream()));

@@ -97,9 +97,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
             var path = GetPath(key);
 
@@ -108,7 +108,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 return false;
             }
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             if (_valueIsStream)
             {
@@ -132,7 +132,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public async Task<bool> Delete(TKey key)
         {
-            await ValidateDelete(key);
+            await ValidateDelete(key).ConfigureAwait(false);
 
             var path = GetPath(key);
 
@@ -227,9 +227,9 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
             var path = GetPath(key);
 
@@ -238,7 +238,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 return false;
             }
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             if (_valueIsStream)
             {
@@ -264,13 +264,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
             var path = GetPath(key);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             if (_valueIsStream)
             {
@@ -302,11 +302,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
             {
                 var current = await GetValueWithETag(path).ConfigureAwait(false);
 
-                var mutation = await MutatePut(key, mutator(current.Item1));
+                var mutation = await MutatePut(key, mutator(current.Item1)).ConfigureAwait(false);
 
-                await ValidatePut(key, mutation);
+                await ValidatePut(key, mutation).ConfigureAwait(false);
 
-                await ObserveBeforePut(key, mutation);
+                await ObserveBeforePut(key, mutation).ConfigureAwait(false);
 
                 var success = default(bool);
 
@@ -352,11 +352,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
             {
                 var current = await GetValueWithETag(path).ConfigureAwait(false);
 
-                var mutation = await MutatePut(key, await mutator(current.Item1));
+                var mutated = await mutator(current.Item1).ConfigureAwait(false);
+                var mutation = await MutatePut(key, mutated).ConfigureAwait(false);
 
-                await ValidatePut(key, mutation);
+                await ValidatePut(key, mutation).ConfigureAwait(false);
 
-                await ObserveBeforePut(key, mutation);
+                await ObserveBeforePut(key, mutation).ConfigureAwait(false);
 
                 var success = default(bool);
 
@@ -540,7 +541,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         {
             if (_validator != null)
             {
-                var validationErrors = await _validator.ValidatePut(key, value, _keyMap);
+                var validationErrors = await _validator.ValidatePut(key, value, _keyMap).ConfigureAwait(false);;
 
                 if (validationErrors?.Any() ?? false)
                 {
@@ -553,7 +554,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         {
             if (_validator != null)
             {
-                var validationErrors = await _validator.ValidateDelete(key, _keyMap);
+                var validationErrors = await _validator.ValidateDelete(key, _keyMap).ConfigureAwait(false);;
 
                 if (validationErrors?.Any() ?? false)
                 {
@@ -564,25 +565,29 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         async Task<TValue> MutatePut(TKey key, TValue value)
         {
-            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+            foreach (var mutator in _typedMutators)
+                value = await mutator.MutatePut(key, value).ConfigureAwait(false);
 
-            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+            foreach (var mutator in _untypedMutators)
+                value = (TValue)await mutator.MutatePut(key, value).ConfigureAwait(false);
 
             return value;
         }
 
         async Task ObserveBeforePut(TKey key, TValue value)
         {
-            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _typedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
 
-            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _untypedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
         }
 
         public async Task<bool> GetToStream(TKey key, Stream stream)
         {
             var path = GetPath(key);
 
-            return await _fileStore.ReadStream(path, stream);
+            return await _fileStore.ReadStream(path, stream).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(
@@ -657,17 +662,17 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public async Task<string> AcquireLease(TKey key, TimeSpan leaseTime)
             {
-                return await _fileStoreContext.AcquireLease(GetPath(key), leaseTime);
+                return await _fileStoreContext.AcquireLease(GetPath(key), leaseTime).ConfigureAwait(false);
             }
 
             public async Task BreakLease(TKey key, TimeSpan breakReleaseTime)
             {
-                await _fileStoreContext.BreakLease(GetPath(key), breakReleaseTime);
+                await _fileStoreContext.BreakLease(GetPath(key), breakReleaseTime).ConfigureAwait(false);
             }
 
             public async Task<string> ChangeLease(TKey key, string currentLeaseId)
             {
-                return await _fileStoreContext.ChangeLease(GetPath(key), currentLeaseId);
+                return await _fileStoreContext.ChangeLease(GetPath(key), currentLeaseId).ConfigureAwait(false);
             }
 
             public async Task<EntityInfo> GetEntityInfo(TKey key)
@@ -684,7 +689,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 TKey key,
                 bool percentDecodeValues = true)
             {
-                var keyValues = await _fileStoreContext.GetMetadata(GetPath(key), percentDecodeValues).ConfigureAwait(false);
+                var keyValues = await _fileStoreContext.GetMetadata(GetPath(key),
+                    percentDecodeValues).ConfigureAwait(false);
 
                 return keyValues;
             }
@@ -714,12 +720,12 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             public async Task ReleaseLease(TKey key, string leaseId)
             {
-                await _fileStoreContext.ReleaseLease(GetPath(key), leaseId);
+                await _fileStoreContext.ReleaseLease(GetPath(key), leaseId).ConfigureAwait(false);
             }
 
             public async Task RenewLease(TKey key, string leaseId)
             {
-                await _fileStoreContext.RenewLease(GetPath(key), leaseId);
+                await _fileStoreContext.RenewLease(GetPath(key), leaseId).ConfigureAwait(false);
             }
 
             public async Task SetEntityInfo(

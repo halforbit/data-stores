@@ -180,13 +180,13 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key,
             TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
             
             SetDocumentId(value, documentId);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             try
             {
@@ -226,10 +226,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key)
         {
             await ValidateDelete(key).ConfigureAwait(false);
-            
-            foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
 
-            foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
+            foreach (var observer in _typedObservers)
+                await observer.BeforeDelete(key).ConfigureAwait(false);
+
+            foreach (var observer in _untypedObservers)
+                await observer.BeforeDelete(key).ConfigureAwait(false);
             
             try
             {
@@ -330,7 +332,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             while (iterator.HasMoreResults)
             {
-                foreach (var item in await iterator.ReadNextAsync())
+                foreach (var item in await iterator.ReadNextAsync().ConfigureAwait(false))
                 {
                     var id = item.Value<string>("id");
 
@@ -351,7 +353,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public async Task<IEnumerable<TValue>> ListValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListKeyValues(predicate)).Select(kv => kv.Value);
+            return (await ListKeyValues(predicate).ConfigureAwait(false)).Select(kv => kv.Value);
         }
 
         public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
@@ -378,7 +380,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             while (iterator.HasMoreResults)
             {
-                foreach (var item in await iterator.ReadNextAsync())
+                foreach (var item in await iterator.ReadNextAsync().ConfigureAwait(false))
                 {
                     var id = item.Value<string>("id");
 
@@ -424,11 +426,11 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
             
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             try
             {
@@ -474,13 +476,13 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key,
             TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
             
             SetDocumentId(value, documentId);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             await Execute(() => _container.Value.UpsertItemAsync(
                 item: value,
@@ -572,7 +574,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             return (partitionKey, idPrefix);
         }
 
-        static async Task<V> Execute<V>(Func<Task<V>> func) => await _retryPolicy.ExecuteAsync(func);
+        static async Task<V> Execute<V>(Func<Task<V>> func) => await _retryPolicy.ExecuteAsync(func).ConfigureAwait(false);
         
         (string PartitionKey, string DocumentId) GetDocumentId(TKey key)
         {
@@ -667,18 +669,22 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         async Task<TValue> MutatePut(TKey key, TValue value)
         {
-            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+            foreach (var mutator in _typedMutators) 
+                value = await mutator.MutatePut(key, value).ConfigureAwait(false);
 
-            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+            foreach (var mutator in _untypedMutators)
+                value = (TValue)await mutator.MutatePut(key, value).ConfigureAwait(false);
 
             return value;
         }
 
         async Task ObserveBeforePut(TKey key, TValue value)
         {
-            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _typedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
 
-            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _untypedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(
@@ -692,7 +698,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 .Select(batch => Task.Run(() => query(batch, Query(predicate)).AsEnumerable()))
                 .ToList();
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return tasks.SelectMany(t => t.Result);
         }
@@ -712,16 +718,16 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 semaphore.Release();
             }
         }
-        
+
         private async Task<IReadOnlyList<KeyValuePair<TKey, TOut>>> BulkOperation<TOut>(
             IEnumerable<KeyValuePair<TKey, TValue>> values,
             Func<Container, string, string, TKey, TValue, Task<TOut>> operation)
         {
             var partitionGroups = GroupByPartition(values);
             var semaphore = new SemaphoreSlim(DataStoresConcurrency.MaxOperations);
-            var tasks = new List<Task<KeyValuePair<TKey,TOut>>>();
+            var tasks = new List<Task<KeyValuePair<TKey, TOut>>>();
             var bulkTasks = new List<Task<KeyValuePair<TKey, TOut>[]>>();
-            
+
             foreach (var grp in partitionGroups)
             {
                 foreach (var batch in grp.Batch(BulkApiMaxOpsPerRequest))
@@ -729,41 +735,43 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                     var useBulk = batch.Count() > BulkApiMinOpsPerPartition;
                     if (useBulk)
                     {
-                        bulkTasks.Add(OperationWrapper(semaphore, batch,
+                        bulkTasks.Add(OperationWrapper(semaphore,
+                            batch,
                             async b =>
                             {
                                 var results = b.Select(async i => new KeyValuePair<TKey, TOut>(i.Key,
-                                    await operation(_bulkContainer.Value, i.PartitionKey, i.DocumentId, i.Key, i.Value)));
+                                    await operation(_bulkContainer.Value, i.PartitionKey, i.DocumentId, i.Key, i.Value).ConfigureAwait(false)));
 
-                                return await Task.WhenAll(results);
+                                return await Task.WhenAll(results).ConfigureAwait(false);
                             }));
                     }
                     else
                     {
-                        tasks.AddRange(batch.Select(item => OperationWrapper(semaphore, item,
+                        tasks.AddRange(batch.Select(item => OperationWrapper(semaphore,
+                            item,
                             async i =>
-                                new KeyValuePair<TKey, TOut>(i.Key, await operation(_container.Value, i.PartitionKey, i.DocumentId, i.Key, i.Value)))));
+                                new KeyValuePair<TKey, TOut>(i.Key, await operation(_container.Value, i.PartitionKey, i.DocumentId, i.Key, i.Value).ConfigureAwait(false)))));
                     }
                 }
             }
 
-            var singleWriteResults = await Task.WhenAll(tasks);
-            var bulkWriteResults = await Task.WhenAll(bulkTasks);
+            var singleWriteResults = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var bulkWriteResults = await Task.WhenAll(bulkTasks).ConfigureAwait(false);
 
             return bulkWriteResults.SelectMany(x => x)
                 .Concat(singleWriteResults)
                 .ToArray();
         }
-        
+
         private async Task<IReadOnlyList<KeyValuePair<TKey, TOut>>> BulkOperation<TOut>(
             IEnumerable<TKey> values,
             Func<Container, string, string, TKey, Task<TOut>> operation)
         {
             var partitionGroups = GroupByPartition(values);
             var semaphore = new SemaphoreSlim(DataStoresConcurrency.MaxOperations);
-            var tasks = new List<Task<KeyValuePair<TKey,TOut>>>();
+            var tasks = new List<Task<KeyValuePair<TKey, TOut>>>();
             var bulkTasks = new List<Task<KeyValuePair<TKey, TOut>[]>>();
-            
+
             foreach (var grp in partitionGroups)
             {
                 foreach (var batch in grp.Batch(BulkApiMaxOpsPerRequest))
@@ -771,26 +779,28 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                     var useBulk = batch.Count() > BulkApiMinOpsPerPartition;
                     if (useBulk)
                     {
-                        bulkTasks.Add(OperationWrapper(semaphore, batch,
+                        bulkTasks.Add(OperationWrapper(semaphore,
+                            batch,
                             async b =>
                             {
                                 var results = b.Select(async i => new KeyValuePair<TKey, TOut>(i.Key,
-                                    await operation(_bulkContainer.Value, i.PartitionKey, i.DocumentId, i.Key)));
+                                    await operation(_bulkContainer.Value, i.PartitionKey, i.DocumentId, i.Key).ConfigureAwait(false)));
 
-                                return await Task.WhenAll(results);
+                                return await Task.WhenAll(results).ConfigureAwait(false);
                             }));
                     }
                     else
                     {
-                        tasks.AddRange(batch.Select(item => OperationWrapper(semaphore, item,
+                        tasks.AddRange(batch.Select(item => OperationWrapper(semaphore,
+                            item,
                             async i =>
-                                new KeyValuePair<TKey, TOut>(i.Key, await operation(_container.Value, i.PartitionKey, i.DocumentId, i.Key)))));
+                                new KeyValuePair<TKey, TOut>(i.Key, await operation(_container.Value, i.PartitionKey, i.DocumentId, i.Key).ConfigureAwait(false)))));
                     }
                 }
             }
 
-            var singleWriteResults = await Task.WhenAll(tasks);
-            var bulkWriteResults = await Task.WhenAll(bulkTasks);
+            var singleWriteResults = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var bulkWriteResults = await Task.WhenAll(bulkTasks).ConfigureAwait(false);
 
             return bulkWriteResults.SelectMany(x => x)
                 .Concat(singleWriteResults)
