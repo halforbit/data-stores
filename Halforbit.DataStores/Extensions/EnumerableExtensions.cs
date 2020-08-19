@@ -95,7 +95,7 @@ namespace Halforbit.DataStores
         }
     
         
-        internal static async Task<IReadOnlyList<TOut>> ParallelSelectAsync<TIn, TOut>(this IEnumerable<TIn> inputs, Func<TIn, Task<TOut>> mutator, CancellationTokenSource cancellationTokenSource = null, int maxPending = int.MinValue)
+        internal static async Task<IReadOnlyList<TOut>> SelectAsync<TIn, TOut>(this IEnumerable<TIn> inputs, Func<TIn, Task<TOut>> mutator, CancellationTokenSource cancellationTokenSource = null, int maxPending = int.MinValue)
         {
             var maxParallel = maxPending > 0 ? maxPending : 64;
             var semaphore = new SemaphoreSlim(maxParallel);
@@ -120,7 +120,7 @@ namespace Halforbit.DataStores
             return await Task.WhenAll(tasks).ConfigureAwait(false);
         }
         
-        internal static async Task ParallelForEachAsync<TIn>(this IEnumerable<TIn> inputs, Func<TIn, Task> asyncFunc, CancellationTokenSource cancellationTokenSource = null, int maxPending = int.MinValue)
+        internal static async Task ForEachAsync<TIn>(this IEnumerable<TIn> inputs, Func<TIn, Task> asyncFunc, CancellationTokenSource cancellationTokenSource = null, int maxPending = int.MinValue)
         {
             var maxParallel = maxPending > 0 ? maxPending : 64;
             var semaphore = new SemaphoreSlim(maxParallel);

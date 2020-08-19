@@ -199,7 +199,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             
             var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
-            var values = await keys.ParallelSelectAsync(keyPath =>
+            var values = await keys.SelectAsync(keyPath =>
                 GetValue($"{keyPath.Value}{_fileExtension}"),
                 maxPending: DataStoresConcurrency.MaxOperations).ConfigureAwait(false);
 
@@ -216,7 +216,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
-            var values = await keys.ParallelSelectAsync(async kv =>
+            var values = await keys.SelectAsync(async kv =>
                     new KeyValuePair<TKey, TValue>(kv.Key, await GetValue($"{kv.Value}{_fileExtension}")),
                 maxPending: DataStoresConcurrency.MaxOperations).ConfigureAwait(false);
 

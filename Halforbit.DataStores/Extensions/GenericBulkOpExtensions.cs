@@ -10,7 +10,7 @@ namespace Halforbit.DataStores
             this IDataStore<TKey, TValue> store,
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            return values.ParallelSelectAsync(i => Kvp(i, store.Create),
+            return values.SelectAsync(i => Kvp(i, store.Create),
                 maxPending: DataStoresConcurrency.MaxOperations);
         }
 
@@ -18,7 +18,7 @@ namespace Halforbit.DataStores
             this IDataStore<TKey, TValue> store,
             IEnumerable<TKey> keys)
         {
-            return keys.ParallelSelectAsync(i => Kvp(i, store.Delete),
+            return keys.SelectAsync(i => Kvp(i, store.Delete),
                 maxPending: DataStoresConcurrency.MaxOperations);
         }
 
@@ -26,7 +26,7 @@ namespace Halforbit.DataStores
             this IDataStore<TKey, TValue> store,
             IEnumerable<TKey> keys)
         {
-            return keys.ParallelSelectAsync(i => Kvp(i, store.Get),
+            return keys.SelectAsync(i => Kvp(i, store.Get),
                 maxPending: DataStoresConcurrency.MaxOperations);
         }
         
@@ -34,7 +34,7 @@ namespace Halforbit.DataStores
             this IDataStore<TKey, TValue> store,
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            return values.ParallelSelectAsync(i => Kvp(i,  store.Update),
+            return values.SelectAsync(i => Kvp(i,  store.Update),
                 maxPending: DataStoresConcurrency.MaxOperations);
         }
         
@@ -42,7 +42,7 @@ namespace Halforbit.DataStores
             this IDataStore<TKey, TValue> store,
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            return values.ParallelForEachAsync(i => store.Upsert(i.Key, i.Value),
+            return values.ForEachAsync(i => store.Upsert(i.Key, i.Value),
                 maxPending: DataStoresConcurrency.MaxOperations);
         }
 
