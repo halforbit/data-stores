@@ -2,6 +2,7 @@ using Halforbit.DataStores.DocumentStores.CosmosDb.Implementation;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -48,6 +49,28 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
             //ClearDataStore(dataStore);
 
             await TestBatch(dataStore);
+        }
+
+        [Fact, Trait("Type", "Integration")]
+        public async Task RunBulkApiTests()
+        {
+            var ds = new CosmosDbDataStore<PartitionedTestValue.Key, PartitionedTestValue>(
+                connectionString: GetConfig("ConnectionString"),
+                databaseId: GetConfig("DatabaseId"),
+                containerId: GetConfig("CollectionId"),
+                keyMap: "{PartitionId}|test-values/{AccountId}");
+
+            ClearDataStore(ds);
+            
+            await TestBulkApi(ds,
+                (keyGen, dataGen) =>
+                {
+                    var partitionId = (keyGen / 100).ToGuid();
+                    var accountId = keyGen.ToGuid();
+
+                    return new KeyValuePair<PartitionedTestValue.Key, PartitionedTestValue>(new PartitionedTestValue.Key(partitionId, accountId),
+                        new PartitionedTestValue(partitionId, accountId, $"Test: {dataGen}"));
+                });
         }
 
         static void TestQuery(IDataStore<PartitionedTestValue.Key, PartitionedTestValue> dataStore)
@@ -98,7 +121,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         }
     }
 
-    public class PartitionedTestValue : Document
+    public class PartitionedTestValue : Document, IEquatable<PartitionedTestValue>
     {
         public PartitionedTestValue(
             Guid partitionId = default,
@@ -117,8 +140,70 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         public Guid AccountId { get; }
         
         public string Message { get; }
+        
+        public bool Equals(
+            PartitionedTestValue other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
 
-        public class Key : UniversalIntegrationTest.ITestKey
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return PartitionId.Equals(other.PartitionId) && AccountId.Equals(other.AccountId) && Message == other.Message;
+        }
+
+        public override bool Equals(
+            object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return Equals((PartitionedTestValue) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = PartitionId.GetHashCode();
+                hashCode = (hashCode * 397) ^ AccountId.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Message != null ? Message.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(
+            PartitionedTestValue left,
+            PartitionedTestValue right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(
+            PartitionedTestValue left,
+            PartitionedTestValue right)
+        {
+            return !Equals(left, right);
+        }
+        
+        public class Key : UniversalIntegrationTest.ITestKey, IEquatable<Key>
         {
             public Key(
                 Guid? partitionId, 
@@ -132,6 +217,65 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
             public Guid? PartitionId { get; }
             
             public Guid? AccountId { get; }
+
+            public bool Equals(
+                Key other)
+            {
+                if (ReferenceEquals(null, other))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
+                return Nullable.Equals(PartitionId, other.PartitionId) && Nullable.Equals(AccountId, other.AccountId);
+            }
+
+            public override bool Equals(
+                object obj)
+            {
+                if (ReferenceEquals(null, obj))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                if (obj.GetType() != this.GetType())
+                {
+                    return false;
+                }
+
+                return Equals((Key) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (PartitionId.GetHashCode() * 397) ^ AccountId.GetHashCode();
+                }
+            }
+
+            public static bool operator ==(
+                Key left,
+                Key right)
+            {
+                return Equals(left, right);
+            }
+
+            public static bool operator !=(
+                Key left,
+                Key right)
+            {
+                return !Equals(left, right);
+            }
         }
     }
 }

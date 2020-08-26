@@ -16,7 +16,7 @@ namespace Halforbit.DataStores
 
             do
             {
-                result.AddRange((await feedIterator.ReadNextAsync()).Resource);
+                result.AddRange((await feedIterator.ReadNextAsync().ConfigureAwait(false)).Resource);
             }
             while (feedIterator.HasMoreResults);
 
@@ -29,7 +29,7 @@ namespace Halforbit.DataStores
             return (await queryable
                 .Take(1)
                 .ToFeedIterator()
-                .ReadNextAsync())
+                .ReadNextAsync().ConfigureAwait(false))
                 .Resource
                 .FirstOrDefault();
         }

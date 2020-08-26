@@ -4,6 +4,8 @@ using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Halforbit.DataStores.FileStores.AmazonS3.Tests
@@ -39,6 +41,30 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Tests
                 testKey,
                 testValueA,
                 testValueB);
+        }
+        
+        [Fact, Trait("Type", "Integration")]
+        public async Task RunBulkApiTests()
+        {
+            var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
+                fileStore: new AmazonS3FileStore(
+                    accessKeyId: GetConfig("AccessKeyId"),
+                    secretAccessKey: GetConfig("SecretAccessKey"),
+                    bucketName: GetConfig("BucketName")),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
+                keyMap: "test-values/{AccountId}",
+                fileExtension: ".json");
+
+            ClearDataStore(dataStore);
+     
+            await TestBulkApi(dataStore,
+                (keyGen, dataGen) =>
+                {
+                    var accountId = keyGen.ToGuid();
+
+                    return new KeyValuePair<TestValue.Key, TestValue>(new TestValue.Key(accountId),
+                        new TestValue(accountId, $"Test: {dataGen}"));
+                });
         }
     }
 

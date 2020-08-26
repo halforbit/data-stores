@@ -16,6 +16,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 // TODO:
@@ -30,6 +31,9 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
     public class CosmosDbDataStore<TKey, TValue> :
         IDataStore<TKey, TValue>
     {
+        private const int BulkApiMinOpsPerPartition = 50;
+        private const int BulkApiMaxOpsPerRequest = 100;
+        
         static readonly AsyncRetryPolicy _retryPolicy = Policy
             .Handle<CosmosException>(cex => cex.StatusCode == (HttpStatusCode)429)
             .Or<CosmosException>(cex => cex.StatusCode == HttpStatusCode.ServiceUnavailable)
@@ -47,10 +51,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         readonly Lazy<Container> _container;
         
+        readonly Lazy<Container> _bulkContainer;
+        
         readonly string _connectionString;
-        
-        readonly string _databaseId;
-        
+
+        readonly string _databaseId;	
+
         readonly string _containerId;
         
         readonly StringMap<TKey> _keyMap;
@@ -89,17 +95,26 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             _databaseId = databaseId;
             
             _containerId = containerId;
-
-            _container = new Lazy<Container>(() => 
+            
+            _container = new Lazy<Container>(() =>
                 new CosmosClient(
-                    connectionString: connectionString,
-                    clientOptions: new CosmosClientOptions
-                    {
-                        AllowBulkExecution = false
-                    })
-                .GetContainer(
-                    databaseId: databaseId,
-                    containerId: containerId));
+                        connectionString: connectionString,
+                        clientOptions: new CosmosClientOptions
+                        {
+                            AllowBulkExecution = false
+                        })
+                    .GetContainer(databaseId: databaseId,
+                        containerId: containerId));
+
+            _bulkContainer = new Lazy<Container>(() =>
+                new CosmosClient(
+                        connectionString: connectionString,
+                        clientOptions: new CosmosClientOptions
+                        {
+                            AllowBulkExecution = true
+                        })
+                    .GetContainer(databaseId: databaseId,
+                        containerId: containerId));
 
             _keyMap = keyMap;
 
@@ -150,24 +165,34 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
         }
 
-        public async Task<bool> Create(
+        public Task<bool> Create(
             TKey key, 
             TValue value)
         {
-            value = await MutatePut(key, value);
+            var (partitionKey, documentId) = GetDocumentId(key);
+            return CreateInternal(_container.Value, partitionKey, documentId, key, value);
+        }
+        
+        private async Task<bool> CreateInternal(
+            Container container,
+            string partitionKey,
+            string documentId, 
+            TKey key,
+            TValue value)
+        {
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
-
-            var (partitionKey, documentId) = GetDocumentId(key);
-
+            
             SetDocumentId(value, documentId);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             try
             {
-                await Execute(() => _container.Value.CreateItemAsync(
-                    item: value)).ConfigureAwait(false);
+                await Execute(() => container.CreateItemAsync(
+                    item: value,
+                    partitionKey: GetCosmosPartitionKey(partitionKey))).ConfigureAwait(false);
 
                 return true;
             }
@@ -182,24 +207,38 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
-        public async Task<bool> Delete(TKey key)
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return BulkOperation(values, CreateInternal);
+        }
+        
+        public Task<bool> Delete(TKey key)
+        {
+            var (partitionKey, documentId) = GetDocumentId(key);
+            return DeleteInternal(_container.Value, partitionKey, documentId, key);
+        }
+        
+        private async Task<bool> DeleteInternal(
+            Container container,
+            string partitionKey,
+            string documentId,
+            TKey key)
         {
             await ValidateDelete(key).ConfigureAwait(false);
 
-            var (partitionKey, documentId) = GetDocumentId(key);
+            foreach (var observer in _typedObservers)
+                await observer.BeforeDelete(key).ConfigureAwait(false);
 
-            foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
-
-            foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
-
+            foreach (var observer in _untypedObservers)
+                await observer.BeforeDelete(key).ConfigureAwait(false);
+            
             try
             {
-                await Execute(() => _container.Value
-                    .DeleteItemAsync<TValue>(
-                        id: documentId,
-                        partitionKey: partitionKey != null ? 
-                            new PartitionKey(partitionKey) : 
-                            PartitionKey.None))
+                await Execute(() => container
+                        .DeleteItemAsync<TValue>(
+                            id: documentId,
+                            partitionKey: GetCosmosPartitionKey(partitionKey) ?? PartitionKey.None))
                     .ConfigureAwait(false);
 
                 return true;
@@ -214,24 +253,36 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 throw;
             }
         }
+        
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
+            IEnumerable<TKey> keys)
+        {
+            return BulkOperation(keys, DeleteInternal);
+        }
 
         public async Task<bool> Exists(TKey key)
         {
             return !(await Get(key).ConfigureAwait(false)).IsDefaultValue();
         }
 
-        public async Task<TValue> Get(TKey key)
+        public Task<TValue> Get(TKey key)
         {
             var (partitionKey, documentId) = GetDocumentId(key);
+            return GetInternal(_container.Value, partitionKey, documentId, key);
+        }
 
+        private async Task<TValue> GetInternal(
+            Container container,
+            string partitionKey,
+            string documentId,
+            TKey key)
+        {
             try
             {
                 var item = await Execute(
-                    () => _container.Value.ReadItemAsync<TValue>(
-                        id: documentId,
-                        partitionKey: partitionKey != null ? 
-                            new PartitionKey(partitionKey) : 
-                            PartitionKey.None))
+                        () => container.ReadItemAsync<TValue>(
+                            id: documentId,
+                            partitionKey: GetCosmosPartitionKey(partitionKey) ?? PartitionKey.None))
                     .ConfigureAwait(false);
 
                 return item;
@@ -247,6 +298,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                     throw;
                 }
             }
+        }
+
+        public Task<IReadOnlyList<KeyValuePair<TKey, TValue>>> Get(
+            IEnumerable<TKey> keys)
+        {
+            return BulkOperation(keys, GetInternal);
         }
 
         public async Task<IEnumerable<TKey>> ListKeys(
@@ -267,10 +324,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 queryDefinition: new QueryDefinition(query),
                 requestOptions: new QueryRequestOptions
                 {
-                    PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
-                        new PartitionKey(partitionKey) :
-                        null as PartitionKey?,
-
+                    PartitionKey = GetCosmosPartitionKey(partitionKey),
                     MaxItemCount = -1
                 });
 
@@ -278,7 +332,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             while (iterator.HasMoreResults)
             {
-                foreach (var item in await iterator.ReadNextAsync())
+                foreach (var item in await iterator.ReadNextAsync().ConfigureAwait(false))
                 {
                     var id = item.Value<string>("id");
 
@@ -299,7 +353,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public async Task<IEnumerable<TValue>> ListValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListKeyValues(predicate)).Select(kv => kv.Value);
+            return (await ListKeyValues(predicate).ConfigureAwait(false)).Select(kv => kv.Value);
         }
 
         public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
@@ -320,16 +374,13 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 queryDefinition: new QueryDefinition(query),
                 requestOptions: new QueryRequestOptions
                 {
-                    PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ?
-                        new PartitionKey(partitionKey) :
-                        null as PartitionKey?,
-
+                    PartitionKey = GetCosmosPartitionKey(partitionKey),
                     MaxItemCount = -1
                 });
 
             while (iterator.HasMoreResults)
             {
-                foreach (var item in await iterator.ReadNextAsync())
+                foreach (var item in await iterator.ReadNextAsync().ConfigureAwait(false))
                 {
                     var id = item.Value<string>("id");
 
@@ -360,25 +411,36 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             return results;
         }
 
-        public async Task<bool> Update(
+        public Task<bool> Update(
             TKey key, 
             TValue value)
         {
-            value = await MutatePut(key, value);
-
-            await ValidatePut(key, value);
-
             var (partitionKey, documentId) = GetDocumentId(key);
+            return UpdateInternal(_container.Value, partitionKey, documentId, key, value);
+        }
+        
+        private async Task<bool> UpdateInternal(
+            Container container,
+            string partitionKey,
+            string documentId,
+            TKey key, 
+            TValue value)
+        {
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ObserveBeforePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
+            
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             try
             {
                 SetDocumentId(value, documentId);
 
-                await Execute(() => _container.Value.ReplaceItemAsync(
-                    item: value,
-                    id: documentId)).ConfigureAwait(false);
+                await Execute(() => container.ReplaceItemAsync(
+                        item: value,
+                        id: documentId,
+                        partitionKey: GetCosmosPartitionKey(partitionKey)))
+                    .ConfigureAwait(false);
 
                 return true;
             }
@@ -393,23 +455,46 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
-        public async Task Upsert(
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return BulkOperation(values, UpdateInternal);
+        }
+
+        public Task Upsert(
             TKey key, 
             TValue value)
         {
-            value = await MutatePut(key, value);
-
-            await ValidatePut(key, value);
-
             var (partitionKey, documentId) = GetDocumentId(key);
+            return UpsertInternal(_container.Value, partitionKey, documentId, key, value);
+        }
 
+        private async Task<bool> UpsertInternal(
+            Container container,
+            string partitionKey,
+            string documentId,
+            TKey key,
+            TValue value)
+        {
+            value = await MutatePut(key, value).ConfigureAwait(false);
+
+            await ValidatePut(key, value).ConfigureAwait(false);
+            
             SetDocumentId(value, documentId);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             await Execute(() => _container.Value.UpsertItemAsync(
                 item: value,
-                partitionKey: default)).ConfigureAwait(false);
+                partitionKey: GetCosmosPartitionKey(partitionKey))).ConfigureAwait(false);
+
+            return true;
+        }
+
+        public Task Upsert(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return BulkOperation(values, UpsertInternal);
         }
 
         public async Task Upsert(
@@ -489,7 +574,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             return (partitionKey, idPrefix);
         }
 
-        static async Task<V> Execute<V>(Func<Task<V>> func) => await _retryPolicy.ExecuteAsync(func);
+        static async Task<V> Execute<V>(Func<Task<V>> func) => await _retryPolicy.ExecuteAsync(func).ConfigureAwait(false);
         
         (string PartitionKey, string DocumentId) GetDocumentId(TKey key)
         {
@@ -579,20 +664,27 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
+        static PartitionKey? GetCosmosPartitionKey(
+            string partitionKey) => !string.IsNullOrWhiteSpace(partitionKey) ? new PartitionKey(partitionKey) : (PartitionKey?) null;
+
         async Task<TValue> MutatePut(TKey key, TValue value)
         {
-            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+            foreach (var mutator in _typedMutators) 
+                value = await mutator.MutatePut(key, value).ConfigureAwait(false);
 
-            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+            foreach (var mutator in _untypedMutators)
+                value = (TValue)await mutator.MutatePut(key, value).ConfigureAwait(false);
 
             return value;
         }
 
         async Task ObserveBeforePut(TKey key, TValue value)
         {
-            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _typedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
 
-            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _untypedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(
@@ -606,11 +698,144 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                 .Select(batch => Task.Run(() => query(batch, Query(predicate)).AsEnumerable()))
                 .ToList();
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return tasks.SelectMany(t => t.Result);
         }
+        
+        private static async Task<TOut> OperationWrapper<TIn, TOut>(
+            SemaphoreSlim semaphore,
+            TIn input,
+            Func<TIn, Task<TOut>> asyncMutator)
+        {
+            await semaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                return await asyncMutator(input).ConfigureAwait(false);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
 
+        private async Task<IReadOnlyList<KeyValuePair<TKey, TOut>>> BulkOperation<TOut>(
+            IEnumerable<KeyValuePair<TKey, TValue>> values,
+            Func<Container, string, string, TKey, TValue, Task<TOut>> operation)
+        {
+            var partitionGroups = GroupByPartition(values);
+            var semaphore = new SemaphoreSlim(DataStoresConcurrency.MaxOperations);
+            var tasks = new List<Task<KeyValuePair<TKey, TOut>>>();
+            var bulkTasks = new List<Task<KeyValuePair<TKey, TOut>[]>>();
+
+            foreach (var grp in partitionGroups)
+            {
+                foreach (var batch in grp.Batch(BulkApiMaxOpsPerRequest))
+                {
+                    var useBulk = batch.Count() > BulkApiMinOpsPerPartition;
+                    if (useBulk)
+                    {
+                        bulkTasks.Add(OperationWrapper(semaphore,
+                            batch,
+                            async b =>
+                            {
+                                var results = b.Select(async i => new KeyValuePair<TKey, TOut>(i.Key,
+                                    await operation(_bulkContainer.Value, i.PartitionKey, i.DocumentId, i.Key, i.Value).ConfigureAwait(false)));
+
+                                return await Task.WhenAll(results).ConfigureAwait(false);
+                            }));
+                    }
+                    else
+                    {
+                        tasks.AddRange(batch.Select(item => OperationWrapper(semaphore,
+                            item,
+                            async i =>
+                                new KeyValuePair<TKey, TOut>(i.Key, await operation(_container.Value, i.PartitionKey, i.DocumentId, i.Key, i.Value).ConfigureAwait(false)))));
+                    }
+                }
+            }
+
+            var singleWriteResults = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var bulkWriteResults = await Task.WhenAll(bulkTasks).ConfigureAwait(false);
+
+            return bulkWriteResults.SelectMany(x => x)
+                .Concat(singleWriteResults)
+                .ToArray();
+        }
+
+        private async Task<IReadOnlyList<KeyValuePair<TKey, TOut>>> BulkOperation<TOut>(
+            IEnumerable<TKey> values,
+            Func<Container, string, string, TKey, Task<TOut>> operation)
+        {
+            var partitionGroups = GroupByPartition(values);
+            var semaphore = new SemaphoreSlim(DataStoresConcurrency.MaxOperations);
+            var tasks = new List<Task<KeyValuePair<TKey, TOut>>>();
+            var bulkTasks = new List<Task<KeyValuePair<TKey, TOut>[]>>();
+
+            foreach (var grp in partitionGroups)
+            {
+                foreach (var batch in grp.Batch(BulkApiMaxOpsPerRequest))
+                {
+                    var useBulk = batch.Count() > BulkApiMinOpsPerPartition;
+                    if (useBulk)
+                    {
+                        bulkTasks.Add(OperationWrapper(semaphore,
+                            batch,
+                            async b =>
+                            {
+                                var results = b.Select(async i => new KeyValuePair<TKey, TOut>(i.Key,
+                                    await operation(_bulkContainer.Value, i.PartitionKey, i.DocumentId, i.Key).ConfigureAwait(false)));
+
+                                return await Task.WhenAll(results).ConfigureAwait(false);
+                            }));
+                    }
+                    else
+                    {
+                        tasks.AddRange(batch.Select(item => OperationWrapper(semaphore,
+                            item,
+                            async i =>
+                                new KeyValuePair<TKey, TOut>(i.Key, await operation(_container.Value, i.PartitionKey, i.DocumentId, i.Key).ConfigureAwait(false)))));
+                    }
+                }
+            }
+
+            var singleWriteResults = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var bulkWriteResults = await Task.WhenAll(bulkTasks).ConfigureAwait(false);
+
+            return bulkWriteResults.SelectMany(x => x)
+                .Concat(singleWriteResults)
+                .ToArray();
+        }
+
+        private IEnumerable<IGrouping<string, (TKey Key, TValue Value, string PartitionKey, string DocumentId)>> GroupByPartition(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return values.Select(v =>
+            {
+                var (partitionKey, documentId) = GetDocumentId(v.Key);
+                return (
+                    Key: v.Key,
+                    Value: v.Value,
+                    PartitionKey: partitionKey,
+                    DocumentId: documentId
+                );
+            }).GroupBy(x => x.PartitionKey);
+        }
+        
+        private IEnumerable<IGrouping<string, (TKey Key, string PartitionKey, string DocumentId)>> GroupByPartition(
+            IEnumerable<TKey> keys)
+        {
+            return keys.Select(k =>
+            {
+                var (partitionKey, documentId) = GetDocumentId(k);
+                return (
+                    Key: k,
+                    PartitionKey: partitionKey,
+                    DocumentId: documentId
+                );
+            }).GroupBy(x => x.PartitionKey);
+        }
+        
         class QuerySession<TResultValue> : IQuerySession<TKey, TResultValue>
             where TResultValue : IDocument
         {

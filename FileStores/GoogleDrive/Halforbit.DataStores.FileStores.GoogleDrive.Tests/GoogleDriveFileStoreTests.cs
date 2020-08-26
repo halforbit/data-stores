@@ -9,6 +9,8 @@ using Halforbit.DataStores.Tests;
 using Halforbit.Facets.Implementation;
 using Halforbit.Facets.Interface;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
@@ -45,6 +47,31 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Tests
                 testKey,
                 testValueA,
                 testValueB);
+        }
+        
+        [Fact, Trait("Type", "Integration")]
+        public async Task RunBulkApiTests()
+        {
+            var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
+                fileStore: new GoogleDriveFileStore(
+                    applicationName: GetConfig("ApplicationName"),
+                    serviceAccountEmail: GetConfig("ServiceAccountEmail"),
+                    serviceAccountKey: GetConfig("ServiceAccountKey"),
+                    grantAccessToEmails: GetConfig("GrantAccessToEmails")),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
+                keyMap: "test-values/{AccountId}",
+                fileExtension: ".json");
+
+            ClearDataStore(dataStore);
+     
+            await TestBulkApi(dataStore,
+                (keyGen, dataGen) =>
+                {
+                    var accountId = keyGen.ToGuid();
+
+                    return new KeyValuePair<TestValue.Key, TestValue>(new TestValue.Key(accountId),
+                        new TestValue(accountId, $"Test: {dataGen}"));
+                });
         }
 
         [Fact, Trait("Type", "Integration")]
