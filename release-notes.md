@@ -4,6 +4,10 @@
 
 ### 2020-09-15
 
+#### 3.8.4
+
+- Added another Flush to delimited serialization.
+
 #### 3.8.3
 
 - Added a `Flush` to delimited serialization to help ensure output does not get cut off.

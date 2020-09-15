@@ -88,6 +88,8 @@ namespace Halforbit.DataStores
 
                     writer.Flush();
 
+                    streamWriter.Flush();
+
                     memoryStream.Flush();
 
                     return Task.FromResult(memoryStream.ToArray());
