@@ -10,6 +10,7 @@ using Halforbit.Facets.Implementation;
 using Halforbit.Facets.Interface;
 using Halforbit.ObjectTools.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -63,6 +64,31 @@ namespace Halforbit.DataStores.FileStores.Sftp.Tests
                 testValueA,
                 testValueB);
         }
+        
+        [Fact, Trait("Type", "Integration")]
+        public async Task RunBulkApiTests()
+        {
+            var dataStore = new FileStoreDataStore<TestValue.Key, TestValue>(
+                fileStore: new SftpFileStore(
+                    host: Host,
+                    username: Username,
+                    password: Password),
+                serializer: new JsonSerializer($"{JsonOptions.Default}"),
+                keyMap: "test-values/another folder/moar_folder/{AccountId}",
+                fileExtension: ".json");
+
+            ClearDataStore(dataStore);
+     
+            await TestBulkApi(dataStore,
+                (keyGen, dataGen) =>
+                {
+                    var accountId = keyGen.ToGuid();
+
+                    return new KeyValuePair<TestValue.Key, TestValue>(new TestValue.Key(accountId),
+                        new TestValue(accountId, $"Test: {dataGen}"));
+                });
+        }
+        
 
         [Fact, Trait("Type", "Integration")]
         public void TestSftpFileStore_FromRoot()

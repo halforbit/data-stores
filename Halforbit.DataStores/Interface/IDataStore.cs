@@ -16,9 +16,15 @@ namespace Halforbit.DataStores
 
         Task<bool> Create(TKey key, TValue value);
 
+        Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(IEnumerable<KeyValuePair<TKey, TValue>> values);
+        
         Task<bool> Delete(TKey key);
 
+        Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(IEnumerable<TKey> keys);
+
         Task<TValue> Get(TKey key);
+
+        Task<IReadOnlyList<KeyValuePair<TKey,TValue>>> Get(IEnumerable<TKey> keys);
 
         Task<bool> GetToStream(TKey key, Stream stream);
 
@@ -29,8 +35,12 @@ namespace Halforbit.DataStores
         Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(Expression<Func<TKey, bool>> predicate = null);
         
         Task<bool> Update(TKey key, TValue value);
+        
+        Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(IEnumerable<KeyValuePair<TKey, TValue>> values);
 
         Task Upsert(TKey key, TValue value);
+        
+        Task Upsert(IEnumerable<KeyValuePair<TKey, TValue>> values);
 
         Task Upsert(TKey key, Func<TValue, TValue> mutator);
 

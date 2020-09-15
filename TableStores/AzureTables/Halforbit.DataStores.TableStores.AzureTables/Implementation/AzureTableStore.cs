@@ -107,74 +107,94 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             6. Return the object.
             ********/
 
-            if (await Exists(key)) 
+            if (await Exists(key).ConfigureAwait(false)) 
             {
                 return false;
             }
 
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             var tableEntity = ConvertToTableEntity(key, value);
 
             return await ExecuteTableOperationAsync(
                 TableOperation.Insert(tableEntity), 
-                HttpStatusCode.NoContent);
+                HttpStatusCode.NoContent).ConfigureAwait(false);
+        }
+
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkCreate(values);
         }
 
         public async Task<bool> Delete(TKey key)
         {
-            var existingTableEntity = await GetTableEntity(key);
+            var existingTableEntity = await GetTableEntity(key).ConfigureAwait(false);
 
             if (existingTableEntity == null) 
             {
                 return false;
             }
 
-            await ValidateDelete(key);
+            await ValidateDelete(key).ConfigureAwait(false);
 
-            foreach (var observer in _typedObservers) await observer.BeforeDelete(key);
+            foreach (var observer in _typedObservers)
+                await observer.BeforeDelete(key).ConfigureAwait(false);
 
-            foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
+            foreach (var observer in _untypedObservers)
+                await observer.BeforeDelete(key).ConfigureAwait(false);
 
             return await ExecuteTableOperationAsync(
                 TableOperation.Delete(existingTableEntity), 
-                HttpStatusCode.NoContent);
+                HttpStatusCode.NoContent).ConfigureAwait(false);
+        }
+
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkDelete(keys);
         }
 
         public async Task<bool> Exists(TKey key)
         {
-            return await Get(key) != null;
+            return await Get(key).ConfigureAwait(false) != null;
         }
 
         public async Task<TValue> Get(TKey key)
         {
-            var tableEntity = await GetTableEntity(key);
+            var tableEntity = await GetTableEntity(key).ConfigureAwait(false);
 
             return tableEntity == null
                 ? default(TValue)
                 : tableEntity.OriginalEntity;
         }
 
+        public Task<IReadOnlyList<KeyValuePair<TKey, TValue>>> Get(
+            IEnumerable<TKey> keys)
+        {
+            return this.BulkGet(keys);
+        }
+
         public async Task<IEnumerable<TKey>> ListKeys(Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListTableEntities(predicate))
+            return (await ListTableEntities(predicate).ConfigureAwait(false))
                 .Select(tableEntity => GetKey(tableEntity.PartitionKey, tableEntity.RowKey));
         }
 
         public async Task<IEnumerable<TValue>> ListValues(Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListTableEntities(predicate))
+            return (await ListTableEntities(predicate).ConfigureAwait(false))
                 .Select(tableEntity => tableEntity.OriginalEntity);
         }
 
         public async Task<IEnumerable<KeyValuePair<TKey, TValue>>> ListKeyValues(
             Expression<Func<TKey, bool>> predicate = null)
         {
-            return (await ListTableEntities(predicate))
+            return (await ListTableEntities(predicate).ConfigureAwait(false))
                 .ToDictionary(
                     tableEntity => GetKey(tableEntity.PartitionKey, tableEntity.RowKey),
                     tableEntity => tableEntity.OriginalEntity);
@@ -182,55 +202,67 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         public async Task<bool> Update(TKey key, TValue value)
         {
-            var existingTableEntity = await GetTableEntity(key);
+            var existingTableEntity = await GetTableEntity(key).ConfigureAwait(false);
             if (existingTableEntity == null) 
             {
                 return false;
             }
 
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             var updatedTableEntity = ConvertToTableEntity(key, value, existingTableEntity.ETag);
 
             return await ExecuteTableOperationAsync(
                 TableOperation.Replace(updatedTableEntity), 
-                HttpStatusCode.NoContent);
+                HttpStatusCode.NoContent).ConfigureAwait(false);
+        }
+
+        public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpdate(values);
         }
 
         public async Task Upsert(TKey key, TValue value)
         {
-            value = await MutatePut(key, value);
+            value = await MutatePut(key, value).ConfigureAwait(false);
 
-            await ValidatePut(key, value);
+            await ValidatePut(key, value).ConfigureAwait(false);
 
-            await ObserveBeforePut(key, value);
+            await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             var tableEntity = ConvertToTableEntity(key, value);
 
             await ExecuteTableOperationAsync(
                 TableOperation.InsertOrReplace(tableEntity), 
-                HttpStatusCode.NoContent);
+                HttpStatusCode.NoContent).ConfigureAwait(false);
+        }
+
+        public Task Upsert(
+            IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            return this.BulkUpsert(values);
         }
 
         public async Task Upsert(TKey key, Func<TValue, TValue> mutator)
         {
             var existing = await Get(key).ConfigureAwait(false);
 
-            var mutation = await MutatePut(key, mutator(existing));
+            var mutation = await MutatePut(key, mutator(existing)).ConfigureAwait(false);
 
-            await ValidatePut(key, mutation);
+            await ValidatePut(key, mutation).ConfigureAwait(false);
 
-            await ObserveBeforePut(key, mutation);
+            await ObserveBeforePut(key, mutation).ConfigureAwait(false);
 
             var tableEntity = ConvertToTableEntity(key, mutation);
 
             await ExecuteTableOperationAsync(
                 TableOperation.Replace(tableEntity), 
-                HttpStatusCode.NoContent);
+                HttpStatusCode.NoContent).ConfigureAwait(false);
         }
 
         public Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
@@ -415,7 +447,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         {
             if(_validator != null)
             {
-                var validationErrors = await _validator.ValidatePut(key, value, _keyMap);
+                var validationErrors = await _validator.ValidatePut(key, value, _keyMap).ConfigureAwait(false);
 
                 if (validationErrors?.Any() ?? false)
                 {
@@ -428,7 +460,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         {
             if(_validator != null)
             {
-                var validationErrors = await _validator.ValidateDelete(key, _keyMap);
+                var validationErrors = await _validator.ValidateDelete(key, _keyMap).ConfigureAwait(false);
 
                 if (validationErrors?.Any() ?? false)
                 {
@@ -444,18 +476,22 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         async Task<TValue> MutatePut(TKey key, TValue value)
         {
-            foreach (var mutator in _typedMutators) value = await mutator.MutatePut(key, value);
+            foreach (var mutator in _typedMutators)
+                value = await mutator.MutatePut(key, value).ConfigureAwait(false);
 
-            foreach (var mutator in _untypedMutators) value = (TValue)await mutator.MutatePut(key, value);
+            foreach (var mutator in _untypedMutators)
+                value = (TValue)await mutator.MutatePut(key, value).ConfigureAwait(false);
 
             return value;
         }
 
         async Task ObserveBeforePut(TKey key, TValue value)
         {
-            foreach (var observer in _typedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _typedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
 
-            foreach (var observer in _untypedObservers) await observer.BeforePut(key, value);
+            foreach (var observer in _untypedObservers)
+                await observer.BeforePut(key, value).ConfigureAwait(false);
         }
 
         public Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(

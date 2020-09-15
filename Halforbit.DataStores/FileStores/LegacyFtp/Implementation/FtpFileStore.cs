@@ -55,7 +55,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
 
             try
             {
-                response = (FtpWebResponse)await request.GetResponseAsync();
+                response = (FtpWebResponse)await request.GetResponseAsync().ConfigureAwait(false);
             }
             catch (WebException wex)
             {
@@ -78,7 +78,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
         {
             var folder = Path.GetDirectoryName(path).Replace('\\', '/');
 
-            var files = await GetFiles(folder, Path.GetExtension(path));
+            var files = await GetFiles(folder, Path.GetExtension(path)).ConfigureAwait(false);
 
             return files.Any(f => f == path);
         }
@@ -99,7 +99,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
 
             try
             {
-                response = (FtpWebResponse)await request.GetResponseAsync();
+                response = (FtpWebResponse)await request.GetResponseAsync().ConfigureAwait(false);
             }
             catch (WebException wex)
             {
@@ -118,7 +118,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
             using (var responseStream = response.GetResponseStream())
             using (var streamReader = new StreamReader(responseStream))
             {
-                var responseText = await streamReader.ReadToEndAsync();
+                var responseText = await streamReader.ReadToEndAsync().ConfigureAwait(false);
 
                 var lines = responseText.Split(
                     new string[] { "\r\n", "\n" },
@@ -151,7 +151,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
                         string.IsNullOrWhiteSpace(pathPrefix) ?
                             folder.Name :
                             $"{pathPrefix}/{folder.Name}",
-                        extension));
+                        extension).ConfigureAwait(false));
                 }
 
                 return files;
@@ -181,7 +181,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
 
             try
             {
-                response = (FtpWebResponse)await request.GetResponseAsync();
+                response = (FtpWebResponse)await request.GetResponseAsync().ConfigureAwait(false);
             }
             catch (WebException wex)
             {
@@ -213,7 +213,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
 
             if (!string.IsNullOrWhiteSpace(folder))
             {
-                await MakeFolder(folder);
+                await MakeFolder(folder).ConfigureAwait(false);
             }
 
             var url = $"ftp://{_host}/{path}";
@@ -224,12 +224,12 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
 
             request.ContentLength = contents.Length;
 
-            using (var requestStream = await request.GetRequestStreamAsync())
+            using (var requestStream = await request.GetRequestStreamAsync().ConfigureAwait(false))
             {
-                await requestStream.WriteAsync(contents, 0, contents.Length);
+                await requestStream.WriteAsync(contents, 0, contents.Length).ConfigureAwait(false);
             }
 
-            using (var response = (FtpWebResponse)await request.GetResponseAsync())
+            using (var response = (FtpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
             {
                 return true;
             }
@@ -241,7 +241,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
 
             if (!string.IsNullOrWhiteSpace(parentFolder))
             {
-                await MakeFolder(parentFolder);
+                await MakeFolder(parentFolder).ConfigureAwait(false);
             }
 
             var url = $"ftp://{_host}/{folder}";
@@ -254,7 +254,7 @@ namespace Halforbit.DataStores.FileStores.LegacyFtp.Implementation
 
             try
             {
-                response = (FtpWebResponse)await request.GetResponseAsync();
+                response = (FtpWebResponse)await request.GetResponseAsync().ConfigureAwait(false);
             }
             catch (WebException wex)
             {

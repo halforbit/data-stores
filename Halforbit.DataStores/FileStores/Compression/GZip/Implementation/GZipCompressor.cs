@@ -15,7 +15,7 @@ namespace Halforbit.DataStores.FileStores.Compression.GZip.Implementation
                     destStream,
                     CompressionMode.Compress))
                 {
-                    await sourceStream.CopyToAsync(gZipStream);
+                    await sourceStream.CopyToAsync(gZipStream).ConfigureAwait(false);
                 }
 
                 return destStream.ToArray();
@@ -28,7 +28,7 @@ namespace Halforbit.DataStores.FileStores.Compression.GZip.Implementation
             using (var gZipStream = new GZipStream(sourceStream, CompressionMode.Decompress))
             using (var destStream = new MemoryStream())
             {
-                await gZipStream.CopyToAsync(destStream);
+                await gZipStream.CopyToAsync(destStream).ConfigureAwait(false);
 
                 return destStream.ToArray();
             }

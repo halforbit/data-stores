@@ -47,7 +47,7 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
                     Key = path
                 };
 
-                var response = await client.DeleteObjectAsync(request);
+                var response = await client.DeleteObjectAsync(request).ConfigureAwait(false);
 
                 if (response.HttpStatusCode != HttpStatusCode.NoContent)
                 {
@@ -60,7 +60,8 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
 
         public async Task<bool> Exists(string path)
         {
-            return (await GetFiles(path, "")).Any(f => path == f);
+            return (await GetFiles(path, "").ConfigureAwait(false))
+                .Any(f => path == f);
         }
 
         public async Task<IEnumerable<string>> GetFiles(
@@ -76,7 +77,7 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
                     Prefix = pathPrefix
                 };
 
-                var response = await client.ListObjectsAsync(request);
+                var response = await client.ListObjectsAsync(request).ConfigureAwait(false);
 
                 if (response.HttpStatusCode != HttpStatusCode.OK)
                 {
@@ -103,7 +104,7 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
                     Key = path
                 };
 
-                var response = await client.GetObjectAsync(request);
+                var response = await client.GetObjectAsync(request).ConfigureAwait(false);
 
                 if (response.HttpStatusCode != HttpStatusCode.OK)
                 {
@@ -141,7 +142,7 @@ namespace Halforbit.DataStores.FileStores.AmazonS3.Implementation
                     InputStream = sourceStream
                 };
 
-                var response = await client.PutObjectAsync(request);
+                var response = await client.PutObjectAsync(request).ConfigureAwait(false);
 
                 if (response.HttpStatusCode != HttpStatusCode.OK)
                 {

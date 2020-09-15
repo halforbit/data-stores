@@ -61,7 +61,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
         public async Task<bool> Delete(string path)
         {
-            await GetBlob(path).DeleteIfExistsAsync();
+            await GetBlob(path).DeleteIfExistsAsync().ConfigureAwait(false);
 
             return true;
         }
@@ -85,13 +85,13 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                     maxResults: null,
                     currentToken: blobContinuationToken,
                     options: null,
-                    operationContext: null);
+                    operationContext: null).ConfigureAwait(false);
 
                 foreach (var item in resultSegment.Results)
                 {
                     if (item is CloudBlobDirectory cloudBlockDirectory)
                     {
-                        results.AddRange(await GetFiles(cloudBlockDirectory.Prefix, extension));
+                        results.AddRange(await GetFiles(cloudBlockDirectory.Prefix, extension).ConfigureAwait(false));
                     }
 
                     if (item is CloudBlockBlob cloudBlockBlob)
@@ -122,7 +122,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 {
                     DisableContentMD5Validation = true
                 },
-                operationContext: default);
+                operationContext: default).ConfigureAwait(false);
 
             return new FileStoreReadAllBytesResult(
                 bytes: memoryStream.ToArray(),
@@ -145,7 +145,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 {
                     DisableContentMD5Validation = true
                 },
-                operationContext: default);
+                operationContext: default).ConfigureAwait(false);
 
             return true;
         }
@@ -180,7 +180,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 await blob.UploadFromByteArrayAsync(
                     buffer: contents,
                     index: 0,
-                    count: contents.Length);
+                    count: contents.Length).ConfigureAwait(false);
             }
             else
             {
@@ -192,7 +192,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                         count: contents.Length,
                         accessCondition: AccessCondition.GenerateIfMatchCondition(eTag),
                         options: null,
-                        operationContext: null);
+                        operationContext: null).ConfigureAwait(false);
                 }
                 catch (StorageException stex)
                 {
@@ -207,7 +207,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
             if (updateProperties)
             {
-                await blob.SetPropertiesAsync();
+                await blob.SetPropertiesAsync().ConfigureAwait(false);
             }
 
             return true;
@@ -235,11 +235,11 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 updateProperties = true;
             }
 
-            await blob.UploadFromStreamAsync(contents);
+            await blob.UploadFromStreamAsync(contents).ConfigureAwait(false);
 
             if (updateProperties)
             {
-                await blob.SetPropertiesAsync();
+                await blob.SetPropertiesAsync().ConfigureAwait(false);
             }
 
             return true;
@@ -266,11 +266,11 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             {
                 AssertAccess(Access.Get);
 
-                if (await _blobFileStore.Exists(key))
+                if (await _blobFileStore.Exists(key).ConfigureAwait(false))
                 {
                     var blob = _blobFileStore.GetBlob(key);
 
-                    await blob.FetchAttributesAsync();
+                    await blob.FetchAttributesAsync().ConfigureAwait(false);
 
                     return CloudBlockBlobToEntityInfo(blob);
                 }
@@ -288,9 +288,9 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 var blob = _blobFileStore.GetBlob(key);
 
-                if(await _blobFileStore.Exists(key))
+                if(await _blobFileStore.Exists(key).ConfigureAwait(false))
                 {
-                    await blob.FetchAttributesAsync();
+                    await blob.FetchAttributesAsync().ConfigureAwait(false);
 
                     var keyValues = blob.Metadata as IReadOnlyDictionary<string, string>;
 
@@ -351,7 +351,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 blob.Properties.ContentEncoding = entityInfo.ContentEncoding;
 
-                await blob.SetPropertiesAsync();
+                await blob.SetPropertiesAsync().ConfigureAwait(false);
             }
 
             public async Task SetMetadata(
@@ -377,7 +377,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                     blob.Metadata[kv.Key] = kv.Value;
                 }
 
-                await blob.SetMetadataAsync();
+                await blob.SetMetadataAsync().ConfigureAwait(false);
             }
 
             void AssertAccess(Access access)
@@ -435,7 +435,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 try
                 {
-                    return await blob.AcquireLeaseAsync(leaseTime);
+                    return await blob.AcquireLeaseAsync(leaseTime).ConfigureAwait(false);
                 }
                 catch(StorageException stex)
                 {
@@ -451,7 +451,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             {
                 var blob = _blobFileStore.GetBlob(key);
 
-                await blob.RenewLeaseAsync(new AccessCondition { LeaseId = leaseId });
+                await blob.RenewLeaseAsync(new AccessCondition { LeaseId = leaseId }).ConfigureAwait(false);
             }
 
             public async Task<string> ChangeLease(string key, string currentLeaseId)
@@ -460,21 +460,21 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 return await blob.ChangeLeaseAsync(
                     $"{Guid.NewGuid():N}",
-                    new AccessCondition { LeaseId = currentLeaseId });
+                    new AccessCondition { LeaseId = currentLeaseId }).ConfigureAwait(false);
             }
 
             public async Task ReleaseLease(string key, string leaseId)
             {
                 var blob = _blobFileStore.GetBlob(key);
 
-                await blob.ReleaseLeaseAsync(new AccessCondition { LeaseId = leaseId });
+                await blob.ReleaseLeaseAsync(new AccessCondition { LeaseId = leaseId }).ConfigureAwait(false);
             }
 
             public async Task BreakLease(string key, TimeSpan breakReleaseTime)
             {
                 var blob = _blobFileStore.GetBlob(key);
 
-                await blob.BreakLeaseAsync(breakReleaseTime);
+                await blob.BreakLeaseAsync(breakReleaseTime).ConfigureAwait(false);
             }
 
             public Task<Uri> GetEntityUrl(string key)

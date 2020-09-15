@@ -54,11 +54,11 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
             var request = _driveService.Files.Update(
                 file,
-                await ResolveFileId(path));
+                await ResolveFileId(path).ConfigureAwait(false));
 
             request.Fields = "id";
 
-            var response = await request.ExecuteAsync();
+            var response = await request.ExecuteAsync().ConfigureAwait(false);
 
             //if (response.Exception != null) throw response.Exception;
 
@@ -67,7 +67,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
         public async Task<bool> Exists(string path)
         {
-            return (await ListFiles(path)).Any();
+            return (await ListFiles(path).ConfigureAwait(false)).Any();
         }
 
         async Task<IReadOnlyList<File>> ListFiles(string path)
@@ -76,7 +76,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
             request.Q = $"name='{path}' and trashed=false";
 
-            var response = await request.ExecuteAsync();
+            var response = await request.ExecuteAsync().ConfigureAwait(false);
 
             return response.Files.ToList();
         }
@@ -87,7 +87,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
             request.Q = $"trashed=false";
 
-            var response = await request.ExecuteAsync();
+            var response = await request.ExecuteAsync().ConfigureAwait(false);
 
             var l = response.Files.ToList();
 
@@ -98,17 +98,17 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
             string path,
             bool getETag = false)
         {
-            var fileId = await ResolveFileId(path);
+            var fileId = await ResolveFileId(path).ConfigureAwait(false);
 
             var request = _driveService.Files.Get(fileId);
 
             var destStream = new MemoryStream();
 
-            var response = await request.DownloadAsync(destStream);
+            var response = await request.DownloadAsync(destStream).ConfigureAwait(false);
 
             while (response.Status == DownloadStatus.NotStarted || response.Status == DownloadStatus.Downloading)
             {
-                await Task.Delay(1);
+                await Task.Delay(1).ConfigureAwait(false);
             }
 
             if (response.Exception != null) throw response.Exception;
@@ -124,7 +124,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
             if (eTag != null) throw new NotSupportedException(
                  "ETag-based optimistic concurrency is not implemented on " + GetType().Name);
 
-            var file = (await ListFiles(path)).SingleOrDefault();
+            var file = (await ListFiles(path).ConfigureAwait(false)).SingleOrDefault();
 
             if (file == null)
             {
@@ -142,7 +142,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
                 request.Fields = "id";
 
-                var response = await request.UploadAsync();
+                var response = await request.UploadAsync().ConfigureAwait(false);
 
                 if (response.Exception != null) throw response.Exception;
 
@@ -186,7 +186,7 @@ namespace Halforbit.DataStores.FileStores.GoogleDrive.Implementation
 
                 request.Fields = "id";
 
-                var response = await request.UploadAsync();
+                var response = await request.UploadAsync().ConfigureAwait(false);
 
                 if (response.Exception != null) throw response.Exception;
             }

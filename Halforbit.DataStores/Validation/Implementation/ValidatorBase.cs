@@ -27,7 +27,7 @@ namespace Halforbit.DataStores
             {
                 foreach(var prerequisite in _prerequisites)
                 {
-                    errors = errors.With(await prerequisite.ValidateDelete(key, keyMap));
+                    errors = errors.With(await prerequisite.ValidateDelete(key, keyMap).ConfigureAwait(false));
 
                     if(errors.Any(e => e.IsFatal))
                     {
@@ -36,7 +36,7 @@ namespace Halforbit.DataStores
                 }
             }
 
-            return errors.With(await ValidateDelete(key, keyMap, errors));
+            return errors.With(await ValidateDelete(key, keyMap, errors).ConfigureAwait(false));
         }
 
         public async Task<ValidationErrors> ValidatePut(
@@ -50,7 +50,7 @@ namespace Halforbit.DataStores
             {
                 foreach(var prerequisite in _prerequisites)
                 {
-                    errors = errors.With(await prerequisite.ValidatePut(key, value, keyMap));
+                    errors = errors.With(await prerequisite.ValidatePut(key, value, keyMap).ConfigureAwait(false));
 
                     if(errors.Any(e => e.IsFatal))
                     {
@@ -59,7 +59,7 @@ namespace Halforbit.DataStores
                 }
             }
 
-            return errors.With(await ValidatePut(key, value, keyMap, errors));
+            return errors.With(await ValidatePut(key, value, keyMap, errors).ConfigureAwait(false));
         }
 
         protected virtual async Task<ValidationErrors> ValidateDelete(

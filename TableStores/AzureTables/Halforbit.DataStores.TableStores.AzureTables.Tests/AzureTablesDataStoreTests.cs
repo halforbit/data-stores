@@ -2,7 +2,9 @@
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Halforbit.DataStores.TableStores.AzureTables.Tests
@@ -40,6 +42,27 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Tests
                 testKey,
                 testValueA,
                 testValueB);
+        }
+        
+        [Fact, Trait("Type", "Integration")]
+        public async Task RunBulkApiTests()
+        {
+            var dataStore = new AzureTableStore<AzureTablesTestValue.Key, AzureTablesTestValue>(
+                connectionString: GetConfig("ConnectionString"),
+                tableName: GetConfig("TableName"),
+                keyMap: "test-values_{AccountId}|{SecondaryId}");
+
+            ClearDataStore(dataStore);
+     
+            await TestBulkApi(dataStore,
+                (keyGen, dataGen) =>
+                {
+                    var partitionId = (keyGen / 100).ToGuid();
+                    var accountId = keyGen.ToGuid();
+
+                    return new KeyValuePair<AzureTablesTestValue.Key, AzureTablesTestValue>(new AzureTablesTestValue.Key(partitionId, accountId),
+                        new AzureTablesTestValue(partitionId, accountId, $"Test: {dataGen}"));
+                });
         }
 
         [Fact, Trait("Type", "Integration")]
@@ -119,7 +142,7 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Tests
         }
     }
 
-    public class AzureTablesTestValue
+    public class AzureTablesTestValue : IEquatable<AzureTablesTestValue>
     {
         public AzureTablesTestValue() {
 
@@ -142,8 +165,70 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Tests
         public Guid SecondaryId { get; private set; }
 
         public string Message { get; private set; }
+        
+        public bool Equals(
+            AzureTablesTestValue other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
 
-        public class Key : UniversalIntegrationTest.ITestKey
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return AccountId.Equals(other.AccountId) && SecondaryId.Equals(other.SecondaryId) && Message == other.Message;
+        }
+
+        public override bool Equals(
+            object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return Equals((AzureTablesTestValue) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = AccountId.GetHashCode();
+                hashCode = (hashCode * 397) ^ SecondaryId.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Message != null ? Message.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(
+            AzureTablesTestValue left,
+            AzureTablesTestValue right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(
+            AzureTablesTestValue left,
+            AzureTablesTestValue right)
+        {
+            return !Equals(left, right);
+        }
+        
+        public class Key : UniversalIntegrationTest.ITestKey, IEquatable<Key>
         {
             public Key(
                 Guid? accountId,
@@ -157,6 +242,66 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Tests
             public Guid? AccountId { get; }
 
             public Guid? SecondaryId { get; }
+
+            public bool Equals(
+                Key other)
+            {
+                if (ReferenceEquals(null, other))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
+                return Nullable.Equals(AccountId, other.AccountId) && Nullable.Equals(SecondaryId, other.SecondaryId);
+            }
+
+            public override bool Equals(
+                object obj)
+            {
+                if (ReferenceEquals(null, obj))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                if (obj.GetType() != this.GetType())
+                {
+                    return false;
+                }
+
+                return Equals((Key) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (AccountId.GetHashCode() * 397) ^ SecondaryId.GetHashCode();
+                }
+            }
+
+            public static bool operator ==(
+                Key left,
+                Key right)
+            {
+                return Equals(left, right);
+            }
+
+            public static bool operator !=(
+                Key left,
+                Key right)
+            {
+                return !Equals(left, right);
+            }
         }
+
     }
 }
