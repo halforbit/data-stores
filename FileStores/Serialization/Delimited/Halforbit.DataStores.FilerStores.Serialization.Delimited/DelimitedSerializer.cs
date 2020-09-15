@@ -86,6 +86,10 @@ namespace Halforbit.DataStores
 
                     writer.WriteRecords((IEnumerable)value);
 
+                    writer.Flush();
+
+                    memoryStream.Flush();
+
                     return Task.FromResult(memoryStream.ToArray());
                 }
             }

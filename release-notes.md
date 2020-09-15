@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-09-15
+
+#### 3.8.3
+
+- Added a `Flush` to delimited serialization to help ensure output does not get cut off.
+
 ### 2020-08-05
 
 #### 3.7.0
