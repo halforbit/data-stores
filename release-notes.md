@@ -4,7 +4,7 @@
 
 ### 2020-09-28
 
-#### 3.8.6
+#### 3.8.8
 
 - We now throw an `ArgumentOutOfRangeException` when the default value of a key type is provided. Default values of key types indicate empty, and so are not allowed to be used as key values.
 
