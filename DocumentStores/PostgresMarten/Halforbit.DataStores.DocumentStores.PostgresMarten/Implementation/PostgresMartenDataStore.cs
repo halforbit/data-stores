@@ -1,4 +1,5 @@
 ﻿using Halforbit.DataStores.FileStores.Exceptions;
+using Halforbit.DataStores.Internal;
 using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
@@ -7,6 +8,7 @@ using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Interface;
 using Marten;
 using Marten.Services;
+using Marten.Util;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -83,6 +85,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Create(TKey key, TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
@@ -111,11 +115,15 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach(var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkCreate(values);
         }
 
         public async Task<bool> Delete(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             await ValidateDelete(key).ConfigureAwait(false);
 
             var id = GetDocumentId(key);
@@ -146,11 +154,15 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
             IEnumerable<TKey> keys)
         {
+            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+
             return this.BulkDelete(keys);
         }
 
         public async Task<bool> Exists(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var id = GetDocumentId(key);
 
             using (var session = _documentStore.LightweightSession())
@@ -163,6 +175,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<TValue> Get(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var id = GetDocumentId(key);
 
             using (var session = _documentStore.LightweightSession())
@@ -174,6 +188,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public Task<IReadOnlyList<KeyValuePair<TKey, TValue>>> Get(
             IEnumerable<TKey> keys)
         {
+            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+
             return this.BulkGet(keys);
         }
 
@@ -229,6 +245,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public async Task<bool> Update(TKey key, TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
@@ -257,11 +275,15 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkUpdate(values);
         }
 
         public async Task Upsert(TKey key, TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
@@ -281,16 +303,22 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
         public Task Upsert(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+            
             return this.BulkUpsert(values);
         }
 
         public Task Upsert(TKey key, Func<TValue, TValue> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+            
             throw new NotImplementedException();
         }
 
         public Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+            
             throw new NotImplementedException();
         }
 
@@ -340,6 +368,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
         public Task<bool> GetToStream(TKey key, Stream stream)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             throw new NotImplementedException();
         }
 

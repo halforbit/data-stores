@@ -1,4 +1,5 @@
 ﻿using Halforbit.DataStores.FileStores.Exceptions;
+using Halforbit.DataStores.Internal;
 using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
@@ -97,6 +98,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
@@ -127,11 +130,15 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkCreate(values);
         }
 
         public async Task<bool> Delete(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             await ValidateDelete(key).ConfigureAwait(false);
 
             var path = GetPath(key);
@@ -153,11 +160,15 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey,bool>>> Delete(
             IEnumerable<TKey> keys)
         {
+            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+
             return this.BulkDelete(keys);
         }
 
         public async Task<bool> Exists(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var path = GetPath(key);
 
             return await _fileStore.Exists(path).ConfigureAwait(false);
@@ -165,6 +176,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public async Task<TValue> Get(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var path = GetPath(key);
 
             if (_valueIsStream)
@@ -180,6 +193,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey,TValue>>> Get(
             IEnumerable<TKey> keys)
         {
+            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+
             return this.BulkGet(keys);
         }
 
@@ -227,6 +242,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
@@ -257,6 +274,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey,bool>>> Update(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkUpdate(values);
         }
 
@@ -264,6 +283,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
@@ -287,6 +308,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task Upsert(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkUpsert(values);
         }
 
@@ -294,6 +317,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             TKey key,
             Func<TValue, TValue> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var path = GetPath(key);
 
             var attemptsLeft = 100;
@@ -344,6 +369,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public async Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var path = GetPath(key);
 
             var attemptsLeft = 100;
@@ -585,6 +612,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public async Task<bool> GetToStream(TKey key, Stream stream)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var path = GetPath(key);
 
             return await _fileStore.ReadStream(path, stream).ConfigureAwait(false);

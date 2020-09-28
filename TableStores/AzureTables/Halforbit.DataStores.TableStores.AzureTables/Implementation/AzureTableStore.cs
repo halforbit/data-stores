@@ -1,4 +1,5 @@
 ﻿using Halforbit.DataStores.FileStores.Exceptions;
+using Halforbit.DataStores.Internal;
 using Halforbit.DataStores.TableStores.AzureTables.Exceptions;
 using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Collections;
@@ -82,6 +83,8 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         
         public async Task<bool> Create(TKey key, TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             //TODO: At present, we can only use objects that have a default constructor and properties that have a setter.
             //This limitation is due to our usage of the TableEntityAdapter<T> class. A custom implementation for reading
             //and writing our TableEntity objects should allow us to lift this limitation in the future.
@@ -128,11 +131,15 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach(var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkCreate(values);
         }
 
         public async Task<bool> Delete(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var existingTableEntity = await GetTableEntity(key).ConfigureAwait(false);
 
             if (existingTableEntity == null) 
@@ -156,16 +163,22 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
             IEnumerable<TKey> keys)
         {
+            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+
             return this.BulkDelete(keys);
         }
 
         public async Task<bool> Exists(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             return await Get(key).ConfigureAwait(false) != null;
         }
 
         public async Task<TValue> Get(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var tableEntity = await GetTableEntity(key).ConfigureAwait(false);
 
             return tableEntity == null
@@ -176,6 +189,8 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, TValue>>> Get(
             IEnumerable<TKey> keys)
         {
+            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+
             return this.BulkGet(keys);
         }
 
@@ -202,6 +217,8 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         public async Task<bool> Update(TKey key, TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var existingTableEntity = await GetTableEntity(key).ConfigureAwait(false);
             if (existingTableEntity == null) 
             {
@@ -224,11 +241,15 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkUpdate(values);
         }
 
         public async Task Upsert(TKey key, TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             value = await MutatePut(key, value).ConfigureAwait(false);
 
             await ValidatePut(key, value).ConfigureAwait(false);
@@ -245,11 +266,15 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
         public Task Upsert(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return this.BulkUpsert(values);
         }
 
         public async Task Upsert(TKey key, Func<TValue, TValue> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var existing = await Get(key).ConfigureAwait(false);
 
             var mutation = await MutatePut(key, mutator(existing)).ConfigureAwait(false);
@@ -267,6 +292,8 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         public Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             throw new NotImplementedException();
         }
 
@@ -471,6 +498,8 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
 
         public Task<bool> GetToStream(TKey key, Stream stream)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             throw new NotImplementedException();
         }
 

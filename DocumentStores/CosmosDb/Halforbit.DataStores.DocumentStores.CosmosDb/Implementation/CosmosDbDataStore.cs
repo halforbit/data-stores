@@ -1,4 +1,5 @@
 ﻿using Halforbit.DataStores.FileStores.Exceptions;
+using Halforbit.DataStores.Internal;
 using Halforbit.Facets.Attributes;
 using Halforbit.ObjectTools.Collections;
 using Halforbit.ObjectTools.Extensions;
@@ -169,6 +170,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var (partitionKey, documentId) = GetDocumentId(key);
             return CreateInternal(_container.Value, partitionKey, documentId, key, value);
         }
@@ -210,11 +213,15 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var v in values) v.Key.ThrowIfKeyIsDefaultValue();
+
             return BulkOperation(values, CreateInternal);
         }
         
         public Task<bool> Delete(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var (partitionKey, documentId) = GetDocumentId(key);
             return DeleteInternal(_container.Value, partitionKey, documentId, key);
         }
@@ -257,16 +264,22 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
             IEnumerable<TKey> keys)
         {
+            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+
             return BulkOperation(keys, DeleteInternal);
         }
 
         public async Task<bool> Exists(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             return !(await Get(key).ConfigureAwait(false)).IsDefaultValue();
         }
 
         public Task<TValue> Get(TKey key)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var (partitionKey, documentId) = GetDocumentId(key);
             return GetInternal(_container.Value, partitionKey, documentId, key);
         }
@@ -415,6 +428,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var (partitionKey, documentId) = GetDocumentId(key);
             return UpdateInternal(_container.Value, partitionKey, documentId, key, value);
         }
@@ -458,6 +473,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return BulkOperation(values, UpdateInternal);
         }
 
@@ -465,6 +482,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             TValue value)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             var (partitionKey, documentId) = GetDocumentId(key);
             return UpsertInternal(_container.Value, partitionKey, documentId, key, value);
         }
@@ -494,6 +513,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task Upsert(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
+            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+
             return BulkOperation(values, UpsertInternal);
         }
 
@@ -501,11 +522,15 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             TKey key, 
             Func<TValue, TValue> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             throw new NotImplementedException();
         }
 
         public Task Upsert(TKey key, Func<TValue, Task<TValue>> mutator)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             throw new NotImplementedException();
         }
 
@@ -645,6 +670,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         public Task<bool> GetToStream(TKey key, Stream stream)
         {
+            key.ThrowIfKeyIsDefaultValue();
+
             throw new NotImplementedException();
         }
 
