@@ -7,14 +7,9 @@ namespace Halforbit.DataStores.Internal
     {
         public static void ThrowIfKeyIsDefaultValue<TKey>(this TKey key)
         {
-<<<<<<< HEAD
             if (typeof(TKey).Equals(typeof(object))) return;
 
             if (EqualityComparer<TKey>.Default.Equals(key, default))
-=======
-            if (!typeof(TKey).Equals(typeof(object)) &&
-                EqualityComparer<TKey>.Default.Equals(key, default))
->>>>>>> master
             {
                 throw new ArgumentOutOfRangeException(
                     $"The provided key is the default value of {typeof(TKey).Name}, " +
