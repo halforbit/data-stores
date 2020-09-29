@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-09-29
+
+#### 3.8.10
+
+- Do not throw `ArgumentOutOfRangeException` for singleton data stores with a key type of `object`.
+
 ### 2020-09-28
 
 #### 3.8.8
