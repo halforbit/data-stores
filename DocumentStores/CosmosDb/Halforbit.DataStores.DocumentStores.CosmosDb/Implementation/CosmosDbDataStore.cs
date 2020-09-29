@@ -213,7 +213,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            foreach (var v in values) v.Key.ThrowIfKeyIsDefaultValue();
+            values.ThrowIfKeyIsDefaultValue();
 
             return BulkOperation(values, CreateInternal);
         }
@@ -264,7 +264,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
             IEnumerable<TKey> keys)
         {
-            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+            keys.ThrowIfKeyIsDefaultValue();
 
             return BulkOperation(keys, DeleteInternal);
         }
@@ -473,7 +473,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Update(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+            values.ThrowIfKeyIsDefaultValue();
 
             return BulkOperation(values, UpdateInternal);
         }
@@ -513,7 +513,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
         public Task Upsert(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+            values.ThrowIfKeyIsDefaultValue();
 
             return BulkOperation(values, UpsertInternal);
         }

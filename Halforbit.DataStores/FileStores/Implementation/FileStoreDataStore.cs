@@ -130,7 +130,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Create(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+            values.ThrowIfKeyIsDefaultValue();
 
             return this.BulkCreate(values);
         }
@@ -160,7 +160,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey,bool>>> Delete(
             IEnumerable<TKey> keys)
         {
-            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+            keys.ThrowIfKeyIsDefaultValue();
 
             return this.BulkDelete(keys);
         }
@@ -193,7 +193,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey,TValue>>> Get(
             IEnumerable<TKey> keys)
         {
-            foreach (var k in keys) k.ThrowIfKeyIsDefaultValue();
+            keys.ThrowIfKeyIsDefaultValue();
 
             return this.BulkGet(keys);
         }
@@ -274,7 +274,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task<IReadOnlyList<KeyValuePair<TKey,bool>>> Update(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+            values.ThrowIfKeyIsDefaultValue();
 
             return this.BulkUpdate(values);
         }
@@ -308,7 +308,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
         public Task Upsert(
             IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            foreach (var kv in values) kv.Key.ThrowIfKeyIsDefaultValue();
+            values.ThrowIfKeyIsDefaultValue();
 
             return this.BulkUpsert(values);
         }
