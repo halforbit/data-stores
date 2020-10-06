@@ -10,17 +10,12 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 {
     public class BlobFileStore : IFileStore
     {
-        static readonly Regex _connectionStringAccountNameParser = new Regex(
-            "AccountName=(?<AccountName>[^;]+)",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         readonly Lazy<BlobServiceClient> _blobServiceClient;
 
         readonly Lazy<BlobContainerClient> _blobContainerClient;
@@ -32,8 +27,6 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
         readonly string _contentType;
 
         readonly string _contentEncoding;
-
-        readonly Lazy<string> _accountName;
 
         readonly Lazy<IFileStoreContext> _fileStoreContext;
 
@@ -57,14 +50,8 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             {
                 var blobContainerClient = _blobServiceClient.Value.GetBlobContainerClient(_containerName);
 
-                blobContainerClient.CreateIfNotExistsAsync().Wait();
-
                 return blobContainerClient;
             });
-
-            _accountName = new Lazy<string>(() => _connectionStringAccountNameParser
-                .Match(_connectionString)
-                .Groups["AccountName"].Value); 
 
             _fileStoreContext = new Lazy<IFileStoreContext>(() => new BlobFileStoreContext(
                 this, 
@@ -305,7 +292,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 sasBuilder.SetPermissions(AccessToBlobSasPermissions(access));
 
-                var accountName = _blobFileStore._accountName.Value;
+                var accountName = _blobFileStore._blobServiceClient.Value.AccountName;
 
                 var sasToken = sasBuilder
                     .ToSasQueryParameters(userDelegationKey, accountName)
