@@ -4,7 +4,7 @@
 
 ### 2020-10-15
 
-#### 3.8.17
+#### 3.8.18
 
 - Reimplemented delimited serialization to use Newtonsoft JObject as its internal data model. This now allows value types on delimited stores such as `IReadOnlyList<>` of record type `IReadOnlyDictionary<string, string>`, `JObject` as well as any plain class.
 

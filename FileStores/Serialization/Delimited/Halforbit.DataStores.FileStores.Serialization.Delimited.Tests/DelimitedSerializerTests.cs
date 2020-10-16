@@ -6,9 +6,10 @@ using Xunit;
 
 namespace Halforbit.DataStores.FileStores.Serialization.Delimited.Tests
 {
+    [Trait("Type", "Unit"), Trait("Type", "RunOnBuild")]
     public class DelimitedSerializerTests
     {
-        [Fact, Trait("Type", "Unit")]
+        [Fact]
         public async Task ListOfDictionary_RoundTrip_Success()
         {
             var delimitedSerializer = new DelimitedSerializer();
@@ -20,7 +21,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Delimited.Tests
             Assert.True(ByteArraysEqual(_tsvWithHeader, reserialized));
         }
 
-        [Fact, Trait("Type", "Unit")]
+        [Fact]
         public async Task ListOfDataClass_RoundTrip_Success()
         {
             var delimitedSerializer = new DelimitedSerializer();
@@ -32,7 +33,7 @@ namespace Halforbit.DataStores.FileStores.Serialization.Delimited.Tests
             Assert.True(ByteArraysEqual(_tsvWithHeader, reserialized));
         }
 
-        [Fact, Trait("Type", "Unit")]
+        [Fact]
         public async Task ListOfJObject_RoundTrip_Success()
         {
             var delimitedSerializer = new DelimitedSerializer();
