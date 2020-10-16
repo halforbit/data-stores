@@ -106,7 +106,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.Integr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Delimited", "Delimited", "{2CB5DE11-3D6C-49CE-9379-A0DE2160C550}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Serialization.Delimited", "FileStores\Serialization\Delimited\Halforbit.DataStores.FilerStores.Serialization.Delimited\Halforbit.DataStores.FileStores.Serialization.Delimited.csproj", "{3C942D45-1248-4F99-BE49-0758D9A3D19D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.DataStores.FileStores.Serialization.Delimited", "FileStores\Serialization\Delimited\Halforbit.DataStores.FilerStores.Serialization.Delimited\Halforbit.DataStores.FileStores.Serialization.Delimited.csproj", "{3C942D45-1248-4F99-BE49-0758D9A3D19D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Halforbit.DataStores.FileStores.Serialization.Delimited.Tests", "FileStores\Serialization\Delimited\Halforbit.DataStores.FileStores.Serialization.Delimited.Tests\Halforbit.DataStores.FileStores.Serialization.Delimited.Tests.csproj", "{8F69892A-E9F2-4183-9233-B996FC827AB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -222,6 +224,10 @@ Global
 		{3C942D45-1248-4F99-BE49-0758D9A3D19D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C942D45-1248-4F99-BE49-0758D9A3D19D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C942D45-1248-4F99-BE49-0758D9A3D19D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F69892A-E9F2-4183-9233-B996FC827AB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F69892A-E9F2-4183-9233-B996FC827AB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F69892A-E9F2-4183-9233-B996FC827AB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F69892A-E9F2-4183-9233-B996FC827AB5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -265,6 +271,7 @@ Global
 		{F90DDC8A-405A-4993-81E6-1260059C69CF} = {38F99F25-71BD-4680-A721-DE5DDF571E1F}
 		{2CB5DE11-3D6C-49CE-9379-A0DE2160C550} = {8AC78341-1FBE-431E-93C9-309988113901}
 		{3C942D45-1248-4F99-BE49-0758D9A3D19D} = {2CB5DE11-3D6C-49CE-9379-A0DE2160C550}
+		{8F69892A-E9F2-4183-9233-B996FC827AB5} = {2CB5DE11-3D6C-49CE-9379-A0DE2160C550}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5BC1191-5358-4BC2-8427-D1482D49ED83}

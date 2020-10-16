@@ -1,11 +1,11 @@
 ﻿using CsvHelper;
+using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Halforbit.DataStores
@@ -40,16 +40,19 @@ namespace Halforbit.DataStores
                     reader.Configuration.HasHeaderRecord = _hasHeader;
 
                     reader.Configuration.Delimiter = _delimiter;
-
-                    reader.Configuration.PrepareHeaderForMatch = (s, i) => s.ToLower();
-
-                    var castMethod = typeof(Enumerable).GetMethod(nameof(Enumerable.Cast)).MakeGenericMethod(recordType);
+                    
+                    var castMethod = typeof(Enumerable)
+                        .GetMethod(nameof(Enumerable.Cast))
+                        .MakeGenericMethod(recordType);
 
                     var castResult = castMethod.Invoke(
-                        null, 
-                        new[] 
-                        { 
-                            reader.GetRecords(recordType).ToList() 
+                        null,
+                        new[]
+                        {
+                            reader
+                                .GetRecords(typeof(object))
+                                .Cast<ExpandoObject>()
+                                .Select(e => JObject.FromObject(e).ToObject(recordType))
                         });
 
                     if (genericType.Equals(typeof(IEnumerable<>)))
@@ -67,15 +70,21 @@ namespace Halforbit.DataStores
                 }
             }
 
-            throw new ArgumentException($"Delimited `TValue` type is `{valueType.Name}`, but must be `IReadOnlyList<>` or `IEnumerable<>`");
+            throw new ArgumentException($"Delimited `TValue` type is `{valueType.Name}`, but must be `IReadOnlyList<>`");
         }
 
         public Task<byte[]> Serialize<TValue>(TValue value)
         {
             var valueType = typeof(TValue);
 
-            if (typeof(IEnumerable).IsAssignableFrom(valueType))
+            if (valueType.IsGenericType && valueType.GenericTypeArguments.Count() == 1)
             {
+                var castMethod = typeof(Enumerable)
+                    .GetMethod(nameof(Enumerable.Cast))
+                    .MakeGenericMethod(typeof(object));
+
+                var castResult = castMethod.Invoke(null, new object[] { value }) as IEnumerable<object>; 
+
                 using (var memoryStream = new MemoryStream())
                 using (var streamWriter = new StreamWriter(memoryStream))
                 using (var writer = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
@@ -84,7 +93,7 @@ namespace Halforbit.DataStores
 
                     writer.Configuration.Delimiter = _delimiter;
 
-                    writer.WriteRecords((IEnumerable)value);
+                    writer.WriteRecords(castResult.Select(r => JObject.FromObject(r).ToObject<ExpandoObject>()).Cast<object>());
 
                     writer.Flush();
 
@@ -96,7 +105,7 @@ namespace Halforbit.DataStores
                 }
             }
 
-            throw new ArgumentException($"Delimited `TValue` type is `{valueType.Name}`, but must be `IEnumerable`");
+            throw new ArgumentException($"Delimited `TValue` type is `{valueType.Name}`, but must be `IReadOnlyList<>`");
         }
     }
 }
