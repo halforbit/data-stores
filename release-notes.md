@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-10-23
+
+#### 3.9.0
+
+- Added support for delimited store value types that need only be `IEnumerable<TRecord>` and have a constructor accepting `IEnumerable<TRecord>`.
+
 ### 2020-10-15
 
 #### 3.8.18

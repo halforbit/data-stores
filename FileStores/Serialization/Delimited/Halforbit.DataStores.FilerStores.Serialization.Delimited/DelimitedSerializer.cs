@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
@@ -27,11 +28,14 @@ namespace Halforbit.DataStores
         {
             var valueType = typeof(TValue);
 
-            if (valueType.IsGenericType && valueType.GenericTypeArguments.Count() == 1)
-            {
-                var recordType = valueType.GenericTypeArguments.Single();
+            var enumerableInterface = valueType.Name == "IEnumerable`1" ? 
+                valueType : 
+                valueType.GetInterface("IEnumerable`1");
 
-                var genericType = valueType.GetGenericTypeDefinition();
+            if (enumerableInterface != null)
+            {
+                var recordType =
+                    enumerableInterface.GenericTypeArguments.Single();
 
                 using (var memoryStream = new MemoryStream(data))
                 using (var streamReader = new StreamReader(memoryStream))
@@ -55,17 +59,34 @@ namespace Halforbit.DataStores
                                 .Select(e => JObject.FromObject(e).ToObject(recordType))
                         });
 
-                    if (genericType.Equals(typeof(IEnumerable<>)))
+                    var readOnlyListInterface = valueType.GetInterface("IReadOnlyList`1");
+
+                    var valueConstructor = valueType.GetConstructor(new[] 
+                    { 
+                        typeof(IEnumerable<>).MakeGenericType(recordType) 
+                    });
+
+                    if (valueConstructor != null)
                     {
-                        return Task.FromResult((TValue)castResult);
+                        return Task.FromResult((TValue)valueConstructor.Invoke(new[] { castResult }));
                     }
-                    else if (genericType.Equals(typeof(IReadOnlyList<>)))
+                    else if (valueType.IsGenericType)
                     {
-                        var toListMethod = typeof(Enumerable).GetMethod(nameof(Enumerable.ToList)).MakeGenericMethod(recordType);
+                        var valueGenericTypeDefinition = valueType.GetGenericTypeDefinition();
 
-                        var toListResult = toListMethod.Invoke(null, new[] { castResult });
+                        if (valueGenericTypeDefinition.Equals(typeof(IReadOnlyList<>)) ||
+                            valueGenericTypeDefinition.Equals(typeof(IEnumerable<>)))
+                        {
+                            var toListMethod = typeof(Enumerable).GetMethod(nameof(Enumerable.ToList)).MakeGenericMethod(recordType);
 
-                        return Task.FromResult((TValue)toListResult);
+                            var toListResult = toListMethod.Invoke(null, new[] { castResult });
+
+                            return Task.FromResult((TValue)toListResult);
+                        }
+                        //else if (valueType.GetGenericTypeDefinition().Equals(typeof(IEnumerable<>)))
+                        //{
+                        //    return Task.FromResult((TValue)castResult);
+                        //}
                     }
                 }
             }
@@ -77,7 +98,7 @@ namespace Halforbit.DataStores
         {
             var valueType = typeof(TValue);
 
-            if (valueType.IsGenericType && valueType.GenericTypeArguments.Count() == 1)
+            if (typeof(IEnumerable).IsAssignableFrom(valueType))
             {
                 var castMethod = typeof(Enumerable)
                     .GetMethod(nameof(Enumerable.Cast))
