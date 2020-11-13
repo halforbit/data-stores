@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-11-13
+
+#### 3.10.0
+
+- Added `Get` method to `IDataContext` to handle singleton stores that have no key type.
+
 ### 2020-10-23
 
 #### 3.9.0

@@ -21,5 +21,20 @@ namespace Halforbit.DataStores
 
             return instance;
         }
+
+        public IDataStore<TValue> Get<TValue>(
+            Func<INeedsIntegration, IDataStoreDescription<TValue>> getDataStoreDescription)
+        {
+            if (_cache.TryGetValue(getDataStoreDescription, out var cacheHit))
+            {
+                return (IDataStore<TValue>)cacheHit;
+            }
+
+            var instance = getDataStoreDescription(DataStore.Describe()).Build();
+
+            _cache[getDataStoreDescription] = instance;
+
+            return instance;
+        }
     }
 }
