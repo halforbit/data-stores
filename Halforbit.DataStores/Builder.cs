@@ -4,11 +4,11 @@ using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.LocalStorage.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.ByteSerialization.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
-using Halforbit.DataStores.Implementation;
 using Halforbit.DataStores.LocalStorage;
 using Halforbit.DataStores.WebStorage;
 using Halforbit.ObjectTools.DeferredConstruction;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -394,6 +394,23 @@ namespace Halforbit.DataStores
             return new Builder(target.Root.Argument(
                 "fileStore",
                 c => c.Argument("rootUrl", rootUrl)));
+        }
+    }
+
+    public static class ShardedDataStoreBuilderExtensions
+    {
+        public static IDataStoreDescription<TKey, TValue> Sharded<TShardConfig, TKey, TValue>(
+            this INeedsIntegration target,
+            Func<TKey, string> keyToShardId,
+            IEnumerable<(string ShardId, TShardConfig ShardConfig)> shardConfigs,
+            Func<TShardConfig, IDataStoreDescription<TKey, TValue>> describeShard)
+        {
+            return new Builder<TKey, TValue>(target.Root
+                .Type(typeof(ShardedDataStore<,,>))
+                .TypeArguments(typeof(TShardConfig), typeof(TKey), typeof(TValue))
+                .Argument("keyToShardId", keyToShardId)
+                .Argument("shardConfigs", shardConfigs)
+                .Argument("describeShard", describeShard));
         }
     }
 }

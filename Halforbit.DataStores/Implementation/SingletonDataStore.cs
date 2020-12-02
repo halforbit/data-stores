@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Halforbit.DataStores.Implementation
+namespace Halforbit.DataStores
 {
     public class SingletonDataStore<TValue> : IDataStore<TValue>
     {

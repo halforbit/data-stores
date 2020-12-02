@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2020-12-01
+
+#### 3.11.0
+
+- Added support for sharded data stores with the `Sharded` builder method and `ShardedDataStore` implementation.
+
 ### 2020-11-13
 
 #### 3.10.0
