@@ -2,6 +2,13 @@
 
 ## Release Notes
 
+### 2021-01-15
+
+#### 3.12.0
+
+- Added partial support for enums as partition key types for cosmos data stores. See known issues for more information.
+- Known issue: CosmosDb partition keys of type `enum` will not be comprehended properly from the `Query` method predicate, resulting in partition key equalities being ignored in the predicate and possibly extraneous results being returned. A workaround is to move the partition filtering from the `Query` predicate to a `Where` clause in the query, though this will result in a sweep across all partitions instead of the single partition specified.
+
 ### 2020-12-01
 
 #### 3.11.0

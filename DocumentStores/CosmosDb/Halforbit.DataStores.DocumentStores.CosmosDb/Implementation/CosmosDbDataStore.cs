@@ -80,6 +80,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
         readonly IReadOnlyList<IMutator> _untypedMutators;
 
+        readonly bool _partitionKeyIsEnum;
+
         public CosmosDbDataStore(
             string connectionString,
             string databaseId,
@@ -145,6 +147,15 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                         // Automagically set partition key guids to dashed
 
                         _keyMap = $"{{{_partitionKey}:D}}|{keyMap.Substring(m.Value.Length)}";
+                    }
+                    else if ((Nullable.GetUnderlyingType(partitionKeyProperty.PropertyType) ?? 
+                        partitionKeyProperty.PropertyType).IsEnum)
+                    {
+                        // Automagically set partition key enum to integer
+
+                        _keyMap = $"{{{_partitionKey}:i}}|{keyMap.Substring(m.Value.Length)}";
+
+                        _partitionKeyIsEnum = true;
                     }
                 }
 
@@ -691,8 +702,10 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             }
         }
 
-        static PartitionKey? GetCosmosPartitionKey(
-            string partitionKey) => !string.IsNullOrWhiteSpace(partitionKey) ? new PartitionKey(partitionKey) : (PartitionKey?) null;
+        PartitionKey? GetCosmosPartitionKey(string partitionKey) =>
+            !string.IsNullOrWhiteSpace(partitionKey) ?
+                _partitionKeyIsEnum ? new PartitionKey(double.Parse(partitionKey)) : new PartitionKey(partitionKey) : 
+                (PartitionKey?)null;
 
         async Task<TValue> MutatePut(TKey key, TValue value)
         {

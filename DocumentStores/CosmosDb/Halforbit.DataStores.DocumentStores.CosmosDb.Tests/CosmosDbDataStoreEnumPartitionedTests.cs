@@ -9,32 +9,32 @@ using Xunit;
 
 namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
 {
-    public class CosmosDbDataStorePartitionedTests : UniversalIntegrationTest
+    public class CosmosDbDataStoreEnumPartitionedTests : UniversalIntegrationTest
     {
-        protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.CosmosDb.Tests.Partitioned.";
+        protected override string ConfigPrefix => "Halforbit.DataStores.DocumentStores.CosmosDb.Tests.EnumPartitioned.";
 
         [Fact, Trait("Type", "Integration")]
         public async Task TestCosmosDbPartitioned()
         {
-            var testKey = new PartitionedTestValue.Key(
-                partitionId: Guid.NewGuid(),
+            var testKey = new EnumPartitionedTestValue.Key(
+                partitionId: EnumPartitionedTestValue.PartitionEnum.Bravo,
                 accountId: Guid.NewGuid());
 
-            var testValueA = new PartitionedTestValue(
-                partitionId: testKey.PartitionId.Value,
+            var testValueA = new EnumPartitionedTestValue(
+                partitionId: testKey.PartitionId,
                 accountId: testKey.AccountId.Value,
                 message: "Hello, world!");
 
-            var testValueB = new PartitionedTestValue(
-                partitionId: testKey.PartitionId.Value,
+            var testValueB = new EnumPartitionedTestValue(
+                partitionId: testKey.PartitionId,
                 accountId: testKey.AccountId.Value,
                 message: "Kthx, world!");
 
-            var dataStore = new CosmosDbDataStore<PartitionedTestValue.Key, PartitionedTestValue>(
+            var dataStore = new CosmosDbDataStore<EnumPartitionedTestValue.Key, EnumPartitionedTestValue>(
                 connectionString: GetConfig("ConnectionString"),
                 databaseId: GetConfig("DatabaseId"),
                 containerId: GetConfig("CollectionId"),
-                keyMap: "{PartitionId}|test-values/{AccountId}");
+                keyMap: "{PartitionId}|enum-test-values/{AccountId}");
 
             ClearDataStore(dataStore);
 
@@ -54,7 +54,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         [Fact, Trait("Type", "Integration")]
         public async Task RunBulkApiTests()
         {
-            var ds = new CosmosDbDataStore<PartitionedTestValue.Key, PartitionedTestValue>(
+            var ds = new CosmosDbDataStore<EnumPartitionedTestValue.Key, EnumPartitionedTestValue>(
                 connectionString: GetConfig("ConnectionString"),
                 databaseId: GetConfig("DatabaseId"),
                 containerId: GetConfig("CollectionId"),
@@ -65,28 +65,28 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
             await TestBulkApi(ds,
                 (keyGen, dataGen) =>
                 {
-                    var partitionId = (keyGen / 100).ToGuid();
+                    var partitionId = (EnumPartitionedTestValue.PartitionEnum)(keyGen / 3);
                     var accountId = keyGen.ToGuid();
 
-                    return new KeyValuePair<PartitionedTestValue.Key, PartitionedTestValue>(new PartitionedTestValue.Key(partitionId, accountId),
-                        new PartitionedTestValue(partitionId, accountId, $"Test: {dataGen}"));
+                    return new KeyValuePair<EnumPartitionedTestValue.Key, EnumPartitionedTestValue>(new EnumPartitionedTestValue.Key(partitionId, accountId),
+                        new EnumPartitionedTestValue(partitionId, accountId, $"Test: {dataGen}"));
                 });
         }
 
-        static void TestQuery(IDataStore<PartitionedTestValue.Key, PartitionedTestValue> dataStore)
+        static void TestQuery(IDataStore<EnumPartitionedTestValue.Key, EnumPartitionedTestValue> dataStore)
         {
             var values = new[]
             {
-                new PartitionedTestValue(Guid.NewGuid(), Guid.NewGuid(), "abc"),
+                new EnumPartitionedTestValue(EnumPartitionedTestValue.PartitionEnum.Alfa, Guid.NewGuid(), "abc"),
 
-                new PartitionedTestValue(Guid.NewGuid(), Guid.NewGuid(), "bcd"),
+                new EnumPartitionedTestValue(EnumPartitionedTestValue.PartitionEnum.Bravo, Guid.NewGuid(), "bcd"),
 
-                new PartitionedTestValue(Guid.NewGuid(), Guid.NewGuid(), "cde")
+                new EnumPartitionedTestValue(EnumPartitionedTestValue.PartitionEnum.Charlie, Guid.NewGuid(), "cde")
             };
 
             foreach (var value in values)
             {
-                dataStore.Create(new PartitionedTestValue.Key(value.PartitionId, value.AccountId), value).Wait();
+                dataStore.Create(new EnumPartitionedTestValue.Key(value.PartitionId, value.AccountId), value).Wait();
             }
 
             using (var session = dataStore.StartQuery())
@@ -98,7 +98,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                 Assert.Equal(2, result.Count);
 
                 var result2 = session
-                    .Query(k => k.PartitionId == values[0].PartitionId)
+                    .Query()
+                    .Where(k => k.PartitionId == values[0].PartitionId)
                     .ToList();
 
                 Assert.Single(result2);
@@ -108,7 +109,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         }
 
         static async Task TestBatch(
-            IDataStore<PartitionedTestValue.Key, PartitionedTestValue> dataStore)
+            IDataStore<EnumPartitionedTestValue.Key, EnumPartitionedTestValue> dataStore)
         {
             var allIds = Enumerable
                 .Range(0, 1000)
@@ -121,10 +122,10 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         }
     }
 
-    public class PartitionedTestValue : Document, IEquatable<PartitionedTestValue>
+    public class EnumPartitionedTestValue : Document, IEquatable<EnumPartitionedTestValue>
     {
-        public PartitionedTestValue(
-            Guid partitionId = default,
+        public EnumPartitionedTestValue(
+            PartitionEnum partitionId = default,
             Guid accountId = default,
             string message = default)
         {
@@ -135,14 +136,14 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
             Message = message;
         }
 
-        public Guid PartitionId { get; }
+        public PartitionEnum PartitionId { get; }
 
         public Guid AccountId { get; }
         
         public string Message { get; }
         
         public bool Equals(
-            PartitionedTestValue other)
+            EnumPartitionedTestValue other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -175,7 +176,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                 return false;
             }
 
-            return Equals((PartitionedTestValue) obj);
+            return Equals((EnumPartitionedTestValue) obj);
         }
 
         public override int GetHashCode()
@@ -190,23 +191,31 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
         }
 
         public static bool operator ==(
-            PartitionedTestValue left,
-            PartitionedTestValue right)
+            EnumPartitionedTestValue left,
+            EnumPartitionedTestValue right)
         {
             return Equals(left, right);
         }
 
         public static bool operator !=(
-            PartitionedTestValue left,
-            PartitionedTestValue right)
+            EnumPartitionedTestValue left,
+            EnumPartitionedTestValue right)
         {
             return !Equals(left, right);
         }
-        
+
+        public enum PartitionEnum
+        { 
+            Unknown = 0,
+            Alfa, 
+            Bravo,
+            Charlie
+        }
+
         public class Key : UniversalIntegrationTest.ITestKey, IEquatable<Key>
         {
             public Key(
-                Guid? partitionId, 
+                PartitionEnum partitionId, 
                 Guid? accountId)
             {
                 PartitionId = partitionId;
@@ -214,7 +223,7 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Tests
                 AccountId = accountId;
             }
 
-            public Guid? PartitionId { get; }
+            public PartitionEnum PartitionId { get; }
             
             public Guid? AccountId { get; }
 
