@@ -185,7 +185,7 @@ namespace Halforbit.DataStores
                 return shardStore;
             }
 
-            throw new ArgumentException($"A shard with id '{_keyToShardId}' is not configured.");
+            throw new ArgumentException($"A shard with id '{shardId}' is not configured.");
         }
 
         IDataStore<TKey, TValue> ResolveStore(TKey key) => ResolveStore(_keyToShardId(key));
