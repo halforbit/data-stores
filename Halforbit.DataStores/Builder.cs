@@ -7,6 +7,7 @@ using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.LocalStorage;
 using Halforbit.DataStores.WebStorage;
 using Halforbit.ObjectTools.DeferredConstruction;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -228,6 +229,24 @@ namespace Halforbit.DataStores
         {
             return new Builder<TKey, TValue>(
                 target.Root.ArgumentItem("untypedMutators", mutator));
+        }
+
+        // Logging ////////////////////////////////////////////////////////////
+
+        public static IDataStoreDescription<TKey, TValue> Logger<TKey, TValue>(
+            this IDataStoreDescription<TKey, TValue> target,
+            ILogger logger)
+        {
+            return new Builder<TKey, TValue>(
+                target.Root.Argument("logger", logger));
+        }
+
+        public static IDataStoreDescription<TValue> Logger<TValue>(
+            this IDataStoreDescription<TValue> target,
+            ILogger logger)
+        {
+            return new Builder<TValue>(
+                target.Root.Argument("logger", logger));
         }
 
         // Construction ///////////////////////////////////////////////////////

@@ -3,12 +3,14 @@ using Halforbit.DataStores.FileStores.Implementation;
 using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.Tests;
 using Halforbit.ObjectTools.Extensions;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
 {
@@ -74,7 +76,14 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
 
     public class BlobFileStoreTests : UniversalIntegrationTest
     {
+        readonly ITestOutputHelper _testOutputHelper;
+
         protected override string ConfigPrefix => "Halforbit.DataStores.FileStores.BlobStorage.Tests.";
+
+        public BlobFileStoreTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
 
         [Fact, Trait("Type", "Integration")]
         public void TestBlobFileStore()
@@ -96,7 +105,8 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
                     "application/json"),
                 serializer: new JsonSerializer($"{JsonOptions.Default}"),
                 keyMap: "test-values/{AccountId}",
-                fileExtension: ".json");
+                fileExtension: ".json", 
+                logger: new TestLogger(_testOutputHelper));
 
             TestDataStore(
                 dataStore,
@@ -196,6 +206,31 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Tests
             }
 
             public Guid? AccountId { get; }
+        }
+    }
+
+    class TestLogger : ILogger
+    {
+        readonly ITestOutputHelper _testOutputHelper;
+
+        public TestLogger(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            _testOutputHelper.WriteLine($"{logLevel}: {formatter(state, exception)}");
         }
     }
 }

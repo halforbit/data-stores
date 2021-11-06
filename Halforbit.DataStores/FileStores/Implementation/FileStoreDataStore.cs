@@ -6,6 +6,7 @@ using Halforbit.ObjectTools.Extensions;
 using Halforbit.ObjectTools.InvariantExtraction.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Interface;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,6 +43,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         readonly IReadOnlyList<IMutator> _untypedMutators;
 
+        readonly ILogger _logger;
+
         readonly Lazy<IDataStoreContext<TKey>> _context;
 
         static FileStoreDataStore()
@@ -59,7 +62,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             [Optional]IReadOnlyList<IObserver<TKey, TValue>> typedObservers = null,
             [Optional]IReadOnlyList<IObserver> untypedObservers = null,
             [Optional]IReadOnlyList<IMutator<TKey, TValue>> typedMutators = null,
-            [Optional]IReadOnlyList<IMutator> untypedMutators = null)
+            [Optional]IReadOnlyList<IMutator> untypedMutators = null,
+            [Optional]ILogger logger = null)
         {
             _fileStore = fileStore ?? throw new ArgumentNullException(nameof(fileStore));
 
@@ -80,6 +84,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
 
             _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
+
+            _logger = logger;
 
             _context = new Lazy<IDataStoreContext<TKey>>(() => new DataStoreContext(
                 _fileStore.FileStoreContext,
@@ -105,6 +111,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             await ValidatePut(key, value).ConfigureAwait(false);
 
             var path = GetPath(key);
+
+            _logger?.LogDebug($"Creating value at path `{path}`.");
 
             if (await _fileStore.Exists(path).ConfigureAwait(false))
             {
@@ -143,6 +151,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var path = GetPath(key);
 
+            _logger?.LogDebug($"Deleting value at path `{path}`.");
+
             if (!await _fileStore.Exists(path).ConfigureAwait(false))
             {
                 return false;
@@ -171,6 +181,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var path = GetPath(key);
 
+            _logger?.LogDebug($"Checking existance of value at path `{path}`.");
+
             return await _fileStore.Exists(path).ConfigureAwait(false);
         }
 
@@ -179,6 +191,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             key.ThrowIfKeyIsDefaultValue();
 
             var path = GetPath(key);
+
+            _logger?.LogDebug($"Getting value at path `{path}`.");
 
             if (_valueIsStream)
             {
@@ -250,6 +264,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var path = GetPath(key);
 
+            _logger?.LogDebug($"Updating value at path `{path}`.");
+
             if (!await _fileStore.Exists(path).ConfigureAwait(false))
             {
                 return false;
@@ -291,6 +307,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var path = GetPath(key);
 
+            _logger?.LogDebug($"Upserting value at path `{path}`.");
+
             await ObserveBeforePut(key, value).ConfigureAwait(false);
 
             if (_valueIsStream)
@@ -320,6 +338,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             key.ThrowIfKeyIsDefaultValue();
 
             var path = GetPath(key);
+
+            _logger?.LogDebug($"Upserting value at path `{path}`.");
 
             var attemptsLeft = 100;
 
@@ -373,6 +393,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var path = GetPath(key);
 
+            _logger?.LogDebug($"Upserting value at path `{path}`.");
+
             var attemptsLeft = 100;
 
             while (attemptsLeft > 0)
@@ -380,6 +402,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 var current = await GetValueWithETag(path).ConfigureAwait(false);
 
                 var mutated = await mutator(current.Item1).ConfigureAwait(false);
+
                 var mutation = await MutatePut(key, mutated).ConfigureAwait(false);
 
                 await ValidatePut(key, mutation).ConfigureAwait(false);
@@ -501,6 +524,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
         async Task<IEnumerable<KeyValuePair<TKey, string>>> ResolveKeyPaths(
             string keyStringPrefix)
         {
+            _logger?.LogDebug($"Listing files with a prefix of `{keyStringPrefix}`.");
+
             var files = await _fileStore.GetFiles(
                 keyStringPrefix,// InvariantPathPrefix,
                 _fileExtension).ConfigureAwait(false);

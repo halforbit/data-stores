@@ -17,6 +17,7 @@ using Halforbit.DataStores.Serialization.Protobuf.Implementation;
 using Halforbit.DataStores.TableStores.AzureTables.Implementation;
 using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -1206,6 +1207,106 @@ namespace Halforbit.DataStores.IntegrationTests
             Assert.Equal("{AccountId:D}|key-map/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
 
             Assert.Null(dataStore.Field<IValidator<Guid, string>>("_validator"));
+        }
+
+        // Logging ////////////////////////////////////////////////////////////
+
+        [Fact, Trait("Type", "Unit")]
+        public void Logger()
+        {
+            var logger = new TestLogger();
+
+            var dataStore = DataStore
+                .Describe()
+                .LocalStorage()
+                .RootPath("c:/data")
+                .JsonSerialization()
+                .NoCompression()
+                .FileExtension(".json")
+                .Map<Guid, string>("my-stuff/{this}")
+                .Logger(logger)
+                .Mutator(new MyTypedMutatorA())
+                .Mutator(new MyTypedMutatorB())
+                .Build();
+
+            Assert.IsType<FileStoreDataStore<Guid, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<LocalFileStore>(fileStore);
+
+            Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff/{this}", dataStore.Field<StringMap<Guid>>("_keyMap").Source);
+
+            Assert.Null(dataStore.Field<IValidator<Guid, string>>("_validator"));
+
+            Assert.Equal(logger, dataStore.Field<ILogger>("_logger"));
+        }
+
+        [Fact, Trait("Type", "Unit")]
+        public void Logger_Singleton()
+        {
+            var logger = new TestLogger();
+
+            var singletonDataStore = DataStore
+                .Describe()
+                .LocalStorage()
+                .RootPath("c:/data")
+                .JsonSerialization()
+                .NoCompression()
+                .FileExtension(".json")
+                .Map<string>("my-stuff")
+                .Logger(logger)
+                .Build();
+
+            Assert.IsType<SingletonDataStore<string>>(singletonDataStore);
+
+            var dataStore = singletonDataStore.Field<IDataStore<object, string>>("_source");
+
+            Assert.IsType<FileStoreDataStore<object, string>>(dataStore);
+
+            var fileStore = dataStore.Field<IFileStore>("_fileStore");
+
+            Assert.IsType<LocalFileStore>(fileStore);
+
+            Assert.Equal("c:/data", fileStore.Field<string>("_rootPath"));
+
+            Assert.IsType<JsonSerializer>(dataStore.Field<ISerializer>("_serializer"));
+
+            Assert.Null(dataStore.Field<ICompressor>("_compressor"));
+
+            Assert.Equal(".json", dataStore.Field<string>("_fileExtension"));
+
+            Assert.Equal("my-stuff", dataStore.Field<StringMap<object>>("_keyMap").Source);
+
+            Assert.Null(dataStore.Field<IValidator<Guid, string>>("_validator"));
+
+            Assert.Equal(logger, dataStore.Field<ILogger>("_logger"));
+        }
+    }
+
+    class TestLogger : ILogger
+    {
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            throw new NotImplementedException();
         }
     }
 
