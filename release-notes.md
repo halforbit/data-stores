@@ -4,6 +4,10 @@
 
 ### 2022-03-29
 
+#### 3.13.0
+
+- Make `Observer.AfterPut` and `Observer.AfterDelete` `virtual` so that they can be overridden.
+
 #### 3.12.3
 
 - Added `AfterPut` and `AfterDelete` methods to the observer system.

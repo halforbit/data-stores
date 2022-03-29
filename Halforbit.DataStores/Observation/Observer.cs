@@ -4,12 +4,12 @@ namespace Halforbit.DataStores
 {
     public class Observer : IObserver
     {
-        public Task AfterDelete(object key)
+        public virtual Task AfterDelete(object key)
         {
             return Task.CompletedTask;
         }
 
-        public Task AfterPut(object key, object value)
+        public virtual Task AfterPut(object key, object value)
         {
             return Task.CompletedTask;
         }
@@ -27,12 +27,12 @@ namespace Halforbit.DataStores
 
     public class Observer<TKey, TValue> : IObserver<TKey, TValue>
     {
-        public Task AfterDelete(TKey key)
+        public virtual Task AfterDelete(TKey key)
         {
             return Task.CompletedTask;
         }
 
-        public Task AfterPut(TKey key, TValue value)
+        public virtual Task AfterPut(TKey key, TValue value)
         {
             return Task.CompletedTask;
         }
