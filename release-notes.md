@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2022-03-29
+
+#### 3.12.3
+
+- Added `AfterPut` and `AfterDelete` methods to the observer system.
+
 ### 2021-01-15
 
 #### 3.12.0

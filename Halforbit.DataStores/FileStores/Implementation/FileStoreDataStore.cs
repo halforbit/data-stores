@@ -132,6 +132,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
             }
 
+            await ObserveAfterPut(key, value).ConfigureAwait(false);
+
             return true;
         }
 
@@ -163,6 +165,10 @@ namespace Halforbit.DataStores.FileStores.Implementation
             foreach (var observer in _untypedObservers) await observer.BeforeDelete(key);
 
             await _fileStore.Delete(path).ConfigureAwait(false);
+
+            foreach (var observer in _typedObservers) await observer.AfterDelete(key);
+
+            foreach (var observer in _untypedObservers) await observer.AfterDelete(key);
 
             return true;
         }
@@ -284,6 +290,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
             }
 
+            await ObserveAfterPut(key, value).ConfigureAwait(false);
+
             return true;
         }
 
@@ -321,6 +329,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 await _fileStore.WriteAllBytes(path, contents).ConfigureAwait(false);
             }
+
+            await ObserveAfterPut(key, value).ConfigureAwait(false);
         }
 
         public Task Upsert(
@@ -371,6 +381,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 if (success)
                 {
+                    await ObserveAfterPut(key, mutation).ConfigureAwait(false);
+
                     return;
                 }
 
@@ -427,6 +439,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
                 if (success)
                 {
+                    await ObserveAfterPut(key, mutation).ConfigureAwait(false);
+
                     return;
                 }
 
@@ -633,6 +647,15 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             foreach (var observer in _untypedObservers)
                 await observer.BeforePut(key, value).ConfigureAwait(false);
+        }
+
+        async Task ObserveAfterPut(TKey key, TValue value)
+        {
+            foreach (var observer in _typedObservers)
+                await observer.AfterPut(key, value).ConfigureAwait(false);
+
+            foreach (var observer in _untypedObservers)
+                await observer.AfterPut(key, value).ConfigureAwait(false);
         }
 
         public async Task<bool> GetToStream(TKey key, Stream stream)

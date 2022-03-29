@@ -208,6 +208,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                     item: value,
                     partitionKey: GetCosmosPartitionKey(partitionKey))).ConfigureAwait(false);
 
+                await ObserveAfterPut(key, value).ConfigureAwait(false);
+
                 return true;
             }
             catch (CosmosException ce)
@@ -258,6 +260,12 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                             id: documentId,
                             partitionKey: GetCosmosPartitionKey(partitionKey) ?? PartitionKey.None))
                     .ConfigureAwait(false);
+
+                foreach (var observer in _typedObservers)
+                    await observer.AfterDelete(key).ConfigureAwait(false);
+
+                foreach (var observer in _untypedObservers)
+                    await observer.AfterDelete(key).ConfigureAwait(false);
 
                 return true;
             }
@@ -468,6 +476,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
                         partitionKey: GetCosmosPartitionKey(partitionKey)))
                     .ConfigureAwait(false);
 
+                await ObserveAfterPut(key, value).ConfigureAwait(false);
+
                 return true;
             }
             catch (CosmosException ce)
@@ -517,6 +527,8 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             await Execute(() => _container.Value.UpsertItemAsync(
                 item: value,
                 partitionKey: GetCosmosPartitionKey(partitionKey))).ConfigureAwait(false);
+
+            await ObserveAfterPut(key, value).ConfigureAwait(false);
 
             return true;
         }
@@ -725,6 +737,15 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
 
             foreach (var observer in _untypedObservers)
                 await observer.BeforePut(key, value).ConfigureAwait(false);
+        }
+
+        async Task ObserveAfterPut(TKey key, TValue value)
+        {
+            foreach (var observer in _typedObservers)
+                await observer.AfterPut(key, value).ConfigureAwait(false);
+
+            foreach (var observer in _untypedObservers)
+                await observer.AfterPut(key, value).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(

@@ -109,6 +109,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
+            await ObserveAfterPut(key, value).ConfigureAwait(false);
+
             return true;
         }
 
@@ -147,6 +149,12 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
+
+            foreach (var observer in _typedObservers)
+                await observer.AfterDelete(key).ConfigureAwait(false);
+
+            foreach (var observer in _untypedObservers)
+                await observer.AfterDelete(key).ConfigureAwait(false);
 
             return true;
         }
@@ -269,6 +277,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
+            await ObserveAfterPut(key, value).ConfigureAwait(false);
+
             return true;
         }
 
@@ -298,6 +308,8 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
+
+            await ObserveAfterPut(key, value).ConfigureAwait(false);
         }
 
         public Task Upsert(
@@ -391,6 +403,15 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
 
             foreach (var observer in _untypedObservers)
                 await observer.BeforePut(key, value).ConfigureAwait(false);
+        }
+
+        async Task ObserveAfterPut(TKey key, TValue value)
+        {
+            foreach (var observer in _typedObservers)
+                await observer.AfterPut(key, value).ConfigureAwait(false);
+
+            foreach (var observer in _untypedObservers)
+                await observer.AfterPut(key, value).ConfigureAwait(false);
         }
 
         public Task<IEnumerable<TResult>> BatchQuery<TItem, TResult>(

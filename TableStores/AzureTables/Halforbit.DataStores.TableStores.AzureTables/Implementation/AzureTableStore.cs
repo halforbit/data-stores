@@ -155,9 +155,17 @@ namespace Halforbit.DataStores.TableStores.AzureTables.Implementation
             foreach (var observer in _untypedObservers)
                 await observer.BeforeDelete(key).ConfigureAwait(false);
 
-            return await ExecuteTableOperationAsync(
+            var result = await ExecuteTableOperationAsync(
                 TableOperation.Delete(existingTableEntity), 
                 HttpStatusCode.NoContent).ConfigureAwait(false);
+
+            foreach (var observer in _typedObservers)
+                await observer.AfterDelete(key).ConfigureAwait(false);
+
+            foreach (var observer in _untypedObservers)
+                await observer.AfterDelete(key).ConfigureAwait(false);
+
+            return result;
         }
 
         public Task<IReadOnlyList<KeyValuePair<TKey, bool>>> Delete(
