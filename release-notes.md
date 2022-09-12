@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2022-09-12
+
+#### 3.13.8
+
+- Added overloads to `Map` builder methods to allow specifying key maps a lambda over a string interpolation, in the form `k => $"forecasts/{k.PostalCode}/{k.Date:yyyy/MM/dd}"`.
+
 ### 2022-03-29
 
 #### 3.13.0

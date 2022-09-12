@@ -7,8 +7,10 @@ using Halforbit.DataStores.FileStores.Serialization.Json.Implementation;
 using Halforbit.DataStores.LocalStorage;
 using Halforbit.DataStores.WebStorage;
 using Halforbit.ObjectTools.DeferredConstruction;
+using Halforbit.ObjectTools.ObjectStringMap.Implementation;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -135,6 +137,30 @@ namespace Halforbit.DataStores
     public static class DataStoreBuilderExtensions
     {
         // Mapping ////////////////////////////////////////////////////////////
+
+        public static IDataStoreDescription<TKey, TValue> Map<TKey, TValue>(
+            this INeedsDocumentMap target,
+            Expression<Func<TValue, object>> partition,
+            Expression<Func<TKey, string>> keyMap)
+            where TValue : IDocument
+        {
+            return Map<TKey, TValue>(target, partition, StringExpressionConverter.Convert(keyMap));
+        }
+
+        public static IDataStoreDescription<TKey, TValue> Map<TKey, TValue>(
+            this INeedsDocumentMap target,
+            Expression<Func<TKey, string>> keyMap)
+            where TValue : IDocument
+        {
+            return Map<TKey, TValue>(target, StringExpressionConverter.Convert(keyMap));
+        }
+
+        public static IDataStoreDescription<TKey, TValue> Map<TKey, TValue>(
+            this INeedsMap target,
+            Expression<Func<TKey, string>> keyMap)
+        {
+            return Map<TKey, TValue>(target, StringExpressionConverter.Convert(keyMap));
+        }
 
         public static IDataStoreDescription<TKey, TValue> Map<TKey, TValue>(
             this INeedsDocumentMap target,
