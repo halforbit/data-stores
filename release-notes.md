@@ -4,6 +4,10 @@
 
 ### 2022-09-12
 
+#### 3.13.13
+
+- Update to Newtonsoft.Json 13.0.1 and Halforbit.ObjectTools 1.1.22
+
 #### 3.13.8
 
 - Added overloads to `Map` builder methods to allow specifying key maps as a lambda over a string interpolation, in the form `k => $"forecasts/{k.PostalCode}/{k.Date:yyyy/MM/dd}"`.
