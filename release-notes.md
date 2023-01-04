@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2023-01-03
+
+#### 3.13.14
+
+- Update to Halforbit.ObjectTools 1.1.24 to pick up bug fixes for lambda-specified key maps.
+
 ### 2022-09-12
 
 #### 3.13.13
