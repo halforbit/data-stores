@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2023-05-21
+
+#### 3.14.0
+
+- Change blob storage integration to use `Azure.Storage.Blobs` 12.16.0.
+
 ### 2023-01-03
 
 #### 3.13.16
