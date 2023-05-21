@@ -1,6 +1,9 @@
-﻿using Halforbit.Facets.Attributes;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+﻿using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.Sas;
+using Halforbit.Facets.Attributes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +16,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 {
     public class BlobFileStore : IFileStore
     {
-        readonly Lazy<CloudBlobContainer> _cloudBlobContainer;
+        readonly Lazy<BlobContainerClient> _cloudBlobContainer;
         
         readonly string _connectionString;
         
@@ -39,17 +42,15 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
             _contentEncoding = contentEncoding;
 
-            _cloudBlobContainer = new Lazy<CloudBlobContainer>(() =>
+            _cloudBlobContainer = new Lazy<BlobContainerClient>(() =>
             {
-                var cloudStorageAccount = CloudStorageAccount.Parse(_connectionString);
+                var blobServiceClient = new BlobServiceClient(_connectionString);
 
-                var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
+                var blobContainerClient = blobServiceClient.GetBlobContainerClient(_containerName);
 
-                var cloudBlobContainer = cloudBlobClient.GetContainerReference(_containerName);
+                blobContainerClient.CreateIfNotExists();
 
-                cloudBlobContainer.CreateIfNotExistsAsync().Wait();
-
-                return cloudBlobContainer;
+                return blobContainerClient;
             });
 
             _fileStoreContext = new Lazy<IFileStoreContext>(() => new BlobFileStoreContext(
@@ -74,35 +75,14 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
         {
             var results = new List<string>();
 
-            var blobContinuationToken = default(BlobContinuationToken);
+            var enumerator = _cloudBlobContainer.Value
+                .GetBlobsAsync(prefix: pathPrefix)
+                .GetAsyncEnumerator();
 
-            do
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                var resultSegment = await _cloudBlobContainer.Value.ListBlobsSegmentedAsync(
-                    prefix: pathPrefix,
-                    useFlatBlobListing: true,
-                    blobListingDetails: BlobListingDetails.None,
-                    maxResults: null,
-                    currentToken: blobContinuationToken,
-                    options: null,
-                    operationContext: null).ConfigureAwait(false);
-
-                foreach (var item in resultSegment.Results)
-                {
-                    if (item is CloudBlobDirectory cloudBlockDirectory)
-                    {
-                        results.AddRange(await GetFiles(cloudBlockDirectory.Prefix, extension).ConfigureAwait(false));
-                    }
-
-                    if (item is CloudBlockBlob cloudBlockBlob)
-                    {
-                        results.Add(cloudBlockBlob.Name);
-                    }
-                }
-                
-                blobContinuationToken = resultSegment.ContinuationToken;
+                results.Add(enumerator.Current.Name);
             }
-            while (blobContinuationToken != null);
 
             return results;
         }
@@ -111,22 +91,11 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             string path,
             bool getETag = false)
         {
-            var memoryStream = new MemoryStream();
-
-            var blob = GetBlob(path);
-
-            await blob.DownloadToStreamAsync(
-                target: memoryStream,
-                accessCondition: default,
-                options: new BlobRequestOptions
-                {
-                    DisableContentMD5Validation = true
-                },
-                operationContext: default).ConfigureAwait(false);
+            var response = await GetBlob(path).DownloadContentAsync().ConfigureAwait(false);
 
             return new FileStoreReadAllBytesResult(
-                bytes: memoryStream.ToArray(),
-                eTag: getETag ? blob.Properties.ETag : null);
+                bytes: response.Value.Content.ToArray(),
+                eTag: response.Value.Details.ETag.ToString());
         }
 
         public async Task<bool> ReadStream(
@@ -136,16 +105,7 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
         {
             if (getETag) throw new NotImplementedException("eTag based optimistic concurrency is not implemented.");
 
-            var blob = GetBlob(path);
-
-            await blob.DownloadToStreamAsync(
-                target: contents,
-                accessCondition: default,
-                options: new BlobRequestOptions
-                {
-                    DisableContentMD5Validation = true
-                },
-                operationContext: default).ConfigureAwait(false);
+            await GetBlob(path).DownloadToAsync(contents).ConfigureAwait(false);
 
             return true;
         }
@@ -155,59 +115,31 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             byte[] contents,
             string eTag = null)
         {
-            var tasks = new List<Task>();
-
-            var blob = GetBlob(path);
-
-            var updateProperties = false;
-
-            if(!string.IsNullOrWhiteSpace(_contentType))
+            try
             {
-                blob.Properties.ContentType = _contentType;
-
-                updateProperties = true;
+                await GetBlob(path)
+                    .UploadAsync(
+                        content: BinaryData.FromBytes(contents),
+                        options: new BlobUploadOptions
+                        {
+                            Conditions = eTag != null ?
+                                new BlobRequestConditions
+                                {
+                                    IfMatch = new ETag(eTag)
+                                } :
+                                null, 
+                            HttpHeaders = new BlobHttpHeaders
+                            {
+                                ContentType = _contentType,
+                                ContentEncoding = _contentEncoding
+                            }
+                        })
+                    .ConfigureAwait(false);
             }
-
-            if (!string.IsNullOrWhiteSpace(_contentEncoding))
+            catch (RequestFailedException rfex) 
+                when (rfex.Status == (int)HttpStatusCode.PreconditionFailed) 
             {
-                blob.Properties.ContentEncoding = _contentEncoding;
-
-                updateProperties = true;
-            }
-
-            if (eTag == null)
-            {
-                await blob.UploadFromByteArrayAsync(
-                    buffer: contents,
-                    index: 0,
-                    count: contents.Length).ConfigureAwait(false);
-            }
-            else
-            {
-                try
-                {
-                    await blob.UploadFromByteArrayAsync(
-                        buffer: contents,
-                        index: 0,
-                        count: contents.Length,
-                        accessCondition: AccessCondition.GenerateIfMatchCondition(eTag),
-                        options: null,
-                        operationContext: null).ConfigureAwait(false);
-                }
-                catch (StorageException stex)
-                {
-                    if (stex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
-                    {
-                        return false;
-                    }
-
-                    throw;
-                }
-            }
-
-            if (updateProperties)
-            {
-                await blob.SetPropertiesAsync().ConfigureAwait(false);
+                return false;
             }
 
             return true;
@@ -217,35 +149,23 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
         {
             if (eTag != null) throw new NotImplementedException("eTag based optimistic concurrency is not implemented for streams");
 
-            var blob = GetBlob(path);
-
-            var updateProperties = false;
-
-            if (!string.IsNullOrWhiteSpace(_contentType))
-            {
-                blob.Properties.ContentType = _contentType;
-
-                updateProperties = true;
-            }
-
-            if (!string.IsNullOrWhiteSpace(_contentEncoding))
-            {
-                blob.Properties.ContentEncoding = _contentEncoding;
-
-                updateProperties = true;
-            }
-
-            await blob.UploadFromStreamAsync(contents).ConfigureAwait(false);
-
-            if (updateProperties)
-            {
-                await blob.SetPropertiesAsync().ConfigureAwait(false);
-            }
+            await GetBlob(path)
+                .UploadAsync(
+                    content: contents,
+                    options: new BlobUploadOptions
+                    {
+                        HttpHeaders = new BlobHttpHeaders
+                        {
+                            ContentType = _contentType,
+                            ContentEncoding = _contentEncoding
+                        }
+                    })
+                .ConfigureAwait(false);
 
             return true;
         }
 
-        CloudBlockBlob GetBlob(string path) => _cloudBlobContainer.Value.GetBlockBlobReference(path);
+        BlobClient GetBlob(string path) => _cloudBlobContainer.Value.GetBlobClient(path);
 
         class BlobFileStoreContext : IFileStoreContext
         {
@@ -270,9 +190,12 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 {
                     var blob = _blobFileStore.GetBlob(key);
 
-                    await blob.FetchAttributesAsync().ConfigureAwait(false);
+                    var response = await blob.GetPropertiesAsync();
 
-                    return CloudBlockBlobToEntityInfo(blob);
+                    return BlobPropertiesToEntityInfo(
+                        name: blob.Name,
+                        uri: blob.Uri.AbsoluteUri,
+                        blobProperties: response.Value);
                 }
                 else
                 {
@@ -289,10 +212,10 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 var blob = _blobFileStore.GetBlob(key);
 
                 if(await _blobFileStore.Exists(key).ConfigureAwait(false))
-                {
-                    await blob.FetchAttributesAsync().ConfigureAwait(false);
+                {                                        
+                    var properties = await blob.GetPropertiesAsync().ConfigureAwait(false);
 
-                    var keyValues = blob.Metadata as IReadOnlyDictionary<string, string>;
+                    var keyValues = properties.Value.Metadata as IReadOnlyDictionary<string, string>;
 
                     if (keyValues != null && percentDecodeValues)
                     {
@@ -318,15 +241,9 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 var blob = _blobFileStore.GetBlob(key);
 
-                return new Uri(
-                    blob.Uri.AbsoluteUri + 
-                    blob.GetSharedAccessSignature(
-                        new SharedAccessBlobPolicy
-                        {
-                            SharedAccessExpiryTime = expiration,
-
-                            Permissions = AccessToSharedAccessPermissions(access)
-                        }));
+                return blob.GenerateSasUri(new BlobSasBuilder(
+                    permissions: AccessToBlobContainerSasPermissions(access),
+                    expiresOn: expiration));
             }
 
             public Task<IReadOnlyDictionary<string, EntityInfo>> ListEntityInfos(
@@ -347,11 +264,17 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
             {
                 var blob = _blobFileStore.GetBlob(key);
 
-                blob.Properties.ContentType = entityInfo.ContentType;
+                var properties = await blob.GetPropertiesAsync().ConfigureAwait(false);
 
-                blob.Properties.ContentEncoding = entityInfo.ContentEncoding;
-
-                await blob.SetPropertiesAsync().ConfigureAwait(false);
+                await blob.SetHttpHeadersAsync(new BlobHttpHeaders
+                {
+                    ContentType = entityInfo.ContentType,
+                    ContentHash = properties.Value.ContentHash,
+                    ContentEncoding = entityInfo.ContentEncoding,
+                    ContentLanguage = properties.Value.ContentLanguage,
+                    ContentDisposition = properties.Value.ContentDisposition,
+                    CacheControl = properties.Value.CacheControl
+                });
             }
 
             public async Task SetMetadata(
@@ -370,14 +293,18 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
 
                 var blob = _blobFileStore.GetBlob(key);
 
-                blob.Metadata.Clear();
+                var properties = await blob.GetPropertiesAsync();
+
+                var metadata = properties.Value.Metadata;
+
+                metadata.Clear();
 
                 foreach (var kv in keyValues)
                 {
-                    blob.Metadata[kv.Key] = kv.Value;
+                    metadata[kv.Key] = kv.Value;
                 }
 
-                await blob.SetMetadataAsync().ConfigureAwait(false);
+                await blob.SetMetadataAsync(metadata).ConfigureAwait(false);
             }
 
             void AssertAccess(Access access)
@@ -389,92 +316,96 @@ namespace Halforbit.DataStores.FileStores.BlobStorage.Implementation
                 }
             }
 
-            static EntityInfo CloudBlockBlobToEntityInfo(CloudBlockBlob cloudBlockBlob) => new EntityInfo(
-                cloudBlockBlob.Name,
-                cloudBlockBlob.Properties.LastModified.HasValue ?
-                    cloudBlockBlob.Properties.LastModified.Value.UtcDateTime :
-                    (DateTime?)null,
-                cloudBlockBlob.Properties.Length,
-                cloudBlockBlob.Uri.AbsoluteUri,
-                cloudBlockBlob.Properties.ContentType,
-                cloudBlockBlob.Properties.ContentEncoding,
-                cloudBlockBlob.Properties.ContentMD5,
-                ConvertLeaseState(cloudBlockBlob.Properties.LeaseState),
-                cloudBlockBlob.Properties.LeaseStatus == LeaseStatus.Locked);
+            static EntityInfo BlobPropertiesToEntityInfo(
+                string name,
+                string uri,
+                BlobProperties blobProperties) => new EntityInfo(
+                    name: name,
+                    lastModified: blobProperties.LastModified.UtcDateTime,
+                    size: blobProperties.ContentLength,
+                    absoluteUri: uri,
+                    contentType: blobProperties.ContentType,
+                    contentEncoding: blobProperties.ContentEncoding,
+                    contentHash: Convert.ToBase64String(blobProperties.ContentHash),
+                    leaseState: ConvertLeaseState(blobProperties.LeaseState),
+                    leaseLocked: blobProperties.LeaseStatus == LeaseStatus.Locked);
 
             static LeaseState ConvertLeaseState(
-                Microsoft.WindowsAzure.Storage.Blob.LeaseState s)
+                Azure.Storage.Blobs.Models.LeaseState s)
             {
                 switch(s)
                 {
-                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Available:
+                    case Azure.Storage.Blobs.Models.LeaseState.Available:
                         return LeaseState.Available;
-                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Breaking:
+                    case Azure.Storage.Blobs.Models.LeaseState.Breaking:
                         return LeaseState.Breaking;
-                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Broken:
+                    case Azure.Storage.Blobs.Models.LeaseState.Broken:
                         return LeaseState.Broken;
-                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Expired:
+                    case Azure.Storage.Blobs.Models.LeaseState.Expired:
                         return LeaseState.Expired;
-                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Leased:
+                    case Azure.Storage.Blobs.Models.LeaseState.Leased:
                         return LeaseState.Leased;
-                    case Microsoft.WindowsAzure.Storage.Blob.LeaseState.Unspecified:
-                        return LeaseState.Unspecified;
                     default: throw new Exception($"Unhandled LeaseState of '{s}'.");
                 }
             }
 
-            static SharedAccessBlobPermissions AccessToSharedAccessPermissions(Access access) =>
-                (access.HasFlag(Access.Delete) ? SharedAccessBlobPermissions.Delete : 0) |
-                (access.HasFlag(Access.Get) ? SharedAccessBlobPermissions.Read : 0) |
-                (access.HasFlag(Access.List) ? SharedAccessBlobPermissions.List : 0) |
-                (access.HasFlag(Access.Put) ? SharedAccessBlobPermissions.Write : 0);
+            static BlobContainerSasPermissions AccessToBlobContainerSasPermissions(Access access) =>
+                (access.HasFlag(Access.Delete) ? BlobContainerSasPermissions.Delete : 0) |
+                (access.HasFlag(Access.Get) ? BlobContainerSasPermissions.Read : 0) |
+                (access.HasFlag(Access.List) ? BlobContainerSasPermissions.List : 0) |
+                (access.HasFlag(Access.Put) ? BlobContainerSasPermissions.Write : 0);
 
             public async Task<string> AcquireLease(string key, TimeSpan leaseTime)
             {
-                var blob = _blobFileStore.GetBlob(key);
-
                 try
                 {
-                    return await blob.AcquireLeaseAsync(leaseTime).ConfigureAwait(false);
+                    return (await _blobFileStore
+                        .GetBlob(key)
+                        .GetBlobLeaseClient()
+                        .AcquireAsync(leaseTime)
+                        .ConfigureAwait(false))
+                        .Value.LeaseId;
                 }
-                catch(StorageException stex)
+                catch (RequestFailedException rfex) when (rfex.Status == 409)
                 {
-                    if (stex.RequestInformation.HttpStatusCode == 409)
-                    {
-                        throw new LeaseAlreadyAcquiredException();
-                    }
-                    else throw;
+                    throw new LeaseAlreadyAcquiredException();
                 }
             }
 
             public async Task RenewLease(string key, string leaseId)
             {
-                var blob = _blobFileStore.GetBlob(key);
-
-                await blob.RenewLeaseAsync(new AccessCondition { LeaseId = leaseId }).ConfigureAwait(false);
+                await _blobFileStore
+                    .GetBlob(key)
+                    .GetBlobLeaseClient(leaseId)
+                    .RenewAsync();
             }
 
             public async Task<string> ChangeLease(string key, string currentLeaseId)
             {
-                var blob = _blobFileStore.GetBlob(key);
-
-                return await blob.ChangeLeaseAsync(
-                    $"{Guid.NewGuid():N}",
-                    new AccessCondition { LeaseId = currentLeaseId }).ConfigureAwait(false);
+                return (await _blobFileStore
+                    .GetBlob(key)
+                    .GetBlobLeaseClient(currentLeaseId)
+                    .ChangeAsync($"{Guid.NewGuid():N}")
+                    .ConfigureAwait(false))
+                    .Value.LeaseId;
             }
 
             public async Task ReleaseLease(string key, string leaseId)
             {
-                var blob = _blobFileStore.GetBlob(key);
-
-                await blob.ReleaseLeaseAsync(new AccessCondition { LeaseId = leaseId }).ConfigureAwait(false);
+                await _blobFileStore
+                    .GetBlob(key)
+                    .GetBlobLeaseClient(leaseId)
+                    .ReleaseAsync()
+                    .ConfigureAwait(false);
             }
 
             public async Task BreakLease(string key, TimeSpan breakReleaseTime)
             {
-                var blob = _blobFileStore.GetBlob(key);
-
-                await blob.BreakLeaseAsync(breakReleaseTime).ConfigureAwait(false);
+                await _blobFileStore
+                    .GetBlob(key)
+                    .GetBlobLeaseClient()
+                    .BreakAsync(breakReleaseTime)
+                    .ConfigureAwait(false);
             }
 
             public Task<Uri> GetEntityUrl(string key)
