@@ -77,6 +77,13 @@ namespace Halforbit.DataStores.DocumentStores.PostgresMarten
             _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
 
             _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
+
+            if (_typedMutators.Any() || _untypedMutators.Any())
+            {
+                throw new NotSupportedException(
+                    "Mutators are not supported by the Postgres/Marten data stores integration, " +
+                    "and the integration has been deprecated.");
+            }
         }
 
         public IDataStoreContext<TKey> Context => throw new NotImplementedException();
