@@ -491,7 +491,14 @@ namespace Halforbit.DataStores.FileStores.Implementation
         {
             if (!await _fileStore.Exists(path).ConfigureAwait(false))
             {
-                return default(TValue);
+                if (_hasMutators)
+                {
+                    return await MutateGet(key, default);
+                }
+                else
+                {
+                    return default;
+                }
             }
 
             var contents = (await _fileStore.ReadAllBytes(path).ConfigureAwait(false)).Bytes;
