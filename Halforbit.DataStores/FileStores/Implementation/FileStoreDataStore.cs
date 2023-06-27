@@ -42,6 +42,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
         readonly IReadOnlyList<IMutator<TKey, TValue>> _typedMutators;
 
         readonly IReadOnlyList<IMutator> _untypedMutators;
+        
+        readonly bool _hasMutators;
 
         readonly ILogger _logger;
 
@@ -84,6 +86,8 @@ namespace Halforbit.DataStores.FileStores.Implementation
             _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
 
             _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
+
+            _hasMutators = _typedMutators.Any() || _untypedMutators.Any();
 
             _logger = logger;
 
@@ -206,7 +210,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
             else
             {
-                return await GetValue(path).ConfigureAwait(false);
+                return await GetValue(key, path).ConfigureAwait(false);
             }
         }
 
@@ -235,7 +239,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
             var values = await keys.SelectAsync(keyPath =>
-                GetValue($"{keyPath.Value}{_fileExtension}"),
+                GetValue(keyPath.Key, $"{keyPath.Value}{_fileExtension}"),
                 maxPending: DataStoresConcurrency.MaxOperations).ConfigureAwait(false);
 
             return values.Where(e => !e.IsDefaultValue());
@@ -251,9 +255,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             var keys = await ResolveKeyPaths(predicate).ConfigureAwait(false);
 
-            var values = await keys.SelectAsync(async kv =>
-                    new KeyValuePair<TKey, TValue>(kv.Key, await GetValue($"{kv.Value}{_fileExtension}")),
-                maxPending: DataStoresConcurrency.MaxOperations).ConfigureAwait(false);
+            var values = await keys
+                .SelectAsync(
+                    async kv => new KeyValuePair<TKey, TValue>(
+                        kv.Key, 
+                        await GetValue(kv.Key, $"{kv.Value}{_fileExtension}")),
+                    maxPending: DataStoresConcurrency.MaxOperations)
+                .ConfigureAwait(false);
 
             return values;
         }
@@ -479,7 +487,7 @@ namespace Halforbit.DataStores.FileStores.Implementation
             return contents;
         }
 
-        async Task<TValue> GetValue(string path)
+        async Task<TValue> GetValue(TKey key, string path)
         {
             if (!await _fileStore.Exists(path).ConfigureAwait(false))
             {
@@ -495,7 +503,14 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
             try
             {
-                return await _serializer.Deserialize<TValue>(contents).ConfigureAwait(false);
+                var value = await _serializer.Deserialize<TValue>(contents).ConfigureAwait(false);
+
+                if (_hasMutators)
+                {
+                    value = await MutateGet(key, value);                    
+                }
+
+                return value;
             }
             catch (Exception ex)
             {
@@ -629,6 +644,17 @@ namespace Halforbit.DataStores.FileStores.Implementation
             }
         }
 
+        async Task<TValue> MutateGet(TKey key, TValue value)
+        {
+            foreach (var mutator in _typedMutators)
+                value = await mutator.MutateGet(key, value).ConfigureAwait(false);
+
+            foreach (var mutator in _untypedMutators)
+                value = (TValue)await mutator.MutateGet(key, value).ConfigureAwait(false);
+
+            return value;
+        }
+
         async Task<TValue> MutatePut(TKey key, TValue value)
         {
             foreach (var mutator in _typedMutators)
@@ -660,6 +686,13 @@ namespace Halforbit.DataStores.FileStores.Implementation
 
         public async Task<bool> GetToStream(TKey key, Stream stream)
         {
+            if (_hasMutators)
+            {
+                throw new NotSupportedException(
+                    $"The {nameof(GetToStream)} method cannot be used with a data store that " +
+                    $"has one or more mutator(s) applied.");
+            }
+
             key.ThrowIfKeyIsDefaultValue();
 
             var path = GetPath(key);
@@ -704,8 +737,11 @@ namespace Halforbit.DataStores.FileStores.Implementation
                 var keys = _dataStore.ResolveKeyPaths(prefix).Result;
 
                 var tasks = keys
-                    .Select(async keyPath => await _dataStore.GetValue(
-                        $"{keyPath.Value}{_dataStore._fileExtension}").ConfigureAwait(false))
+                    .Select(async keyPath => await _dataStore
+                        .GetValue(
+                            keyPath.Key,
+                            $"{keyPath.Value}{_dataStore._fileExtension}")
+                        .ConfigureAwait(false))
                     .ToArray();
 
                 Task.WaitAll(tasks);

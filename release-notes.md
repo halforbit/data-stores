@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### 2023-06-27
+
+#### 3.15.0
+
+- Added `MutateGet` method option to mutators.
+
 ### 2023-05-21
 
 #### 3.14.0

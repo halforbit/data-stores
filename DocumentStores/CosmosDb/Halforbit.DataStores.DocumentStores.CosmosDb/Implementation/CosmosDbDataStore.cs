@@ -175,6 +175,14 @@ namespace Halforbit.DataStores.DocumentStores.CosmosDb.Implementation
             _typedMutators = typedMutators ?? EmptyReadOnlyList<IMutator<TKey, TValue>>.Instance;
 
             _untypedMutators = untypedMutators ?? EmptyReadOnlyList<IMutator>.Instance;
+
+            if (_typedMutators.Any() || _untypedMutators.Any())
+            {
+                throw new NotSupportedException(
+                    "Mutators are not supported by the CosmosDB data stores integration, and " +
+                    "the integration has been deprecated. Please migrate to " +
+                    "Halforbit.DocumentStores for full support.");
+            }
         }
 
         public Task<bool> Create(
