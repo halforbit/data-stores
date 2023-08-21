@@ -1,145 +1,141 @@
-# Data Stores
+# Halforbit Data Stores
 
-**Data Stores** lets you store, retrieve, and query your data with a universal, low-ceremony pattern that abstracts away the implementation details of any given storage technology.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) &nbsp;[![Build status](https://ci.appveyor.com/api/projects/status/w8tliyvw96obytai?svg=true)](https://ci.appveyor.com/project/halforbit/data-stores) &nbsp;[![Nuget Package](https://img.shields.io/nuget/v/Halforbit.DataStores.svg)](#nuget-packages)
 
-Pluggable integrations are provided to many popular storage systems and techniques, including **Local Storage**, **Azure Blob Storage**, **CosmosDb** (formerly **DocumentDb**), **PostgreSQL+Marten**, **Azure Table Storage**, **FTP**, **Amazon S3**, **Google Drive**, **JSON**, **YAML**, **XML**, **GZIP**, **LZMA**, as well as super-efficient **Bond** and **Protobuf** serialization. More is planned in the [Roadmap](docs/roadmap.md).
+Data Stores lets you create strongly-typed serverless databases out of simple, cheap cloud storage. These stores can be used to easily persist, locate, and retrieve data over a wide variety of storage providers and formats with a single, simple abstraction. 
 
-## What Is It?
+## Features
 
-Data Stores lets you easily define a **data context** that describes any number of **data stores**. These data stores can exist on simple file storage, or on any other supported data store, such as a document database.
+- **Inexpensive Serverless Databases:** Use cloud storage to create typed, distributed, highly available, low-cost databases with sophisticated keying, richly structured documents, and compression at-rest.
 
-In the simplest form, Data Stores lets you use a file folder like a **NoSQL** (in fact **NoDB**) data store. This folder can be stored on local disk, or one of many cloud file storage services. These file-based data store implementations are called **[file stores](docs/file-stores.md)**.
+- **Easy Distributed Caches:** Create persistent caches to increase performance of backend API controllers, or reduce the number of calls to expensive third-party web APIs.
 
-In the most robust form, Data Stores lets you integrate to many different kinds of data storage services, such as document databases. You can use the advanced indexing and querying abilities of these stores, while making code that is indifferent to their implementation details. 
+- **Many Supported Storage Providers:** Including **Azure Blobs**, **Azure Tables**, **Amazon S3**, **FTP**, **SFTP**, and **Local File Storage**.
 
-## A Simple Example
+- **Many Supported Formats:** Including human-readable structured data like **JSON** and **YAML**, efficient structured binary data with **Bond** or **Protobuf**, delimited tabular data like **CSV** and **TSV**, and binary data such as **images** and **raw text**. 
 
-### Step 0: Define Data Classes and Key Types
+- **Optional Compression:** Flip a switch and compress data payloads up to 10x with **GZip** or **LZMA**, improving response times and reducing storage and bandwidth costs.
 
-First make some **data classes** to hold your data. These are typically simple POCOs with no behavior, only properties:
+- **One Easy Abstraction:** Trade in your error prone bare metal integrations and high ceremony repository patterns for a single, elegant `IDataStore` interface that is uniform across storage platforms and formats.
 
-```cs
-public class Vehicle
-{
-    public Vehicle(string vin, int year, string make, string model)
-    {
-        Vin = vin;
-        Year = year;
-        Make = make;
-        Model = model;
-    }
+## Getting Started
 
-    public string Vin { get; }
-    public int Year { get; }
-    public string Make { get; }
-    public string Model { get; }
-
-    public class Key
-    {
-        public Key(string make, string vin)
-        {
-            Make = make;
-            Vin = vin;
-        }
-
-        public string Make { get; }
-        public string Vin { get; }
-    }
-}
-```
-
-In this example, we have defined a nested **key type** `Vehicle.Key` for uniquely identifying and storing things of this type. The key type does not need to be a nested class, and can also be a simple type, like `int` or `Guid`. 
-
-### Step 1: Define a Data Context
-
-Now define a **data context** that describes all of your data stores:
-
-```cs
-public interface ITestDataContext : IContext
-{
-    [RootPath("data"), JsonSerialization, FileExtension(".json")]
-    [KeyMap("vehicles/{Make}/{Vin}")]
-    IDataStore<Vehicle.Key, Vehicle> Vehicles { get; }
-}
-```
-
-This is an interface, with an `IDataStore<,>` property for each data store, decorated with **facet** attributes. These facets describe aspects of our data store. In this example:
-
-- `RootPath` declares that we want the data store to write to a local folder called `data`.
-- `JsonSerialization` declares that we want the data to be serialized using JSON.
-- `FileExtension` declares that we want our data files to end with `.json`.
-- `KeyMap` declares that we want our entity file to be in a subfolder like `vehicles/{Make}`, with the file named with `Vin`, e.g.: 
+1. **Install NuGet Packages:** Install the NuGet packages for your desired storage providers and formats:
+    ```powershell
+    Install-Package Halforbit.DataStores
     ```
-    vehicles/Ford/1HGBH40JXMN109186.json
-    ```
+    See the [NuGet Packages](#nuget-packages) section below for a list of available NuGet packages and what storage providers and formats they support.
 
-### Step 2: Use It!
+2. **Define Your Stores:** Use the `DataStore` type to create ad-hoc stores, or define them as properties on a data context.
+   
+3. **Use Your Stores:** Persist and retrieve data with your stores, or inspect write times, sizes, metadata and more with the stores' `Context` property.
 
-We can now use a `ContextFactory` to create an instance of our `ITestDataContext`:
+There are many options to choose from when creating a store. A store can:
+- be defined as a property of a **data context**, or created **ad-hoc** and stored in a local variable. 
+- be **keyed** with **simple** types like `Guid` or `string`, with the **properties** of a `class`, `record`, or `struct`, or be a keyless **singleton** storing a single value.
+- store **values** as **simple** types like `string` or `byte[]`, or **structured** `class`, `record`, or `struct` types serialized as e.g. JSON or TSV.
+
+
+## Example Usage
+
+
+Let's make a simple ad-hoc store to persist a `record` value using Azure Blobs, formatted as JSON, and key it with the properties of a `record` key.
+
+First, we define a type to represent our **value**:
 
 ```cs
-var dataContext = new ContextFactory().Create<ITestDataContext>();
-
-var vehicle = new Vehicle("1HGBH40JXMN109186", 2017, "Ford", "Fusion");
-
-var vehicleKey = new Vehicle.Key(vehicle.Vin, vehicle.Make);
-
-dataContext.Vehicles.Create(vehicleKey, vehicle).Wait();
-
-var gottenVehicle = dataContext.Vehicles.Get(vehicleKey).Result;
-
-var queriedVehicles = dataContext.Vehicles.ListValues(k => k.Make == "Ford").Result;
+public record Person(
+    string Department,
+    Guid PersonId,
+    string FirstName,
+    string LastName);
 ```
 
-Most `IDataStore<,>` methods are Task-oriented to allow async behavior, so use `await`, `.Result`, `.Wait()`, etc. as appropriate.
+Next we define a type to represent our **key**:
 
-Note that the consuming code here doesn't know or care too much about which data store technology is used. This code could operate against anything from a local folder to a database server. The `IDataStore<,>` interface abstracts these details away. 
+```cs
+public record PersonKey(
+    string Department,
+    Guid PersonId);
+```
 
-## Learn More
+Next we create a store ad-hoc with a key type of `PersonKey`, and a value type of `Person`:
 
-- **[Keying in Data Stores](docs/keying.md)**
+```cs
+var store = DataStore
+    .Describe()
+    .BlobStorage()
+    .ConnectionString("<connection-string-here>")
+    .Container("<container-name-here>")
+    .ContentType("application/json")
+    .DefaultContentEncoding()
+    .JsonSerialization()
+    .NoCompression()
+    .FileExtension(".json")
+    .Map<PersonKey, Person>(k => $"people/{k.Department}/{k.PersonId}")
+    .Build();
+```
 
-- **[Data Contexts](docs/data-contexts.md)**
+The `Map<,>` method lets us define a bi-directional mapping between a `PersonKey` and a `string`. 
 
-- **[File Stores]()**
+Note that `people` here is acting similarly to a table or collection name, and the `Department` property is acting as a kind of partition key.
 
+Now we can put a `Person` in the store with the `Upsert` method:
 
-## What Data Stores Can I Use?
+```cs
+var key = new PersonKey(
+    Department: "development",
+    PersonId: Guid.NewGuid());
 
-Data Store integrations are provided for **Local Storage**, **CosmosDb**, **Azure Blob Storage**, **Azure Table Storage**, **PostgreSQL/Marten Document Database**, **Amazon S3**, **FTP**, **HTTP**, and **Google Drive**.
+var value = new Person(
+    Department: key.Department,
+    PersonId: key.PersonId,
+    FirstName: "Steve",
+    LastName: "Smith");
 
-Serialization integrations are provided for **JSON**, **YAML**, **XML**, as well as super-efficient **Bond** and **Protobuf** protocols. Note that some serializers have special requirements for data classes to be serialized.
+await store.Upsert(key, value);
+```
 
-Optional compression via **GZIP** or **LZMA** (the compression used by 7-Zip) is provided as well. This can make a large difference in stored / transferred data payload size for formats like JSON.
+We can get a `Person` by their `PersonKey`:
 
-## How Do I Get It?
+```cs
+var value = await store.Get(key);
+```
 
-Data Stores is available as a constellation of Nuget packages, broken up primarily by third party dependency requirements.
+We can delete a `Person` by their `PersonKey`:
 
-The `Halforbit.DataStores` package is required, and includes Local Storage, FTP, JSON, and GZIP capabilities. 
+```cs
+await store.Delete(key);
+```
 
-Include any other packages with the functionality you desire:
+We can list the `PersonKey`s in the store, optionally filtered by `PersonKey.Department`:
 
-[Halforbit.DataStores](https://www.nuget.org/packages/Halforbit.DataStores/)
+```cs
+var keys = await store.ListKeys(k => k.Department == "development");
+```
 
-[Halforbit.DataStores.FileStores.BlobStorage](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.BlobStorage/)
+We can get all of the `Person`s in the store, optionally filtered by `PersonKey.Department`:
 
-[Halforbit.DataStores.FileStores.AmazonS3](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.AmazonS3/)
+```cs
+var values = await store.ListValues(k => k.Department == "development");
+```
 
-[Halforbit.DataStores.FileStores.GoogleDrive](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.GoogleDrive/)
+<a name="nuget-packages"></a>
+## NuGet Packages
 
-[Halforbit.DataStores.FileStores.Compression.Lzma](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Compression.Lzma/)
+The following NuGet packages are provided, parted out by their dependencies. Install the ones that contain the storage providers and formats you wish to use.
 
-[Halforbit.DataStores.FileStores.Serialization.Yaml](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Yaml/)
+| Storage Provider or Format | NuGet Package |
+|----------------------------|---------------|
+| Local File Storage, JSON Serialization, Raw Byte Serialization, GZip Compression | [`Halforbit.DataStores`](https://www.nuget.org/packages/Halforbit.DataStores) |
+| Azure Blob Storage | [`Halforbit.DataStores.FileStores.BlobStorage`](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.BlobStorage) |
+| Azure Table Storage | [`Halforbit.DataStores.TableStores.AzureTables`](https://www.nuget.org/packages/Halforbit.DataStores.TableStores.AzureTables) |
+| Amazon S3 Storage | [`Halforbit.DataStores.FileStores.AmazonS3`](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.AmazonS3) |
+| YAML Serialization | [`Halforbit.DataStores.FileStores.Serialization.Yaml`](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Yaml) |
+| Protobuf Serialization | [`Halforbit.DataStores.FileStores.Serialization.Protobuf`](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Protobuf) |
+| Bond Serialization | [`Halforbit.DataStores.FileStores.Serialization.Bond`](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Bond) |
+| LZMA Compression | [`Halforbit.DataStores.FileStores.Compression.Lzma`](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Compression.Lzma) |
 
-[Halforbit.DataStores.FileStores.Serialization.Protobuf](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Protobuf/)
+## License 
 
-[Halforbit.DataStores.FileStores.Serialization.Bond](https://www.nuget.org/packages/Halforbit.DataStores.FileStores.Serialization.Bond/)
-
-[Halforbit.DataStores.DocumentStores.CosmosDb](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.CosmosDb/)
-
-[Halforbit.DataStores.DocumentStores.PostgresMarten](https://www.nuget.org/packages/Halforbit.DataStores.DocumentStores.PostgresMarten/)
-
-[Halforbit.DataStores.TableStores.AzureTables](https://www.nuget.org/packages/Halforbit.DataStores.TableStores.AzureTables/)
-
-[![Build status](https://ci.appveyor.com/api/projects/status/w8tliyvw96obytai?svg=true)](https://ci.appveyor.com/project/halforbit/data-stores)
+Data Stores is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
