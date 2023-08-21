@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) &nbsp;[![Build status](https://ci.appveyor.com/api/projects/status/w8tliyvw96obytai?svg=true)](https://ci.appveyor.com/project/halforbit/data-stores) &nbsp;[![Nuget Package](https://img.shields.io/nuget/v/Halforbit.DataStores.svg)](#nuget-packages)
 
-Data Stores lets you use simple cloud storage to create serverless, distributed, highly available, low-cost databases and caches with sophisticated keying, richly structured documents, and compression at-rest. 
+Data Stores lets you use simple cloud storage to create serverless, distributed, highly available, low-cost databases and caches with sophisticated keying, richly structured values, and compression at-rest. 
 
 Data Stores integrates with a wide variety of storage providers and formats, all using a single, simple abstraction. 
 
